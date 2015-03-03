@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,13 +99,6 @@ public class AlbumListFragment extends Fragment {
             showAlbums();
         }
         return rootView;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onAlbumListInteraction(uri);
-        }
     }
 
     @Override
@@ -224,7 +216,15 @@ public class AlbumListFragment extends Fragment {
 
     private void showPhotos(String albumTitle, List<Photo> photos) {
         Log.d(TAG, "SHOW PHOTOS()");
-        Toast.makeText(getActivity(), "Show Photos", Toast.LENGTH_SHORT).show();
+        PhotoManagerActivity managerActivity = (PhotoManagerActivity) getActivity();
+        managerActivity.createPhotoListInstance(albumTitle, photos);
+    }
+
+    // TODO: Rename method, update argument and hook method into UI event
+    public void onButtonPressed(Uri uri) {
+        if (mListener != null) {
+            mListener.onAlbumListInteraction(uri);
+        }
     }
 
     /**
@@ -232,9 +232,9 @@ public class AlbumListFragment extends Fragment {
      * they can be displayed in the list.
      */
     private static List<ThumbnailItem<Album>> wrap(List<Album> albums) {
-        List<ThumbnailItem<Album>> result = new ArrayList<ThumbnailItem<Album>>();
+        List<ThumbnailItem<Album>> result = new ArrayList<>();
         for (Album album : albums) {
-            result.add(new ThumbnailItem<Album>(album.getName(), album
+            result.add(new ThumbnailItem<>(album.getName(), album
                     .getThumbnailUrl(), album));
         }
         return result;

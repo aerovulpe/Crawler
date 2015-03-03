@@ -7,10 +7,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.List;
+
 import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.base.BaseActivity;
+import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
+import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
 
 public class MainActivity extends BaseActivity implements PhotoManagerActivity {
@@ -44,11 +48,30 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
 
     public void createAlbumListInstance(String accountID) {
         FragmentManager manager = getFragmentManager();
-        if (manager.findFragmentByTag(accountID) != null) return;
+        if (manager.findFragmentByTag(accountID) != null) {
+            manager.beginTransaction().show(manager.findFragmentByTag(accountID)).commit();
+            return;
+        }
 
         AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
         manager.beginTransaction()
                 .add(R.id.container, fragment, accountID)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    @Override
+    public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
+        FragmentManager manager = getFragmentManager();
+        if (manager.findFragmentByTag(albumTitle) != null) {
+            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle)).commit();
+            return;
+        }
+
+        PhotoListFragment fragment = PhotoListFragment.newInstance(albumTitle, photos);
+        manager.beginTransaction()
+                .add(R.id.container, fragment, albumTitle)
+                .addToBackStack(null)
                 .commit();
     }
 
