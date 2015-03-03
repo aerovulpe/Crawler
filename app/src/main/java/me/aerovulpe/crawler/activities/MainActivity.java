@@ -23,9 +23,11 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent intent = getIntent();
-        if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
-            createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
+                createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
+            }
         }
     }
 
@@ -46,17 +48,26 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() == 0) {
+            this.finish();
+        } else {
+            getFragmentManager().popBackStack();
+        }
+    }
+
     public void createAlbumListInstance(String accountID) {
         FragmentManager manager = getFragmentManager();
         if (manager.findFragmentByTag(accountID) != null) {
-            manager.beginTransaction().show(manager.findFragmentByTag(accountID)).commit();
+            manager.beginTransaction().show(manager.findFragmentByTag(accountID))
+                    .commit();
             return;
         }
 
         AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
         manager.beginTransaction()
                 .add(R.id.container, fragment, accountID)
-                .addToBackStack(null)
                 .commit();
     }
 
@@ -64,7 +75,8 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
         FragmentManager manager = getFragmentManager();
         if (manager.findFragmentByTag(albumTitle) != null) {
-            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle)).commit();
+            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle))
+                    .commit();
             return;
         }
 
