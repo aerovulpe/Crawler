@@ -21,10 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="me.aerovulpe.crawler.activities.SlideshowPreferences"
-            android:label="@string/preferences_name" >
-        </activity>
     </application>
 
 </manifest>
