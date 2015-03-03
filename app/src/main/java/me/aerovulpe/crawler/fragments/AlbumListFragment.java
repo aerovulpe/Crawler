@@ -116,16 +116,19 @@ public class AlbumListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if(((ActionBarActivity)getActivity()).getSupportActionBar() != null) ((ActionBarActivity)getActivity())
-                .getSupportActionBar().show();
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+                ((ActionBarActivity) getActivity())
+                        .getSupportActionBar().show();
+        }
     }
 
     /**
