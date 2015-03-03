@@ -40,26 +40,12 @@ import me.aerovulpe.crawler.ui.ThumbnailItem;
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
-public class AlbumListFragment extends Fragment {
+public class AlbumListFragment extends Fragment implements View.OnFocusChangeListener {
 
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
-    private PhotoManagerActivity mListener;
-
     private static final String TAG = AlbumListFragment.class.getSimpleName();
-
+    private PhotoManagerActivity mListener;
     private String mAccountID;
-
-    private static class SavedConfiguration {
-        public final List<Album> albums;
-        public final CachedImageFetcher cachedImageFetcher;
-
-        public SavedConfiguration(List<Album> albums,
-                                  CachedImageFetcher cachedImageFetcher) {
-            this.albums = albums;
-            this.cachedImageFetcher = cachedImageFetcher;
-        }
-    }
-
     private ListView mainList;
     private LayoutInflater inflater;
     private List<Album> albums = new ArrayList<>();
@@ -68,6 +54,27 @@ public class AlbumListFragment extends Fragment {
 
     public AlbumListFragment() {
         // Required empty public constructor
+    }
+
+    public static AlbumListFragment newInstance(String accountID) {
+        AlbumListFragment fragment = new AlbumListFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_ACCOUNT_ID, accountID);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    /**
+     * Wraps a list of {@link Album}s into a list of {@link ThumbnailItem}s, so
+     * they can be displayed in the list.
+     */
+    private static List<ThumbnailItem<Album>> wrap(List<Album> albums) {
+        List<ThumbnailItem<Album>> result = new ArrayList<>();
+        for (Album album : albums) {
+            result.add(new ThumbnailItem<>(album.getName(), album
+                    .getThumbnailUrl(), album));
+        }
+        return result;
     }
 
     @Override
@@ -92,6 +99,7 @@ public class AlbumListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.album_list, container, false);
         mainList = (ListView) rootView.findViewById(R.id.albumlist);
         this.inflater = inflater;
+        rootView.setOnFocusChangeListener(this);
 
         // TODO: This is picasa specific.
         if (mAccountID != null) {
@@ -119,16 +127,6 @@ public class AlbumListFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
-            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-                ((ActionBarActivity) getActivity())
-                        .getSupportActionBar().show();
-        }
     }
 
     /**
@@ -197,14 +195,6 @@ public class AlbumListFragment extends Fragment {
 
     }
 
-    public static AlbumListFragment newInstance(String accountID) {
-        AlbumListFragment fragment = new AlbumListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_ACCOUNT_ID, accountID);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     private void showAlbums() {
         if (albums == null) {
             return;
@@ -238,16 +228,23 @@ public class AlbumListFragment extends Fragment {
         }
     }
 
-    /**
-     * Wraps a list of {@link Album}s into a list of {@link ThumbnailItem}s, so
-     * they can be displayed in the list.
-     */
-    private static List<ThumbnailItem<Album>> wrap(List<Album> albums) {
-        List<ThumbnailItem<Album>> result = new ArrayList<>();
-        for (Album album : albums) {
-            result.add(new ThumbnailItem<>(album.getName(), album
-                    .getThumbnailUrl(), album));
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if (v == getView() && hasFocus) {
+            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+                ((ActionBarActivity) getActivity())
+                        .getSupportActionBar().show();
         }
-        return result;
+    }
+
+    private static class SavedConfiguration {
+        public final List<Album> albums;
+        public final CachedImageFetcher cachedImageFetcher;
+
+        public SavedConfiguration(List<Album> albums,
+                                  CachedImageFetcher cachedImageFetcher) {
+            this.albums = albums;
+            this.cachedImageFetcher = cachedImageFetcher;
+        }
     }
 }

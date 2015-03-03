@@ -26,9 +26,9 @@ import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 
-public class PhotoListFragment extends Fragment {
+public class PhotoListFragment extends Fragment implements View.OnFocusChangeListener {
 
-    public static final String ARG_ALBUM_TITLE= "me.aerovulpe.crawler.PHOTO_LIST.album_title";
+    public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_LIST.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_LIST.photos";
 
     private static final String TAG = PhotoListFragment.class.getSimpleName();
@@ -44,6 +44,28 @@ public class PhotoListFragment extends Fragment {
 
     public PhotoListFragment() {
         // Required empty public constructor
+    }
+
+    /**
+     * Wraps a list of {@link Photo}s into a list of {@link ThumbnailItem}s, so
+     * they can be displayed in the list.
+     */
+    private static List<ThumbnailItem<Photo>> wrap(List<Photo> photos) {
+        List<ThumbnailItem<Photo>> result = new ArrayList<>();
+        for (Photo photo : photos) {
+            result.add(new ThumbnailItem<>(photo.getName(), photo
+                    .getThumbnailUrl(), photo));
+        }
+        return result;
+    }
+
+    public static PhotoListFragment newInstance(String albumTitle, List<Photo> photos) {
+        PhotoListFragment fragment = new PhotoListFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_ALBUM_TITLE, albumTitle);
+        args.putParcelableArrayList(ARG_PHOTOS, (ArrayList) photos);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -66,6 +88,7 @@ public class PhotoListFragment extends Fragment {
         mainList = (ListView) rootView.findViewById(R.id.photolist);
         this.inflater = inflater;
         loadPhotos();
+        rootView.setOnFocusChangeListener(this);
         return rootView;
     }
 
@@ -83,13 +106,6 @@ public class PhotoListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if(((ActionBarActivity)getActivity()).getSupportActionBar() != null) ((ActionBarActivity)getActivity())
-                .getSupportActionBar().hide();
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
@@ -103,11 +119,11 @@ public class PhotoListFragment extends Fragment {
 
         MultiColumnImageAdapter.ThumbnailClickListener<Photo> clickListener =
                 new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
-            @Override
-            public void thumbnailClicked(Photo photo) {
-                loadPhoto(photo);
-            }
-        };
+                    @Override
+                    public void thumbnailClicked(Photo photo) {
+                        loadPhoto(photo);
+                    }
+                };
 
         mainList.setAdapter(new PhotosAdapter(wrap(mPhotos), inflater,
                 clickListener, cachedImageFetcher, this.getResources()
@@ -122,19 +138,6 @@ public class PhotoListFragment extends Fragment {
         Toast.makeText(getActivity(), "Load Photo", Toast.LENGTH_SHORT).show();
     }
 
-    /**
-     * Wraps a list of {@link Photo}s into a list of {@link ThumbnailItem}s, so
-     * they can be displayed in the list.
-     */
-    private static List<ThumbnailItem<Photo>> wrap(List<Photo> photos) {
-        List<ThumbnailItem<Photo>> result = new ArrayList<>();
-        for (Photo photo : photos) {
-            result.add(new ThumbnailItem<>(photo.getName(), photo
-                    .getThumbnailUrl(), photo));
-        }
-        return result;
-    }
-
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
@@ -142,12 +145,12 @@ public class PhotoListFragment extends Fragment {
         }
     }
 
-    public static PhotoListFragment newInstance(String albumTitle, List<Photo> photos) {
-        PhotoListFragment fragment = new PhotoListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_ALBUM_TITLE, albumTitle);
-        args.putParcelableArrayList(ARG_PHOTOS, (ArrayList)photos);
-        fragment.setArguments(args);
-        return fragment;
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        if (v == getView() && hasFocus) {
+            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+                ((ActionBarActivity) getActivity())
+                        .getSupportActionBar().hide();
+        }
     }
 }
