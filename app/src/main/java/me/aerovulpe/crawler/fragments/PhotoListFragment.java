@@ -8,11 +8,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 
 public class PhotoListFragment extends Fragment {
 
-    private OnPhotoListInteractionListener mListener;
+    private PhotoManagerActivity mListener;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -37,7 +38,7 @@ public class PhotoListFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnPhotoListInteractionListener) activity;
+            mListener = (PhotoManagerActivity) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -49,10 +50,4 @@ public class PhotoListFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
-
-    public interface OnPhotoListInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
-
 }

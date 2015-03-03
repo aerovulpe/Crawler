@@ -7,12 +7,13 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.base.BaseActivity;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 
 
-public class MainActivity extends BaseActivity implements AlbumListFragment.OnAlbumListInteractionListener{
+public class MainActivity extends BaseActivity implements PhotoManagerActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,11 @@ public class MainActivity extends BaseActivity implements AlbumListFragment.OnAl
 
     @Override
     public void onAlbumListInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
 
     }
 }

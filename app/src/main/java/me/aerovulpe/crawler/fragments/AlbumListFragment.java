@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AlbumsAdapter;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
@@ -42,7 +43,7 @@ import me.aerovulpe.crawler.ui.ThumbnailItem;
 public class AlbumListFragment extends Fragment {
 
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
-    private OnAlbumListInteractionListener mListener;
+    private PhotoManagerActivity mListener;
 
     private static final String TAG = AlbumListFragment.class.getSimpleName();
 
@@ -114,7 +115,7 @@ public class AlbumListFragment extends Fragment {
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         try {
-            mListener = (OnAlbumListInteractionListener) activity;
+            mListener = (PhotoManagerActivity) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnAlbumListInteractionListener");
@@ -237,10 +238,5 @@ public class AlbumListFragment extends Fragment {
                     .getThumbnailUrl(), album));
         }
         return result;
-    }
-
-    public interface OnAlbumListInteractionListener {
-        // TODO: Update argument type and name
-        public void onAlbumListInteraction(Uri uri);
     }
 }
