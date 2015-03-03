@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:crawler="http://schemas.android.com/apk/res-auto">
+    <group android:id="@+id/menuGroupPlaying">
+		<item android:id="@+id/menuPause" android:title="@string/menu_pause"
+		android:icon="@android:drawable/ic_media_pause"
+            crawler:showAsAction="ifRoom"/>
+    </group>
+    <group android:id="@+id/menuGroupPaused" android:visible="false">
+		<item android:id="@+id/menuPlay" android:title="@string/menu_play"
+		android:icon="@android:drawable/ic_media_play"
+        crawler:showAsAction="ifRoom"/>
+    </group>
+<item android:id="@+id/menuSetAs" android:title="@string/menu_set_as"
+		android:icon="@android:drawable/ic_menu_set_as" />
+	<item android:id="@+id/menuShare" android:title="@string/menu_share"
+		android:icon="@android:drawable/ic_menu_share" />	
+	<item android:id="@+id/menuTitle" android:title="@string/menu_toggle_title"
+		android:icon="@android:drawable/ic_menu_info_details" />
+    <item android:id="@+id/menuPreferences" android:title="@string/menu_preferences"
+          android:icon="@android:drawable/ic_menu_preferences" />
+</menu>

@@ -1,0 +1,27 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="Theme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/crawlerPrimaryColor</item>
+        <item name="colorPrimaryDark">@color/crawlerSecondaryColor</item>
+        <item name="colorAccent">@color/crawlerBackgroundAccent</item>
+        <item name="android:windowBackground">@color/crawlerBackgroundColor</item>
+    </style>
+
+    <style name="Theme.Crawler" parent="Theme.Base"/>
+
+    <style name="ActionBarThemeOverlay">
+        <item name="colorControlHighlight">@color/crawlerHighlightColor</item>
+        <item name="android:textColorPrimary">@color/crawlerPrimaryTextColor</item>
+        <item name="android:actionMenuTextColor">@color/crawlerPrimaryTextColor</item>
+        <item name="android:textColorSecondary">@color/crawlerPrimaryTextColor</item>
+        <item name="android:background">@color/crawlerPrimaryColor</item>
+    </style>
+
+    <style name="ActionBar.TitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/crawlerPrimaryTextColor</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+</resources>
