@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -26,7 +25,7 @@ import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 
-public class PhotoListFragment extends Fragment implements View.OnFocusChangeListener {
+public class PhotoListFragment extends Fragment {
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_LIST.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_LIST.photos";
@@ -88,7 +87,6 @@ public class PhotoListFragment extends Fragment implements View.OnFocusChangeLis
         mainList = (ListView) rootView.findViewById(R.id.photolist);
         this.inflater = inflater;
         loadPhotos();
-        rootView.setOnFocusChangeListener(this);
         return rootView;
     }
 
@@ -101,8 +99,22 @@ public class PhotoListFragment extends Fragment implements View.OnFocusChangeLis
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
-        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+            ((ActionBarActivity) getActivity())
+                    .getSupportActionBar().hide();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+            ((ActionBarActivity) getActivity())
+                    .getSupportActionBar().show();
     }
 
     @Override
@@ -142,15 +154,6 @@ public class PhotoListFragment extends Fragment implements View.OnFocusChangeLis
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        if (v == getView() && hasFocus) {
-            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-                ((ActionBarActivity) getActivity())
-                        .getSupportActionBar().hide();
         }
     }
 }

@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.util.List;
 
@@ -31,6 +32,11 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

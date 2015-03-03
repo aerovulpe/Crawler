@@ -6,12 +6,10 @@ import android.app.Fragment;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 
@@ -40,7 +38,7 @@ import me.aerovulpe.crawler.ui.ThumbnailItem;
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
-public class AlbumListFragment extends Fragment implements View.OnFocusChangeListener {
+public class AlbumListFragment extends Fragment {
 
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
     private static final String TAG = AlbumListFragment.class.getSimpleName();
@@ -99,7 +97,6 @@ public class AlbumListFragment extends Fragment implements View.OnFocusChangeLis
         View rootView = inflater.inflate(R.layout.album_list, container, false);
         mainList = (ListView) rootView.findViewById(R.id.albumlist);
         this.inflater = inflater;
-        rootView.setOnFocusChangeListener(this);
 
         // TODO: This is picasa specific.
         if (mAccountID != null) {
@@ -113,8 +110,6 @@ public class AlbumListFragment extends Fragment implements View.OnFocusChangeLis
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         try {
             mListener = (PhotoManagerActivity) activity;
         } catch (ClassCastException e) {
@@ -225,15 +220,6 @@ public class AlbumListFragment extends Fragment implements View.OnFocusChangeLis
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onAlbumListInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        if (v == getView() && hasFocus) {
-            if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-                ((ActionBarActivity) getActivity())
-                        .getSupportActionBar().show();
         }
     }
 
