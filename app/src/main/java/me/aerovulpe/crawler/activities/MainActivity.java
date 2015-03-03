@@ -1,20 +1,26 @@
 package me.aerovulpe.crawler.activities;
 
+import android.app.FragmentManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.base.BaseActivity;
+import me.aerovulpe.crawler.fragments.AlbumListFragment;
 
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements AlbumListFragment.OnAlbumListInteractionListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
+        Intent intent = getIntent();
+        if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
+            createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
         }
     }
 
@@ -35,4 +41,18 @@ public class MainActivity extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void createAlbumListInstance(String accountID) {
+        FragmentManager manager = getFragmentManager();
+        if (manager.findFragmentByTag(accountID) != null) return;
+
+        AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
+        manager.beginTransaction()
+                .add(R.id.container, fragment, accountID)
+                .commit();
+    }
+
+    @Override
+    public void onAlbumListInteraction(Uri uri) {
+
+    }
 }
