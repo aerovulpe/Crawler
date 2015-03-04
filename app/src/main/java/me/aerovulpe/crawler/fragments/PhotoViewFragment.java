@@ -108,8 +108,7 @@ public class PhotoViewFragment extends Fragment {
                     .getSupportActionBar().hide();
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            uiOptions = uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+            uiOptions = uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE;
         }
         getActivity().getWindow().getDecorView().setSystemUiVisibility(uiOptions);
     }
