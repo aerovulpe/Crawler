@@ -86,7 +86,6 @@ public class AlbumListFragment extends Fragment {
         cachedWebRequestFetcher = new CachedWebRequestFetcher(
                 new FileSystemWebResponseCache());
 
-//        initCurrentConfiguration();
         setRetainInstance(true);
     }
 
@@ -220,17 +219,6 @@ public class AlbumListFragment extends Fragment {
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onAlbumListInteraction(uri);
-        }
-    }
-
-    private static class SavedConfiguration {
-        public final List<Album> albums;
-        public final CachedImageFetcher cachedImageFetcher;
-
-        public SavedConfiguration(List<Album> albums,
-                                  CachedImageFetcher cachedImageFetcher) {
-            this.albums = albums;
-            this.cachedImageFetcher = cachedImageFetcher;
         }
     }
 }
