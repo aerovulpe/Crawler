@@ -3,7 +3,6 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
@@ -106,11 +105,6 @@ public class PhotoViewFragment extends Fragment {
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
-        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            uiOptions = uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE;
-        }
-        getActivity().getWindow().getDecorView().setSystemUiVisibility(uiOptions);
     }
 
     private void showNextPhoto() {
