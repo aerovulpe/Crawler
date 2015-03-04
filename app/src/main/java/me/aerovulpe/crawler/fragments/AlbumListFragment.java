@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.DialogInterface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -213,12 +212,5 @@ public class AlbumListFragment extends Fragment {
         Log.d(TAG, "SHOW PHOTOS()");
         PhotoManagerActivity managerActivity = (PhotoManagerActivity) getActivity();
         managerActivity.createPhotoListInstance(albumTitle, photos);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onAlbumListInteraction(uri);
-        }
     }
 }

@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.FragmentManager;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +14,7 @@ import me.aerovulpe.crawler.base.BaseActivity;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
+import me.aerovulpe.crawler.fragments.PhotoViewFragment;
 
 
 public class MainActivity extends BaseActivity implements PhotoManagerActivity {
@@ -87,12 +87,18 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
     }
 
     @Override
-    public void onAlbumListInteraction(Uri uri) {
+    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
+        FragmentManager manager = getFragmentManager();
+        if (manager.findFragmentByTag(albumTitle + currentPhotoIndex) != null) {
+            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle + currentPhotoIndex))
+                    .commit();
+            return;
+        }
 
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
+        PhotoViewFragment fragment = PhotoViewFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+        manager.beginTransaction()
+                .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
+                .addToBackStack(null)
+                .commit();
     }
 }

@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -11,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +60,7 @@ public class PhotoListFragment extends Fragment {
         PhotoListFragment fragment = new PhotoListFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
-        args.putParcelableArrayList(ARG_PHOTOS, (ArrayList) photos);
+        args.putParcelableArrayList(ARG_PHOTOS, (ArrayList<Photo>) photos);
         fragment.setArguments(args);
         return fragment;
     }
@@ -132,7 +130,7 @@ public class PhotoListFragment extends Fragment {
                 new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
                     @Override
                     public void thumbnailClicked(Photo photo) {
-                        loadPhoto(photo);
+                        displayPhoto(photo);
                     }
                 };
 
@@ -145,14 +143,8 @@ public class PhotoListFragment extends Fragment {
         mainList.invalidateViews();
     }
 
-    private void loadPhoto(Photo photo) {
-        Toast.makeText(getActivity(), "Load Photo", Toast.LENGTH_SHORT).show();
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+    private void displayPhoto(Photo photo) {
+        ((PhotoManagerActivity) getActivity())
+                .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo));
     }
 }
