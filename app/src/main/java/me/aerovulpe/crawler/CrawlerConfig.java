@@ -21,17 +21,17 @@ package me.aerovulpe.crawler;
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
-public class PicViewConfig {
+public class CrawlerConfig {
 
     /**
      * Used for storing files on the file system as a directory.
      */
-    public static final String APP_NAME_PATH = "picview";
+    public static final String APP_NAME_PATH = "me.aerovulpe.crawler";
     /**
      * The size of the album thumbnails (in dp).
      */
     public static int ALBUM_THUMBNAIL_SIZE = 140;
 
-    private PicViewConfig() {
+    private CrawlerConfig() {
     }
 }

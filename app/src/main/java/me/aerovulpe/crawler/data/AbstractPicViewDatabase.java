@@ -20,12 +20,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Environment;
 import android.util.Log;
+
 import java.io.File;
 
-import me.aerovulpe.crawler.PicViewConfig;
+import me.aerovulpe.crawler.CrawlerConfig;
 
 /**
- * Abstract super-class of all PicView databases.
+ * Abstract super-class of all Crawler databases.
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
@@ -70,7 +71,7 @@ public class AbstractPicViewDatabase {
     protected static File getPathToDb(String dbName) {
         String sdCardPath = Environment.getExternalStorageDirectory()
                 .getAbsolutePath();
-        return new File(sdCardPath + File.separator + "data" + File.separator
-                + PicViewConfig.APP_NAME_PATH + File.separator + dbName);
+        return new File(sdCardPath + File.separator + "Android" + File.separator + "data" +
+                File.separator + CrawlerConfig.APP_NAME_PATH + File.separator + dbName);
     }
 }

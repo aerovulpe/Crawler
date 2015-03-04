@@ -33,7 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import me.aerovulpe.crawler.PicViewConfig;
+import me.aerovulpe.crawler.CrawlerConfig;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.request.ImageLoadingTask;
@@ -57,6 +57,7 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
     private final CachedImageFetcher cachedImageFetcher;
     private final int slotsPerRow;
     private final int slotWidth;
+
     /**
      * Instantiates a new MultiColumnImageAdapter.
      *
@@ -76,7 +77,7 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
         this.cachedImageFetcher = cachedImageFetcher;
 
         // Determine how many thumbnails can be put onto one row.
-        float thumbnailWithPx = PicViewConfig.ALBUM_THUMBNAIL_SIZE
+        float thumbnailWithPx = CrawlerConfig.ALBUM_THUMBNAIL_SIZE
                 * displayMetrics.density;
         slotsPerRow = (int) Math
                 .floor(displayMetrics.widthPixels / thumbnailWithPx);
