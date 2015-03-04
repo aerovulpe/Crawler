@@ -1,6 +1,7 @@
 package me.aerovulpe.crawler.fragments;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
@@ -40,9 +42,12 @@ public class PhotoViewFragment extends Fragment {
     private TextView txtAlbumName;
     private View photoTouchAreaLeft;
     private View photoTouchAreaRight;
+    private boolean enteredWithToolBar;
 
     private CachedImageFetcher cachedImageFetcher;
     private int photoSizeLongSide = -1;
+
+    private PhotoManagerActivity mListener;
 
     public PhotoViewFragment() {
         // Required empty public constructor
@@ -100,6 +105,19 @@ public class PhotoViewFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (PhotoManagerActivity) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+        enteredWithToolBar = (((ActionBarActivity) activity).getSupportActionBar() != null) &&
+                ((ActionBarActivity) activity).getSupportActionBar().isShowing();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
@@ -110,7 +128,7 @@ public class PhotoViewFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().show();
     }
