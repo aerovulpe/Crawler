@@ -107,6 +107,14 @@ public class PhotoViewFragment extends Fragment {
                     .getSupportActionBar().hide();
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+            ((ActionBarActivity) getActivity())
+                    .getSupportActionBar().show();
+    }
+
     private void showNextPhoto() {
         mCurrentPhotoIndex++;
         if (mCurrentPhotoIndex == mPhotos.size()) {
