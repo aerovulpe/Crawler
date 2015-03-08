@@ -45,8 +45,15 @@ public class PhotoCursor {
     }
 
     public Bitmap getBitmapAndClose() {
-        byte[] data = cursor.getBlob(cursor.getColumnIndex(columnBitmap));
-        close();
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
+        Bitmap bitmap = null;
+        try {
+            byte[] data = cursor.getBlob(cursor.getColumnIndex(columnBitmap));
+            bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+        return bitmap;
     }
 }
