@@ -130,20 +130,23 @@ public class CachedImageFetcher {
      * Fetches the given image from the web.
      */
     private Bitmap fetchImageFromWeb(URL url) {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        StrictMode.ThreadPolicy initPolicy = StrictMode.getThreadPolicy();
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
+        Bitmap bitmap = null;
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoInput(true);
             conn.connect();
             InputStream is = conn.getInputStream();
-            return BitmapFactory.decodeStream(is);
+            bitmap = BitmapFactory.decodeStream(is);
         } catch (OutOfMemoryError ex) {
             Log.e(TAG, "Out of memory, cannot create bitmap.");
             System.gc();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            StrictMode.setThreadPolicy(initPolicy);
         }
-        return null;
+        return bitmap;
     }
 }
