@@ -32,6 +32,12 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
