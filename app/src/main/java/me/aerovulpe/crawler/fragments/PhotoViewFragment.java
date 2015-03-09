@@ -35,6 +35,7 @@ public class PhotoViewFragment extends Fragment {
     private List<Photo> mPhotos;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
+    private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean enteredWithToolBar;
 
     public PhotoViewFragment() {
@@ -94,6 +95,7 @@ public class PhotoViewFragment extends Fragment {
             mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
             mCurrentPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
+        mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle);
         setRetainInstance(true);
     }
 
@@ -120,7 +122,7 @@ public class PhotoViewFragment extends Fragment {
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
 
-        mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle));
+        mViewPager.setAdapter(mPhotoViewerAdapter);
         if (mCurrentPhotoIndex != -1) {
             mViewPager.setCurrentItem(mCurrentPhotoIndex);
             mCurrentPhotoIndex = -1;
