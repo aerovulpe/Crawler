@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
+import com.viewpagerindicator.CirclePageIndicator;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,6 +128,12 @@ public class PhotoViewFragment extends Fragment {
         if (mCurrentPhotoIndex != -1) {
             mViewPager.setCurrentItem(mCurrentPhotoIndex);
             mCurrentPhotoIndex = -1;
+        }
+
+        if (getView() != null) {
+            //Bind the indicator to the adapter
+            CirclePageIndicator pageIndicator = (CirclePageIndicator) getView().findViewById(R.id.pageIndicator);
+            pageIndicator.setViewPager(mViewPager);
         }
     }
 
