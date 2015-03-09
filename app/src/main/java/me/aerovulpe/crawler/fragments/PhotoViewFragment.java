@@ -10,19 +10,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
-import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -39,17 +35,7 @@ public class PhotoViewFragment extends Fragment {
     private List<Photo> mPhotos;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
-    private ImageView photoView;
-    private TextView txtPhotoTitle;
-    private TextView txtAlbumName;
-    private View photoTouchAreaLeft;
-    private View photoTouchAreaRight;
     private boolean enteredWithToolBar;
-
-    private CachedImageFetcher cachedImageFetcher;
-    private int photoSizeLongSide = -1;
-
-    private PhotoManagerActivity mListener;
 
     public PhotoViewFragment() {
         // Required empty public constructor
@@ -109,7 +95,6 @@ public class PhotoViewFragment extends Fragment {
             mCurrentPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
 
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache());
         setRetainInstance(true);
     }
 
@@ -125,12 +110,6 @@ public class PhotoViewFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        try {
-            mListener = (PhotoManagerActivity) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
         enteredWithToolBar = (((ActionBarActivity) activity).getSupportActionBar() != null) &&
                 ((ActionBarActivity) activity).getSupportActionBar().isShowing();
     }
@@ -154,59 +133,4 @@ public class PhotoViewFragment extends Fragment {
                     .getSupportActionBar().show();
     }
 
-    private void showNextPhoto() {
-        mCurrentPhotoIndex++;
-        if (mCurrentPhotoIndex == mPhotos.size()) {
-            mCurrentPhotoIndex--;
-        } else {
-            //  showPhoto();
-        }
-    }
-
-    private void showPreviousPhoto() {
-        mCurrentPhotoIndex--;
-        if (mCurrentPhotoIndex < 0) {
-            mCurrentPhotoIndex = 0;
-        } else {
-            // showPhoto();
-        }
-    }
-
- /*   private void showPhoto() {
-        if (photoSizeLongSide < 0) {
-            // Determines the size for the photo shown full-screen (without zooming).
-            DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-            photoSizeLongSide = Math.max(displayMetrics.heightPixels,
-                    displayMetrics.widthPixels);
-        }
-
-        try {
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setMessage("Loading photo");
-            ImageLoadingTask imageLoadingTask = new ImageLoadingTask(
-                    photoView,
-                    new URL(mPhotos.get(mCurrentPhotoIndex).getMediumImageUrl(photoSizeLongSide)),
-                    cachedImageFetcher, progressDialog);
-            imageLoadingTask.execute();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        txtPhotoTitle.setText(mPhotos.get(mCurrentPhotoIndex).getName());
-        txtAlbumName.setText(mAlbumTitle);
-
-        if (mPhotos.size() > (mCurrentPhotoIndex + 1)) {
-            try {
-                Photo photo = mPhotos.get(mCurrentPhotoIndex + 1);
-                if (photo != null) {
-                    cachedImageFetcher.maybePrefetchImageAsync(new URL(photo
-                            .getMediumImageUrl(photoSizeLongSide)));
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    */
 }
