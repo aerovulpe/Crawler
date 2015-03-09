@@ -3,10 +3,9 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,17 +14,15 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.CachedImageFetcher;
-import me.aerovulpe.crawler.request.ImageLoadingTask;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,6 +38,7 @@ public class PhotoViewFragment extends Fragment {
     private String mAlbumTitle;
     private List<Photo> mPhotos;
     private int mCurrentPhotoIndex;
+    private ViewPager mViewPager;
     private ImageView photoView;
     private TextView txtPhotoTitle;
     private TextView txtAlbumName;
@@ -119,27 +117,8 @@ public class PhotoViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.photo_view, container, false);
-        photoView = (ImageView) rootView.findViewById(R.id.photo);
-        txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
-        txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
-        photoTouchAreaLeft = rootView.findViewById(R.id.photo_touch_left);
-        photoTouchAreaRight = rootView.findViewById(R.id.photo_touch_right);
-
-        photoTouchAreaLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPreviousPhoto();
-            }
-        });
-
-        photoTouchAreaRight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showNextPhoto();
-            }
-        });
-        showPhoto();
+        View rootView = inflater.inflate(R.layout.fragment_photo_view, container, false);
+        mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         return rootView;
     }
 
@@ -162,6 +141,8 @@ public class PhotoViewFragment extends Fragment {
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
+
+        mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle));
     }
 
     @Override
@@ -177,7 +158,7 @@ public class PhotoViewFragment extends Fragment {
         if (mCurrentPhotoIndex == mPhotos.size()) {
             mCurrentPhotoIndex--;
         } else {
-            showPhoto();
+            //  showPhoto();
         }
     }
 
@@ -186,11 +167,11 @@ public class PhotoViewFragment extends Fragment {
         if (mCurrentPhotoIndex < 0) {
             mCurrentPhotoIndex = 0;
         } else {
-            showPhoto();
+            // showPhoto();
         }
     }
 
-    private void showPhoto() {
+ /*   private void showPhoto() {
         if (photoSizeLongSide < 0) {
             // Determines the size for the photo shown full-screen (without zooming).
             DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
@@ -226,4 +207,5 @@ public class PhotoViewFragment extends Fragment {
             }
         }
     }
+    */
 }
