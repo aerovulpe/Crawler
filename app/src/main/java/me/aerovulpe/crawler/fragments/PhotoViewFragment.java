@@ -59,8 +59,8 @@ public class PhotoViewFragment extends Fragment {
         //let's get the views we want to toggle visibility on
         //the values are already populated
         TextView slideshowTitle = (TextView) slideshowView.findViewById(R.id.photo_title);
-        TextSwitcher slideshowDescription = (TextSwitcher) slideshowView.findViewById(R.id.slideshow_description);
-        View layout = (View) slideshowView.findViewById(R.id.slideshow_text_background);
+        TextSwitcher slideshowDescription = (TextSwitcher) slideshowView.findViewById(R.id.photo_description_switcher);
+        View layout = (View) slideshowView.findViewById(R.id.photo_text_background);
 
 
         if (slideshowTitle == null || slideshowDescription == null || layout == null) {
