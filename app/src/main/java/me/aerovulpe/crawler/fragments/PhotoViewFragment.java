@@ -121,7 +121,10 @@ public class PhotoViewFragment extends Fragment {
                     .getSupportActionBar().hide();
 
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle));
-        if (!getRetainInstance()) mViewPager.setCurrentItem(mCurrentPhotoIndex);
+        if (mCurrentPhotoIndex != -1) {
+            mViewPager.setCurrentItem(mCurrentPhotoIndex);
+            mCurrentPhotoIndex = -1;
+        }
     }
 
     @Override
