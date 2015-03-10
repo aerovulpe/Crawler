@@ -1,6 +1,5 @@
 package me.aerovulpe.crawler.fragments;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -36,8 +35,9 @@ public class PhotoListFragment extends Fragment {
     private LayoutInflater inflater;
 
     private CachedImageFetcher cachedImageFetcher;
+    private PhotosAdapter mPhotosAdapter;
 
-    private PhotoManagerActivity mListener;
+    private int mIndex;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -88,14 +88,9 @@ public class PhotoListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (PhotoManagerActivity) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    public void onPause() {
+        super.onPause();
+        mIndex = mainList.getFirstVisiblePosition();
     }
 
     @Override
@@ -104,6 +99,12 @@ public class PhotoListFragment extends Fragment {
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
+        mainList.post(new Runnable() {
+            @Override
+            public void run() {
+                mainList.setSelection(mIndex);
+            }
+        });
     }
 
     @Override
@@ -114,29 +115,26 @@ public class PhotoListFragment extends Fragment {
                     .getSupportActionBar().show();
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
     private void loadPhotos() {
         if (mPhotos == null) {
             Log.d(TAG, "No photos!");
             return;
         }
 
-        MultiColumnImageAdapter.ThumbnailClickListener<Photo> clickListener =
-                new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
-                    @Override
-                    public void thumbnailClicked(Photo photo) {
-                        displayPhoto(photo);
-                    }
-                };
-
-        mainList.setAdapter(new PhotosAdapter(wrap(mPhotos), inflater,
-                clickListener, cachedImageFetcher, this.getResources()
-                .getDisplayMetrics()));
+        if (mPhotosAdapter == null) {
+            MultiColumnImageAdapter.ThumbnailClickListener<Photo> clickListener =
+                    new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
+                        @Override
+                        public void thumbnailClicked(Photo photo) {
+                            displayPhoto(photo);
+                        }
+                    };
+            mPhotosAdapter = new PhotosAdapter(wrap(mPhotos), inflater,
+                    clickListener, cachedImageFetcher, getResources()
+                    .getDisplayMetrics());
+        }
+        mPhotosAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
+        mainList.setAdapter(mPhotosAdapter);
         BaseAdapter adapter = (BaseAdapter) mainList.getAdapter();
         adapter.notifyDataSetChanged();
         adapter.notifyDataSetInvalidated();

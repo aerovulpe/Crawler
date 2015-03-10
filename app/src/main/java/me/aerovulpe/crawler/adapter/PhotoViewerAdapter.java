@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -87,6 +89,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         ImageView photoView = (ImageView) rootView.findViewById(R.id.photo);
         TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
         TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
+        TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
 
         if (photoSizeLongSide < 0) {
             // Determines the size for the photo shown full-screen (without zooming).
@@ -121,6 +124,17 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 e.printStackTrace();
             }
         }
+
+        Animation inAnim = AnimationUtils.loadAnimation(mContext,
+                R.anim.slide_in_up);
+        Animation outAnim = AnimationUtils.loadAnimation(mContext,
+                R.anim.slide_out_down);
+
+        descriptionSwitcher.setInAnimation(inAnim);
+        descriptionSwitcher.setOutAnimation(outAnim);
+
+        descriptionSwitcher.setText("This is a sample description. Live long and prosper. May the" +
+                " force be with you. Nothing is true, everything is permited");
 
         container.addView(rootView);
         return rootView;
