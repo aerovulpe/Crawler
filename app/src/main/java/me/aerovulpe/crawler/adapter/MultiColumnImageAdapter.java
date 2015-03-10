@@ -76,13 +76,7 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
         this.listener = listener;
         this.cachedImageFetcher = cachedImageFetcher;
 
-        // Determine how many thumbnails can be put onto one row.
-        float thumbnailWithPx = CrawlerConfig.ALBUM_THUMBNAIL_SIZE
-                * displayMetrics.density;
-        slotsPerRow = (int) Math
-                .floor(displayMetrics.widthPixels / thumbnailWithPx);
-        Log.d(TAG, "Photos per row: " + slotsPerRow);
-        slotWidth = displayMetrics.widthPixels / slotsPerRow;
+        setDisplayMetrics(displayMetrics);
     }
 
     @Override

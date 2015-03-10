@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -204,7 +203,6 @@ public class AlbumListFragment extends Fragment {
                     };
             mAlbumsAdapter = new AlbumsAdapter(wrap(albums), inflater, thumbnailClickListener,
                     cachedImageFetcher, getResources().getDisplayMetrics());
-            Toast.makeText(getActivity(), "mAlbumsAdapter created!", Toast.LENGTH_SHORT).show();
         }
         mAlbumsAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
         mainList.setAdapter(mAlbumsAdapter);
