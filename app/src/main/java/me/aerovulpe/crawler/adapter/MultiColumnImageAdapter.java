@@ -55,8 +55,8 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
     private final LayoutInflater inflater;
     private final ThumbnailClickListener<T> listener;
     private final CachedImageFetcher cachedImageFetcher;
-    private final int slotsPerRow;
-    private final int slotWidth;
+    private int slotsPerRow;
+    private int slotWidth;
 
     /**
      * Instantiates a new MultiColumnImageAdapter.
@@ -200,6 +200,16 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
         slot.setGravity(Gravity.CENTER_HORIZONTAL);
         slot.setId(R.layout.picture_entry);
         return slot;
+    }
+
+    public void setDisplayMetrics(DisplayMetrics displayMetrics) {
+        // Determine how many thumbnails can be put onto one row.
+        float thumbnailWithPx = CrawlerConfig.ALBUM_THUMBNAIL_SIZE
+                * displayMetrics.density;
+        slotsPerRow = (int) Math
+                .floor(displayMetrics.widthPixels / thumbnailWithPx);
+        Log.d(TAG, "Photos per row: " + slotsPerRow);
+        slotWidth = displayMetrics.widthPixels / slotsPerRow;
     }
 
     public static interface ThumbnailClickListener<T> {

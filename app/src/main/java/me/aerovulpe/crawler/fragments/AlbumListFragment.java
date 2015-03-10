@@ -1,6 +1,5 @@
 package me.aerovulpe.crawler.fragments;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.DialogInterface;
@@ -11,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,13 +41,14 @@ public class AlbumListFragment extends Fragment {
 
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
     private static final String TAG = AlbumListFragment.class.getSimpleName();
-    private PhotoManagerActivity mListener;
     private String mAccountID;
     private ListView mainList;
     private LayoutInflater inflater;
     private List<Album> albums = new ArrayList<>();
     private CachedImageFetcher cachedImageFetcher;
     private CachedWebRequestFetcher cachedWebRequestFetcher;
+    private AlbumsAdapter mAlbumsAdapter;
+    private int mIndex;
 
     public AlbumListFragment() {
         // Required empty public constructor
@@ -106,20 +107,20 @@ public class AlbumListFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (PhotoManagerActivity) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnAlbumListInteractionListener");
-        }
+    public void onPause() {
+        super.onPause();
+        mIndex = mainList.getFirstVisiblePosition();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+    public void onResume() {
+        super.onResume();
+        mainList.post(new Runnable() {
+            @Override
+            public void run() {
+                mainList.setSelection(mIndex);
+            }
+        });
     }
 
     /**
@@ -193,15 +194,20 @@ public class AlbumListFragment extends Fragment {
             return;
         }
 
-        MultiColumnImageAdapter.ThumbnailClickListener<Album> foo =
-                new MultiColumnImageAdapter.ThumbnailClickListener<Album>() {
-                    @Override
-                    public void thumbnailClicked(Album album) {
-                        doPhotosRequest(album.getName(), album.getGdataUrl());
-                    }
-                };
-        mainList.setAdapter(new AlbumsAdapter(wrap(albums), inflater, foo,
-                cachedImageFetcher, getResources().getDisplayMetrics()));
+        if (mAlbumsAdapter == null) {
+            MultiColumnImageAdapter.ThumbnailClickListener<Album> thumbnailClickListener =
+                    new MultiColumnImageAdapter.ThumbnailClickListener<Album>() {
+                        @Override
+                        public void thumbnailClicked(Album album) {
+                            doPhotosRequest(album.getName(), album.getGdataUrl());
+                        }
+                    };
+            mAlbumsAdapter = new AlbumsAdapter(wrap(albums), inflater, thumbnailClickListener,
+                    cachedImageFetcher, getResources().getDisplayMetrics());
+            Toast.makeText(getActivity(), "mAlbumsAdapter created!", Toast.LENGTH_SHORT).show();
+        }
+        mAlbumsAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
+        mainList.setAdapter(mAlbumsAdapter);
         BaseAdapter adapter = (BaseAdapter) mainList.getAdapter();
         adapter.notifyDataSetChanged();
         adapter.notifyDataSetInvalidated();
