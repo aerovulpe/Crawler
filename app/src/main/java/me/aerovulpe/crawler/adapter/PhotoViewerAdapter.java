@@ -134,7 +134,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         descriptionSwitcher.setOutAnimation(outAnim);
 
         descriptionSwitcher.setText("This is a sample description. Live long and prosper. May the" +
-                " force be with you. Nothing is true, everything is permited");
+                " force be with you. Nothing is true, everything is permitted");
 
         container.addView(rootView);
         return rootView;
