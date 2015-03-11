@@ -38,6 +38,7 @@ public class PhotoListFragment extends Fragment {
     private PhotosAdapter mPhotosAdapter;
 
     private int mIndex;
+    private int mTop;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -92,6 +93,8 @@ public class PhotoListFragment extends Fragment {
         super.onPause();
         if (mPhotosAdapter == null) return;
         mIndex = mainList.getFirstVisiblePosition() * mPhotosAdapter.getSlotsPerRow();
+        View v = mainList.getChildAt(0);
+        mTop = (v == null) ? 0 : (v.getTop() - mainList.getPaddingTop());
     }
 
     @Override
@@ -103,7 +106,7 @@ public class PhotoListFragment extends Fragment {
         mainList.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelection(mIndex / mPhotosAdapter.getSlotsPerRow());
+                mainList.setSelectionFromTop(mIndex / mPhotosAdapter.getSlotsPerRow(), mTop);
             }
         });
     }

@@ -48,6 +48,7 @@ public class AlbumListFragment extends Fragment {
     private CachedWebRequestFetcher cachedWebRequestFetcher;
     private AlbumsAdapter mAlbumsAdapter;
     private int mIndex;
+    private int mTop;
 
     public AlbumListFragment() {
         // Required empty public constructor
@@ -110,6 +111,8 @@ public class AlbumListFragment extends Fragment {
         super.onPause();
         if (mAlbumsAdapter == null) return;
         mIndex = mainList.getFirstVisiblePosition() * mAlbumsAdapter.getSlotsPerRow();
+        View v = mainList.getChildAt(0);
+        mTop = (v == null) ? 0 : (v.getTop() - mainList.getPaddingTop());
     }
 
     @Override
@@ -119,7 +122,7 @@ public class AlbumListFragment extends Fragment {
         mainList.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelection(mIndex / mAlbumsAdapter.getSlotsPerRow());
+                mainList.setSelectionFromTop(mIndex / mAlbumsAdapter.getSlotsPerRow(), mTop);
             }
         });
     }
