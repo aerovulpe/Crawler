@@ -108,16 +108,18 @@ public class AlbumListFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        mIndex = mainList.getFirstVisiblePosition();
+        if (mAlbumsAdapter == null) return;
+        mIndex = mAlbumsAdapter.getDataItems().size() / mainList.getFirstVisiblePosition();
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (mAlbumsAdapter == null) return;
         mainList.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelection(mIndex);
+                mainList.setSelection(mAlbumsAdapter.getDataItems().size() / mIndex);
             }
         });
     }
