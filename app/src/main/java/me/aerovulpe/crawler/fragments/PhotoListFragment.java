@@ -103,6 +103,7 @@ public class PhotoListFragment extends Fragment {
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
+        if (mPhotosAdapter == null) return;
         mainList.post(new Runnable() {
             @Override
             public void run() {
