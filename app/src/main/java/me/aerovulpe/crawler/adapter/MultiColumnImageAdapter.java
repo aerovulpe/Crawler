@@ -210,10 +210,6 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
         return slotsPerRow;
     }
 
-    public List<ThumbnailItem<T>> getDataItems() {
-        return dataItems;
-    }
-
     public static interface ThumbnailClickListener<T> {
         public void thumbnailClicked(T object);
     }

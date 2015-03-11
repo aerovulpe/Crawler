@@ -90,7 +90,8 @@ public class PhotoListFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        mIndex = mainList.getFirstVisiblePosition();
+        if (mPhotosAdapter == null) return;
+        mIndex = mainList.getFirstVisiblePosition() * mPhotosAdapter.getSlotsPerRow();
     }
 
     @Override
@@ -102,7 +103,7 @@ public class PhotoListFragment extends Fragment {
         mainList.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelection(mIndex);
+                mainList.setSelection(mIndex / mPhotosAdapter.getSlotsPerRow());
             }
         });
     }
