@@ -17,6 +17,8 @@ import com.viewpagerindicator.CirclePageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
@@ -32,7 +34,7 @@ public class PhotoViewFragment extends Fragment {
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
     public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
-
+    protected Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private List<Photo> mPhotos;
     private int mCurrentPhotoIndex;
@@ -135,6 +137,7 @@ public class PhotoViewFragment extends Fragment {
             CirclePageIndicator pageIndicator = (CirclePageIndicator) getView().findViewById(R.id.pageIndicator);
             pageIndicator.setViewPager(mViewPager);
         }
+        setUpScrollingOfDescription();
     }
 
     @Override
@@ -145,4 +148,81 @@ public class PhotoViewFragment extends Fragment {
                     .getSupportActionBar().show();
     }
 
+    public void setUpScrollingOfDescription() {
+        if (getView() == null) return;
+        final ViewPager viewPager = (ViewPager) getView().findViewById(R.id.view_pager);
+        //use the same timer. Cancel if running
+        if (timerDescriptionScrolling != null) {
+            timerDescriptionScrolling.cancel();
+        }
+
+        timerDescriptionScrolling = new Timer("TextScrolling");
+        final Activity activity = getActivity();
+        long msBetweenSwaps = 3500;
+
+        //schedule this to
+        timerDescriptionScrolling.scheduleAtFixedRate(
+                new TimerTask() {
+                    int i = 0;
+
+                    public void run() {
+                        activity.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Photo currentPhoto = mPhotos.get(viewPager.getCurrentItem());
+
+                                TextSwitcher switcherDescription = (TextSwitcher) viewPager.findViewById(R.id.photo_description_switcher);
+
+                                updateScrollingDescription(currentPhoto, switcherDescription);
+
+                                //this is the max times we will swap (to make sure we don't create an infinite timer by mistake
+                                if (i > 30) {
+                                    timerDescriptionScrolling.cancel();
+                                }
+                                i++;
+                            }
+                        });
+
+                    }
+                }, msBetweenSwaps, msBetweenSwaps);
+    }
+
+
+    private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
+
+
+        String description = "Lorem ipsum dolor sit amet, duo id purto dicta ubique, falli tempor " +
+                "invidunt cu vix. Eum tota accumsan no, inermis maiorum nam ei, pro an iusto commodo" +
+                " tincidunt. Mea quod mediocrem dissentiet ei, utroque eleifend id sit. Eum an alia " +
+                "decore. Quod idque labore et nam, vim at atqui errem perpetua, quo ad iudico " +
+                "liberavisse definitiones." + " " + currentPhoto.getName();
+
+        TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
+
+        //avoid nullpointer exception
+        if (descriptionView == null || descriptionView.getLayout() == null) {
+            return;
+        }
+
+        //note currentDescription may contain more text that is shown (but is always a substring
+        String currentDescription = descriptionView.getText().toString();
+
+        if (currentDescription == null || description == null) {
+            return;
+        }
+
+
+        int indexEndCurrentDescription = descriptionView.getLayout().getLineEnd(1);
+
+        //if we are not displaying all characters, let swap to the not displayed substring
+        if (indexEndCurrentDescription > 0 && indexEndCurrentDescription < currentDescription.length()) {
+            String newDescription = currentDescription.substring(indexEndCurrentDescription);
+            switcherDescription.setText(newDescription);
+        } else if (indexEndCurrentDescription >= currentDescription.length() && indexEndCurrentDescription < description.length()) {
+            //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
+            switcherDescription.setText(description);
+        } else {
+            //do nothing (ie. leave the text)
+        }
+
+    }
 }

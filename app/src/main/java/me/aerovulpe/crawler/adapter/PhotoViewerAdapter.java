@@ -133,8 +133,11 @@ public class PhotoViewerAdapter extends PagerAdapter {
         descriptionSwitcher.setInAnimation(inAnim);
         descriptionSwitcher.setOutAnimation(outAnim);
 
-        descriptionSwitcher.setText("This is a sample description. Live long and prosper. May the" +
-                " force be with you. Nothing is true, everything is permitted");
+        descriptionSwitcher.setText("Lorem ipsum dolor sit amet, duo id purto dicta ubique, falli tempor " +
+                "invidunt cu vix. Eum tota accumsan no, inermis maiorum nam ei, pro an iusto commodo" +
+                " tincidunt. Mea quod mediocrem dissentiet ei, utroque eleifend id sit. Eum an alia " +
+                "decore. Quod idque labore et nam, vim at atqui errem perpetua, quo ad iudico " +
+                "liberavisse definitiones." + " " + mPhotos.get(position).getName());
 
         container.addView(rootView);
         return rootView;
