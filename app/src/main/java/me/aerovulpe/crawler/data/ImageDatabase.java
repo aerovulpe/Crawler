@@ -17,11 +17,16 @@
 package me.aerovulpe.crawler.data;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteFullException;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
+
+import me.aerovulpe.crawler.activities.PreferencesActivity;
 
 /**
  * A data base that stores image data.
@@ -42,21 +47,31 @@ public class ImageDatabase extends AbstractPicViewDatabase {
 
     private SQLiteDatabase db;
 
-    protected ImageDatabase(SQLiteDatabase db) {
+    private Context mContext;
+
+    private ImageDatabase(SQLiteDatabase db, Context context) {
         this.db = db;
+        mContext = context;
     }
 
     /**
      * Returns the singleton instance of the {@link ImageDatabase}.
      */
-    public static ImageDatabase get() {
+    public static ImageDatabase get(Context context) {
         if (imageDb == null) {
-            imageDb = new ImageDatabase(getUsableDataBase(DATABASE_NAME,
-                    "CREATE TABLE " + TABLE_NAME + " (" + COLUMN_URL
-                            + " TEXT PRIMARY KEY," + COLUMN_MODIFIED + " TEXT,"
-                            + COLUMN_BITMAP + " BLOB);"));
+            SQLiteDatabase db = getUsableDataBase();
+            imageDb = new ImageDatabase(db, context);
+            imageDb.setMaxCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
+            Log.i(ImageDatabase.class.getSimpleName(), "Created image database");
         }
         return imageDb;
+    }
+
+    private static SQLiteDatabase getUsableDataBase() {
+        return getUsableDataBase(DATABASE_NAME,
+                "CREATE TABLE " + TABLE_NAME + " (" + COLUMN_URL
+                        + " TEXT PRIMARY KEY," + COLUMN_MODIFIED + " TEXT,"
+                        + COLUMN_BITMAP + " BLOB);");
     }
 
     /**
@@ -84,7 +99,34 @@ public class ImageDatabase extends AbstractPicViewDatabase {
         image.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
         values.put(COLUMN_BITMAP, outputStream.toByteArray());
 
-        return db.replace(TABLE_NAME, COLUMN_BITMAP, values);
+        long rowID;
+        try {
+            rowID = db.replaceOrThrow(TABLE_NAME, COLUMN_BITMAP, values);
+        } catch (SQLiteFullException e) {
+            db.delete(TABLE_NAME, null, null);
+            rowID = db.replace(TABLE_NAME, COLUMN_BITMAP, values);
+            Log.i(ImageDatabase.class.getSimpleName(), "Cache reset");
+        }
+        return rowID;
+    }
+
+    public void setMaxCacheSize(long size) {
+        long currentSize = db.getMaximumSize();
+        Log.i(ImageDatabase.class.getSimpleName(), currentSize + " : " + size);
+        if (currentSize == size) {
+            return;
+        }
+
+        if (currentSize < size) {
+            db.delete(TABLE_NAME, null, null);
+            db.setMaximumSize(size);
+            Log.i(ImageDatabase.class.getSimpleName(), "Set max size of " + size);
+        } else {
+            mContext.deleteDatabase(DATABASE_NAME);
+            db = getUsableDataBase();
+            db.setMaximumSize(size);
+            Log.i(ImageDatabase.class.getSimpleName(), "Set max size of " + size);
+        }
     }
 
     /**

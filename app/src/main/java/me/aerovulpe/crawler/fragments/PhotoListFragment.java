@@ -73,7 +73,7 @@ public class PhotoListFragment extends Fragment {
             mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
             mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
         }
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache());
+        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(getActivity()));
         setRetainInstance(true);
     }
 

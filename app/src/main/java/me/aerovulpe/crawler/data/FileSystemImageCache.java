@@ -16,6 +16,7 @@
 
 package me.aerovulpe.crawler.data;
 
+import android.content.Context;
 import android.database.sqlite.SQLiteDiskIOException;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -34,8 +35,8 @@ public class FileSystemImageCache {
 
     private ImageDatabase imageDb;
 
-    public FileSystemImageCache() {
-        imageDb = ImageDatabase.get();
+    public FileSystemImageCache(Context context) {
+        imageDb = ImageDatabase.get(context);
     }
 
     /**

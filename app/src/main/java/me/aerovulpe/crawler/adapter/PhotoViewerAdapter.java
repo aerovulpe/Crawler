@@ -43,7 +43,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache());
+        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(context));
     }
 
     public static void setVisibilityOfSlideshowText(View slideshowView, int viewVisibilitiy) {

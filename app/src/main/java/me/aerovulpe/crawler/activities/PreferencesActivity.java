@@ -16,6 +16,7 @@
 
 package me.aerovulpe.crawler.activities;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
@@ -23,44 +24,50 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.data.ImageDatabase;
 
 
 /**
  * The preferences activity shows common preferences that can be configured by
  * the user.
- * 
+ *
  * @author haeberling@google.com (Sascha Haeberling)
  */
 public class PreferencesActivity extends PreferenceActivity {
-  int oldCacheValue;
+    int oldCacheValue;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    addPreferencesFromResource(R.xml.preferences);
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    oldCacheValue = getCurrentCacheValue();
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    int currentCacheValue = getCurrentCacheValue();
-    if (currentCacheValue != oldCacheValue) {
-      Toast.makeText(this,
-          "Changing cache: " + (currentCacheValue - oldCacheValue) + " MB",
-          Toast.LENGTH_SHORT).show();
+    private static int getCurrentCacheValue(Context context) {
+        return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+                .getString("cacheSize", "400"));
     }
-  }
 
-  private int getCurrentCacheValue() {
-    return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this)
-        .getString("cacheSize", "400"));
-  }
+    public static long getCurrentCacheValueInBytes(Context context) {
+        return getCurrentCacheValue(context) * 1048576;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        addPreferencesFromResource(R.xml.preferences);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        oldCacheValue = getCurrentCacheValue(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        int currentCacheValue = getCurrentCacheValue(this);
+        if (currentCacheValue != oldCacheValue) {
+            ImageDatabase.get(this).setMaxCacheSize(getCurrentCacheValueInBytes(this));
+            Toast.makeText(this,
+                    "Changing cache: " + (currentCacheValue - oldCacheValue) + " MB",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 }

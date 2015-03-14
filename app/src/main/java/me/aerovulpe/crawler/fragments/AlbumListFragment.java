@@ -82,7 +82,7 @@ public class AlbumListFragment extends Fragment {
             mAccountID = getArguments().getString(ARG_ACCOUNT_ID);
         }
 
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache());
+        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(getActivity()));
         cachedWebRequestFetcher = new CachedWebRequestFetcher(
                 new FileSystemWebResponseCache());
 
