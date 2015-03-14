@@ -59,8 +59,7 @@ public class ImageDatabase extends AbstractPicViewDatabase {
      */
     public static ImageDatabase get(Context context) {
         if (imageDb == null) {
-            SQLiteDatabase db = getUsableDataBase();
-            imageDb = new ImageDatabase(db, context);
+            imageDb = new ImageDatabase(getUsableDataBase(), context);
             imageDb.setMaxCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
             Log.i(ImageDatabase.class.getSimpleName(), "Created image database");
         }
@@ -118,7 +117,6 @@ public class ImageDatabase extends AbstractPicViewDatabase {
         }
 
         if (currentSize < size) {
-            db.delete(TABLE_NAME, null, null);
             db.setMaximumSize(size);
             Log.i(ImageDatabase.class.getSimpleName(), "Set max size of " + size);
         } else {
