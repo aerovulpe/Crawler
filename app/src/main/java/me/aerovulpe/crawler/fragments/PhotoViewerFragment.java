@@ -52,6 +52,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private List<Photo> mPhotos;
+    private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
@@ -80,7 +81,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         if (getArguments() != null) {
             mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
             mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
-            mCurrentPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
+            mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
@@ -112,9 +113,11 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                     .getSupportActionBar().hide();
 
         mViewPager.setAdapter(mPhotoViewerAdapter);
-        if (mCurrentPhotoIndex != -1) {
+        if (mInitPhotoIndex != -1) {
+            mViewPager.setCurrentItem(mInitPhotoIndex);
+            mInitPhotoIndex = -1;
+        } else {
             mViewPager.setCurrentItem(mCurrentPhotoIndex);
-            mCurrentPhotoIndex = -1;
         }
 
         if (getView() != null) {
@@ -130,6 +133,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     @Override
     public void onPause() {
         super.onPause();
+        mCurrentPhotoIndex = mViewPager.getCurrentItem();
         if (timerDescriptionScrolling != null) {
             timerDescriptionScrolling.cancel();
             timerDescriptionScrolling = null;
