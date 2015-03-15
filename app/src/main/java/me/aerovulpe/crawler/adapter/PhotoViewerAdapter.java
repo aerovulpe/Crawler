@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,14 +36,43 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private List<Photo> mPhotos;
     private String mAlbumTitle;
     private CachedImageFetcher cachedImageFetcher;
+    private View.OnClickListener mOnClickListener;
 
     private int photoSizeLongSide = -1;
+    private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle) {
+    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, View.OnClickListener onClickListener) {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
         cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(context));
+        mOnClickListener = onClickListener;
+    }
+
+    public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
+        if (photoView == null) {
+            return;
+        }
+        //let's get the views we want to toggle visibility on
+        //the values are already populated
+        View photoTextLayout = photoView.findViewById(R.id.photo_text_background);
+        View albumTextLayout = photoView.findViewById(R.id.photo_album_name_background);
+
+
+        if (albumTextLayout == null || photoTextLayout == null) {
+            Log.w(LOG_PREFIX, "Some of the views we want to toggle are null in setVisibilityOfSlideshowText! Let's make sure this doesn't crash the app");
+            return;
+        }
+
+        if (viewIsVisible) {
+            //Log.d(LOG_PREFIX, "TITLE VISIBLE");
+            photoTextLayout.setVisibility(View.VISIBLE);
+            albumTextLayout.setVisibility(View.VISIBLE);
+        } else {
+            //Log.d(LOG_PREFIX, "TITLE INVISIBLE");
+            albumTextLayout.setVisibility(View.INVISIBLE);
+            photoTextLayout.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override
@@ -104,7 +134,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 "liberavisse definitiones." + " " + mPhotos.get(position).getName());
 
         descriptionSwitcher.setTag(position);
-
+        setVisibilityOfPhotoText(rootView, mShowText);
+        rootView.setOnClickListener(mOnClickListener);
         container.addView(rootView);
         return rootView;
     }
@@ -122,5 +153,13 @@ public class PhotoViewerAdapter extends PagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((View) object);
+    }
+
+    public boolean isShowText() {
+        return mShowText;
+    }
+
+    public void setShowText(boolean showText) {
+        mShowText = showText;
     }
 }

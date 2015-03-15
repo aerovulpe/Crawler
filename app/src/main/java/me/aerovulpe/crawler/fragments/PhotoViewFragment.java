@@ -6,7 +6,6 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,7 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewFragment extends Fragment {
+public class PhotoViewFragment extends Fragment implements View.OnClickListener {
 
     public static final String LOG_PREFIX = PhotoViewFragment.class.getSimpleName();
 
@@ -41,6 +40,7 @@ public class PhotoViewFragment extends Fragment {
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean enteredWithToolBar;
+    private boolean mShowText;
 
     public PhotoViewFragment() {
         // Required empty public constructor
@@ -56,41 +56,6 @@ public class PhotoViewFragment extends Fragment {
         return fragment;
     }
 
-    public static void setVisibilityOfSlideshowText(View slideshowView, int viewVisibilitiy) {
-        if (slideshowView == null) {
-            return;
-        }
-        //let's get the views we want to toggle visibility on
-        //the values are already populated
-        TextView slideshowTitle = (TextView) slideshowView.findViewById(R.id.photo_title);
-        TextSwitcher slideshowDescription = (TextSwitcher) slideshowView.findViewById(R.id.photo_description_switcher);
-        View layout = (View) slideshowView.findViewById(R.id.photo_text_background);
-
-
-        if (slideshowTitle == null || slideshowDescription == null || layout == null) {
-            Log.w(LOG_PREFIX, "Some of the views we want to toggle are null in setVisibilityOfSlideshowText! Let's make sure this doesn't crash the app");
-            return;
-        }
-
-        //do nothing  if we have an empty title
-        if (slideshowTitle.getText() == null || "".equals(slideshowTitle.getText())) {
-            return;
-        }
-
-        if (viewVisibilitiy == View.VISIBLE) {
-            //Log.d(LOG_PREFIX, "TITLE VISIBLE");
-            slideshowTitle.setVisibility(View.VISIBLE);
-            slideshowDescription.setVisibility(View.VISIBLE);
-            layout.setVisibility(View.VISIBLE);
-
-        } else {
-            //Log.d(LOG_PREFIX, "TITLE INVISIBLE");
-            slideshowTitle.setVisibility(View.INVISIBLE);
-            slideshowDescription.setVisibility(View.INVISIBLE);
-            layout.setVisibility(View.INVISIBLE);
-        }
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +64,7 @@ public class PhotoViewFragment extends Fragment {
             mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
             mCurrentPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
-        mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle);
+        mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setRetainInstance(true);
     }
 
@@ -218,5 +183,26 @@ public class PhotoViewFragment extends Fragment {
             //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
             switcherDescription.setText(description);
         }
+    }
+
+    private void toggleDetailViews(View view) {
+        if (mShowText) {
+            mPhotoViewerAdapter.setShowText(false);
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
+            PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
+            mShowText = false;
+        } else {
+            mPhotoViewerAdapter.setShowText(true);
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
+            PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
+            mShowText = true;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        toggleDetailViews(v);
     }
 }
