@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,41 +43,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
         mPhotos = photos;
         mAlbumTitle = albumTitle;
         cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(context));
-    }
-
-    public static void setVisibilityOfSlideshowText(View slideshowView, int viewVisibilitiy) {
-        if (slideshowView == null) {
-            return;
-        }
-        //let's get the views we want to toggle visibility on
-        //the values are already populated
-        TextView slideshowTitle = (TextView) slideshowView.findViewById(R.id.photo_title);
-        TextSwitcher slideshowDescription = (TextSwitcher) slideshowView.findViewById(R.id.photo_description_switcher);
-        View layout = (View) slideshowView.findViewById(R.id.photo_text_background);
-
-
-        if (slideshowTitle == null || slideshowDescription == null || layout == null) {
-            Log.w(LOG_PREFIX, "Some of the views we want to toggle are null in setVisibilityOfSlideshowText! Let's make sure this doesn't crash the app");
-            return;
-        }
-
-        //do nothing  if we have an empty title
-        if (slideshowTitle.getText() == null || "".equals(slideshowTitle.getText())) {
-            return;
-        }
-
-        if (viewVisibilitiy == View.VISIBLE) {
-            //Log.d(LOG_PREFIX, "TITLE VISIBLE");
-            slideshowTitle.setVisibility(View.VISIBLE);
-            slideshowDescription.setVisibility(View.VISIBLE);
-            layout.setVisibility(View.VISIBLE);
-
-        } else {
-            //Log.d(LOG_PREFIX, "TITLE INVISIBLE");
-            slideshowTitle.setVisibility(View.INVISIBLE);
-            slideshowDescription.setVisibility(View.INVISIBLE);
-            layout.setVisibility(View.INVISIBLE);
-        }
     }
 
     @Override
