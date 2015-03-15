@@ -30,7 +30,8 @@ public class CrawlerConfig {
     /**
      * The size of the album thumbnails (in dp).
      */
-    public static int ALBUM_THUMBNAIL_SIZE = 140;
+    public static final int ALBUM_THUMBNAIL_SIZE = 140;
+    public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
 
     private CrawlerConfig() {
     }

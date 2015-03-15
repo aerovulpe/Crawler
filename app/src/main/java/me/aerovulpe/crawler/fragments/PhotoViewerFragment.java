@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import me.aerovulpe.crawler.CrawlerConfig;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
@@ -82,6 +84,8 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         super.onAttach(activity);
         enteredWithToolBar = (((ActionBarActivity) activity).getSupportActionBar() != null) &&
                 ((ActionBarActivity) activity).getSupportActionBar().isShowing();
+        mShowText = activity.getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false);
     }
 
     @Override
@@ -120,6 +124,8 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().show();
+        getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+                .putBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, mShowText).apply();
     }
 
     public void setUpScrollingOfDescription() {
