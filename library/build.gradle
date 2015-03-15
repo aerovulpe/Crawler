@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 16
+    compileSdkVersion 21
     buildToolsVersion "19.1.0"
 
     defaultConfig {
-        minSdkVersion 4
-        targetSdkVersion 4
+        minSdkVersion 16
+        targetSdkVersion 21
     }
 
     buildTypes {
@@ -18,5 +18,5 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:18.+'
+    compile 'com.android.support:support-v4:21.+'
 }

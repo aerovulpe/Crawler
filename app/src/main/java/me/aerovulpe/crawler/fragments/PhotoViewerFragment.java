@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.viewpagerindicator.CirclePageIndicator;
 import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
@@ -40,9 +42,13 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
+    public static final int MENU_ITEM_CANCEL = 0, MENU_ITEM_TOGGLE_SLIDESHOW = 1,
+            MENU_ITEM_SHARE = 2, MENU_ITEM_MAKE_WALLPAPER = 3, MENU_ITEM_SETTINGS = 4;
+
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
     public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
+    private static final long ANIM_SLIDESHOW_DELAY = 5000;
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private List<Photo> mPhotos;
@@ -51,6 +57,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean enteredWithToolBar;
     private boolean mShowText;
+    private boolean isSlideShowRunning;
+    private Runnable animateViewPager;
+    private Handler handler;
 
     public PhotoViewerFragment() {
         // Required empty public constructor
@@ -116,6 +125,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             if (mShowText) pageIndicator.setVisibility(View.VISIBLE);
         }
         setUpScrollingOfDescription();
+        runnable(mPhotos.size());
+        //Re-run callback
+        handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
     }
 
     @Override
@@ -255,40 +267,36 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
         List<MenuObject> menuObjects = new ArrayList<>();
 
-
         MenuObject close = new MenuObject();
-        close.setResource(R.drawable.icn_close);
+        close.setResource(android.R.drawable.ic_menu_close_clear_cancel);
 
+        MenuObject toggleSlideShow;
+        if (!isSlideShowRunning) {
+            toggleSlideShow = new MenuObject("Start SlideShow");
+            toggleSlideShow.setResource(android.R.drawable.ic_media_play);
+        } else {
+            toggleSlideShow = new MenuObject("Pause SlideShow");
+            toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
+        }
+        toggleSlideShow.setCache(this);
 
-        MenuObject send = new MenuObject("Send message");
-        send.setResource(R.drawable.icn_1);
+        MenuObject share = new MenuObject("Share Photo");
+        Bitmap b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_share);
+        share.setBitmap(b);
 
-
-        MenuObject like = new MenuObject("Like profile");
-        Bitmap b = BitmapFactory.decodeResource(getResources(), R.drawable.icn_2);
-        like.setBitmap(b);
-
-
-        MenuObject addFr = new MenuObject("Add to friends");
+        MenuObject makeWallpaper = new MenuObject("Make Wallpaper");
         BitmapDrawable bd = new BitmapDrawable(getResources(),
-                BitmapFactory.decodeResource(getResources(), R.drawable.icn_3));
-        addFr.setDrawable(bd);
+                BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_set_as));
+        makeWallpaper.setDrawable(bd);
 
-
-        MenuObject addFav = new MenuObject("Add to favorites");
-        addFav.setResource(R.drawable.icn_4);
-
-
-        MenuObject block = new MenuObject("Block user");
-        block.setResource(R.drawable.icn_5);
-
+        MenuObject settings = new MenuObject("Settings");
+        settings.setResource(android.R.drawable.ic_menu_preferences);
 
         menuObjects.add(close);
-        menuObjects.add(send);
-        menuObjects.add(like);
-        menuObjects.add(addFr);
-        menuObjects.add(addFav);
-        menuObjects.add(block);
+        menuObjects.add(toggleSlideShow);
+        menuObjects.add(share);
+        menuObjects.add(makeWallpaper);
+        menuObjects.add(settings);
         return menuObjects;
     }
 
@@ -304,5 +312,34 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                 .getDimension(R.dimen.tool_bar_height), getMenuObjects());
         fragmentManager.beginTransaction().add(menuDialogFragment, null).commit();
 
+    }
+
+    public void toggleSlideShow() {
+        isSlideShowRunning = !isSlideShowRunning;
+        if (isSlideShowRunning) {
+            Toast.makeText(getActivity(), "Slideshow Started", Toast.LENGTH_SHORT).show();
+            runnable(mPhotos.size());
+            //Re-run callback
+            handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
+        } else {
+            Toast.makeText(getActivity(), "Slideshow Paused", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void runnable(final int size) {
+        handler = new Handler();
+        animateViewPager = new Runnable() {
+            public void run() {
+                if (isSlideShowRunning) {
+                    if (mViewPager.getCurrentItem() == size - 1) {
+                        mViewPager.setCurrentItem(0);
+                    } else {
+                        mViewPager.setCurrentItem(
+                                mViewPager.getCurrentItem() + 1, true);
+                    }
+                    handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
+                }
+            }
+        };
     }
 }
