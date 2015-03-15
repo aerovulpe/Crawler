@@ -152,7 +152,7 @@ public class AccountsActivity extends BaseActivity {
         };
         AddEditAccountFragment dialog = new AddEditAccountFragment();
         dialog.setAccountCallback(accountCallback);
-        dialog.show(getFragmentManager(), "accountAddDialog");
+        dialog.show(getSupportFragmentManager(), "accountAddDialog");
     }
 
     private void showAreYouSureDialog(final int accountPosition) {

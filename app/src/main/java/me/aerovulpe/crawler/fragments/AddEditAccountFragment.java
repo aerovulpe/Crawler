@@ -16,8 +16,9 @@
 
 package me.aerovulpe.crawler.fragments;
 
-import android.app.DialogFragment;
+
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -36,17 +37,6 @@ import me.aerovulpe.crawler.R;
  * @author haeberling@google.com (Sascha Haeberling)
  */
 public class AddEditAccountFragment extends DialogFragment {
-    public static interface AccountCallback {
-        /**
-         * A new account is to be created.
-         *
-         * @param type The account type.
-         * @param id   The user ID for that account.
-         * @param name The name for the account.
-         */
-        public void onAddAccount(int type, String id, String name);
-    }
-
     private AccountCallback mAccountCallback;
 
     public AddEditAccountFragment() {
@@ -115,5 +105,16 @@ public class AddEditAccountFragment extends DialogFragment {
     public void setAccountCallback(AccountCallback accountCallback) {
         if (mAccountCallback != null) return;
         mAccountCallback = accountCallback;
+    }
+
+    public static interface AccountCallback {
+        /**
+         * A new account is to be created.
+         *
+         * @param type The account type.
+         * @param id   The user ID for that account.
+         * @param name The name for the account.
+         */
+        public void onAddAccount(int type, String id, String name);
     }
 }

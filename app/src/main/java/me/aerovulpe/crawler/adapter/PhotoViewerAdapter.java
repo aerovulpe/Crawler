@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
@@ -35,12 +36,12 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private List<Photo> mPhotos;
     private String mAlbumTitle;
     private CachedImageFetcher cachedImageFetcher;
-    private View.OnClickListener mOnClickListener;
+    private PhotoClickListener mOnClickListener;
 
     private int photoSizeLongSide = -1;
     private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, View.OnClickListener onClickListener) {
+    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, PhotoClickListener onClickListener) {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
@@ -135,6 +136,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         descriptionSwitcher.setTag(position);
         photoView.setTag(rootView);
         photoView.setOnClickListener(mOnClickListener);
+        photoView.setOnLongClickListener(mOnClickListener);
         container.addView(rootView);
         return rootView;
     }

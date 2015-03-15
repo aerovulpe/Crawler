@@ -1,8 +1,9 @@
 package me.aerovulpe.crawler.activities;
 
-import android.app.FragmentManager;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -63,7 +64,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
     }
 
     public void createAlbumListInstance(String accountID) {
-        FragmentManager manager = getFragmentManager();
+        FragmentManager manager = getSupportFragmentManager();
         if (manager.findFragmentByTag(accountID) != null) {
             manager.beginTransaction().show(manager.findFragmentByTag(accountID))
                     .commit();
@@ -78,7 +79,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
 
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
-        FragmentManager manager = getFragmentManager();
+        FragmentManager manager = getSupportFragmentManager();
         if (manager.findFragmentByTag(albumTitle) != null) {
             manager.beginTransaction().show(manager.findFragmentByTag(albumTitle))
                     .commit();
@@ -94,7 +95,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
 
     @Override
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
-        FragmentManager manager = getFragmentManager();
+        FragmentManager manager = getSupportFragmentManager();
         if (manager.findFragmentByTag(albumTitle + currentPhotoIndex) != null) {
             manager.beginTransaction().show(manager.findFragmentByTag(albumTitle + currentPhotoIndex))
                     .commit();

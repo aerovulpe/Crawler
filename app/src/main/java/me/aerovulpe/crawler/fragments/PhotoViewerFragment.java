@@ -2,9 +2,13 @@ package me.aerovulpe.crawler.fragments;
 
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -14,6 +18,8 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.viewpagerindicator.CirclePageIndicator;
+import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
+import com.yalantis.contextmenu.lib.MenuObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +27,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import me.aerovulpe.crawler.CrawlerConfig;
+import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
@@ -28,7 +35,7 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewerFragment extends Fragment implements View.OnClickListener {
+public class PhotoViewerFragment extends Fragment implements PhotoClickListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
@@ -41,6 +48,7 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
+    private DialogFragment mMenuDialogFragment;
     private boolean enteredWithToolBar;
     private boolean mShowText;
 
@@ -69,6 +77,8 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
+        mMenuDialogFragment = ContextMenuDialogFragment.newInstance((int) getResources()
+                .getDimension(R.dimen.tool_bar_height), getMenuObjects());
         setRetainInstance(true);
     }
 
@@ -225,5 +235,68 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         toggleDetailViews((View) v.getTag());
+    }
+
+    private List<MenuObject> getMenuObjects() {
+        // You can use any [resource, bitmap, drawable, color] as image:
+        // item.setResource(...)
+        // item.setBitmap(...)
+        // item.setDrawable(...)
+        // item.setColor(...)
+        // You can set image ScaleType:
+        // item.setScaleType(ScaleType.FIT_XY)
+        // You can use any [resource, drawable, color] as background:
+        // item.setBgResource(...)
+        // item.setBgDrawable(...)
+        // item.setBgColor(...)
+        // You can use any [color] as text color:
+        // item.setTextColor(...)
+        // You can set any [color] as divider color:
+        // item.setDividerColor(...)
+
+
+        List<MenuObject> menuObjects = new ArrayList<>();
+
+
+        MenuObject close = new MenuObject();
+        close.setResource(R.drawable.icn_close);
+
+
+        MenuObject send = new MenuObject("Send message");
+        send.setResource(R.drawable.icn_1);
+
+
+        MenuObject like = new MenuObject("Like profile");
+        Bitmap b = BitmapFactory.decodeResource(getResources(), R.drawable.icn_2);
+        like.setBitmap(b);
+
+
+        MenuObject addFr = new MenuObject("Add to friends");
+        BitmapDrawable bd = new BitmapDrawable(getResources(),
+                BitmapFactory.decodeResource(getResources(), R.drawable.icn_3));
+        addFr.setDrawable(bd);
+
+
+        MenuObject addFav = new MenuObject("Add to favorites");
+        addFav.setResource(R.drawable.icn_4);
+
+
+        MenuObject block = new MenuObject("Block user");
+        block.setResource(R.drawable.icn_5);
+
+
+        menuObjects.add(close);
+        menuObjects.add(send);
+        menuObjects.add(like);
+        menuObjects.add(addFr);
+        menuObjects.add(addFav);
+        menuObjects.add(block);
+        return menuObjects;
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        mMenuDialogFragment.show(getChildFragmentManager(), "ContextMenuDialogFragment");
+        return true;
     }
 }
