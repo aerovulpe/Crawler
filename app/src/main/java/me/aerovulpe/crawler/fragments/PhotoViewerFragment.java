@@ -67,6 +67,8 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
             mCurrentPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
+        setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
         setRetainInstance(true);
     }
 
@@ -84,8 +86,6 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         super.onAttach(activity);
         enteredWithToolBar = (((ActionBarActivity) activity).getSupportActionBar() != null) &&
                 ((ActionBarActivity) activity).getSupportActionBar().isShowing();
-        mShowText = activity.getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false);
     }
 
     @Override
@@ -193,17 +193,27 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
 
     private void toggleDetailViews(View view) {
         if (mShowText) {
-            mPhotoViewerAdapter.setShowText(false);
             if (getView() != null)
                 getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
-            mShowText = false;
+            setShowText(false);
         } else {
-            mPhotoViewerAdapter.setShowText(true);
             if (getView() != null)
                 getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
-            mShowText = true;
+            setShowText(true);
+        }
+    }
+
+    private void setShowText(boolean showText) {
+        mShowText = showText;
+        mPhotoViewerAdapter.setShowText(showText);
+        if (showText) {
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
+        } else {
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
         }
     }
 
