@@ -15,6 +15,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -333,6 +334,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         }
 
         if (isSlideShowRunning) {
+            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to
             slideShowTimer.scheduleAtFixedRate(
                     new TimerTask() {
@@ -352,6 +354,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                     }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
         } else {
             slideShowTimer = null;
+            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 }
