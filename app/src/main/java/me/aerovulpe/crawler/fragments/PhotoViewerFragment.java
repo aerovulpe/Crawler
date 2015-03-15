@@ -341,6 +341,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                                 public void run() {
                                     if (mViewPager.getCurrentItem() == mPhotos.size() - 1) {
                                         mViewPager.setCurrentItem(0);
+                                        toggleSlideShow();
                                     } else {
                                         mViewPager.setCurrentItem(
                                                 mViewPager.getCurrentItem() + 1, true);
