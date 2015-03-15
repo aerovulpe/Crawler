@@ -42,7 +42,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
-    public static final int MENU_ITEM_CANCEL = 0, MENU_ITEM_TOGGLE_SLIDESHOW = 1,
+    public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1,
             MENU_ITEM_SHARE = 2, MENU_ITEM_MAKE_WALLPAPER = 3, MENU_ITEM_SETTINGS = 4;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
