@@ -105,6 +105,7 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
             //Bind the indicator to the adapter
             CirclePageIndicator pageIndicator = (CirclePageIndicator) getView().findViewById(R.id.pageIndicator);
             pageIndicator.setViewPager(mViewPager);
+            if (mShowText) pageIndicator.setVisibility(View.VISIBLE);
         }
         setUpScrollingOfDescription();
     }
