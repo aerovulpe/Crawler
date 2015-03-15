@@ -84,6 +84,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
         TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
         TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
+        setVisibilityOfPhotoText(rootView, mShowText);
 
         if (photoSizeLongSide < 0) {
             // Determines the size for the photo shown full-screen (without zooming).
@@ -134,8 +135,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 "liberavisse definitiones." + " " + mPhotos.get(position).getName());
 
         descriptionSwitcher.setTag(position);
-        setVisibilityOfPhotoText(rootView, mShowText);
-        rootView.setOnClickListener(mOnClickListener);
+        photoView.setTag(rootView);
+        photoView.setOnClickListener(mOnClickListener);
         container.addView(rootView);
         return rootView;
     }

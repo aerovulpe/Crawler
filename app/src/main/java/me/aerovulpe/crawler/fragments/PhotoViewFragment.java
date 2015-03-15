@@ -203,6 +203,6 @@ public class PhotoViewFragment extends Fragment implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-        toggleDetailViews(v);
+        toggleDetailViews((View) v.getTag());
     }
 }
