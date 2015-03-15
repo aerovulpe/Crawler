@@ -1,7 +1,6 @@
 package me.aerovulpe.crawler.adapter;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.util.DisplayMetrics;
@@ -94,12 +93,11 @@ public class PhotoViewerAdapter extends PagerAdapter {
         }
 
         try {
-            ProgressDialog progressDialog = new ProgressDialog(mContext);
-            progressDialog.setMessage("Loading photo");
+
             ImageLoadingTask imageLoadingTask = new ImageLoadingTask(
                     photoView,
                     new URL(mPhotos.get(position).getMediumImageUrl(photoSizeLongSide)),
-                    cachedImageFetcher, progressDialog);
+                    cachedImageFetcher);
             imageLoadingTask.execute();
         } catch (MalformedURLException e) {
             e.printStackTrace();

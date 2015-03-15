@@ -16,10 +16,10 @@
 
 package me.aerovulpe.crawler.request;
 
-import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.widget.ImageView;
+
 import java.net.URL;
 
 import me.aerovulpe.crawler.R;
@@ -36,25 +36,7 @@ public class ImageLoadingTask extends AsyncTask<Void, Integer, Void> {
     private final CachedImageFetcher cachedImageFetcher;
     private Bitmap bitmap;
     private boolean cached = false;
-    private ProgressDialog progressDialog;
     private boolean cancelUiUpdate = false;
-
-    /**
-     * Creates a new image loading task.
-     *
-     * @param imageView          the view on which to set the image once it is loaded
-     * @param url                the URL of the image
-     * @param cachedImageFetcher the image fetcher and cache to use
-     * @param progressDialog     optional loading message. Shows a loading message if this is not
-     *                           null
-     */
-    public ImageLoadingTask(ImageView imageView, URL url,
-                            CachedImageFetcher cachedImageFetcher, ProgressDialog progressDialog) {
-        this.imageView = imageView;
-        this.url = url;
-        this.cachedImageFetcher = cachedImageFetcher;
-        this.progressDialog = progressDialog;
-    }
 
     /**
      * Creates a new image loading task.
@@ -65,7 +47,9 @@ public class ImageLoadingTask extends AsyncTask<Void, Integer, Void> {
      */
     public ImageLoadingTask(ImageView imageView, URL url,
                             CachedImageFetcher cachedImageFetcher) {
-        this(imageView, url, cachedImageFetcher, null);
+        this.imageView = imageView;
+        this.url = url;
+        this.cachedImageFetcher = cachedImageFetcher;
     }
 
     /**
@@ -86,11 +70,6 @@ public class ImageLoadingTask extends AsyncTask<Void, Integer, Void> {
             imageView.setImageBitmap(bitmap);
             cached = true;
         } else {
-            if (progressDialog != null) {
-                // TODO: This sometimes throws a window leaked error, when
-                // activities are quickly switched around.
-                progressDialog.show();
-            }
             imageView.setImageResource(R.drawable.loading);
         }
     }
@@ -107,9 +86,6 @@ public class ImageLoadingTask extends AsyncTask<Void, Integer, Void> {
     protected void onPostExecute(Void result) {
         if (!cached && !cancelUiUpdate) {
             imageView.setImageBitmap(bitmap);
-        }
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.hide();
         }
     }
 }
