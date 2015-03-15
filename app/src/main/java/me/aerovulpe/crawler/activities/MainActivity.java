@@ -14,7 +14,7 @@ import me.aerovulpe.crawler.base.BaseActivity;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
-import me.aerovulpe.crawler.fragments.PhotoViewFragment;
+import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 
 
 public class MainActivity extends BaseActivity implements PhotoManagerActivity {
@@ -101,7 +101,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity {
             return;
         }
 
-        PhotoViewFragment fragment = PhotoViewFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
         manager.beginTransaction()
                 .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
                 .addToBackStack(null)

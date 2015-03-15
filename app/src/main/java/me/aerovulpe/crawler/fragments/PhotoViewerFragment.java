@@ -26,9 +26,9 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewFragment extends Fragment implements View.OnClickListener {
+public class PhotoViewerFragment extends Fragment implements View.OnClickListener {
 
-    public static final String LOG_PREFIX = PhotoViewFragment.class.getSimpleName();
+    public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
@@ -42,12 +42,12 @@ public class PhotoViewFragment extends Fragment implements View.OnClickListener 
     private boolean enteredWithToolBar;
     private boolean mShowText;
 
-    public PhotoViewFragment() {
+    public PhotoViewerFragment() {
         // Required empty public constructor
     }
 
-    public static PhotoViewFragment newInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
-        PhotoViewFragment fragment = new PhotoViewFragment();
+    public static PhotoViewerFragment newInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
+        PhotoViewerFragment fragment = new PhotoViewerFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
         args.putParcelableArrayList(ARG_PHOTOS, (ArrayList<Photo>) photos);
@@ -72,7 +72,7 @@ public class PhotoViewFragment extends Fragment implements View.OnClickListener 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_photo_view, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_photo_viewer, container, false);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         return rootView;
     }
