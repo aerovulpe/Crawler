@@ -117,7 +117,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     public void onMenuItemClick(View view, int i) {
         switch (i) {
             case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
-                ((PhotoViewerFragment) ((MenuObject) view.getTag()).getCache()).toggleSlideShow();
+                ((PhotoViewerFragment) ((MenuObject) view.getTag()).getTag()).toggleSlideShow();
                 break;
             case PhotoViewerFragment.MENU_ITEM_SETTINGS:
                 Intent intent = new Intent(this, PreferencesActivity.class);

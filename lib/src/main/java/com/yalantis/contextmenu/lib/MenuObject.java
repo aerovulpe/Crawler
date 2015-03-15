@@ -36,7 +36,7 @@ public class MenuObject implements Parcelable {
     private int mTextColor;
     // divider
     private int mDividerColor;
-    private Object mCache;
+    private Object mTag;
 
     public MenuObject(String title) {
         this.mTitle = title;
@@ -172,11 +172,11 @@ public class MenuObject implements Parcelable {
         this.mScaleType = mScaleType;
     }
 
-    public Object getCache() {
-        return mCache;
+    public Object getTag() {
+        return mTag;
     }
 
-    public void setCache(Object cache) {
-        mCache = cache;
+    public void setTag(Object tag) {
+        mTag = tag;
     }
 }

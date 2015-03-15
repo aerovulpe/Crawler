@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -58,8 +57,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private boolean enteredWithToolBar;
     private boolean mShowText;
     private boolean isSlideShowRunning;
-    private Runnable animateViewPager;
-    private Handler handler;
+    private Timer slideShowTimer;
 
     public PhotoViewerFragment() {
         // Required empty public constructor
@@ -125,9 +123,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             if (mShowText) pageIndicator.setVisibility(View.VISIBLE);
         }
         setUpScrollingOfDescription();
-        runnable(mPhotos.size());
-        //Re-run callback
-        handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
+        setUpSlideShowTask();
     }
 
     @Override
@@ -136,6 +132,10 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         if (timerDescriptionScrolling != null) {
             timerDescriptionScrolling.cancel();
             timerDescriptionScrolling = null;
+        }
+        if (slideShowTimer != null) {
+            slideShowTimer.cancel();
+            slideShowTimer = null;
         }
     }
 
@@ -278,7 +278,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             toggleSlideShow = new MenuObject("Pause SlideShow");
             toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
         }
-        toggleSlideShow.setCache(this);
+        toggleSlideShow.setTag(this);
 
         MenuObject share = new MenuObject("Share Photo");
         Bitmap b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_share);
@@ -318,28 +318,39 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         isSlideShowRunning = !isSlideShowRunning;
         if (isSlideShowRunning) {
             Toast.makeText(getActivity(), "Slideshow Started", Toast.LENGTH_SHORT).show();
-            runnable(mPhotos.size());
-            //Re-run callback
-            handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
         } else {
             Toast.makeText(getActivity(), "Slideshow Paused", Toast.LENGTH_SHORT).show();
         }
+        setUpSlideShowTask();
     }
 
-    public void runnable(final int size) {
-        handler = new Handler();
-        animateViewPager = new Runnable() {
-            public void run() {
-                if (isSlideShowRunning) {
-                    if (mViewPager.getCurrentItem() == size - 1) {
-                        mViewPager.setCurrentItem(0);
-                    } else {
-                        mViewPager.setCurrentItem(
-                                mViewPager.getCurrentItem() + 1, true);
-                    }
-                    handler.postDelayed(animateViewPager, ANIM_SLIDESHOW_DELAY);
-                }
-            }
-        };
+    public void setUpSlideShowTask() {
+        //use the same timer. Cancel if running
+        if (slideShowTimer != null) {
+            slideShowTimer.cancel();
+        } else {
+            slideShowTimer = new Timer("SlideShow");
+        }
+
+        if (isSlideShowRunning) {
+            //schedule this to
+            slideShowTimer.scheduleAtFixedRate(
+                    new TimerTask() {
+                        public void run() {
+                            PhotoViewerFragment.this.getActivity().runOnUiThread(new Runnable() {
+                                public void run() {
+                                    if (mViewPager.getCurrentItem() == mPhotos.size() - 1) {
+                                        mViewPager.setCurrentItem(0);
+                                    } else {
+                                        mViewPager.setCurrentItem(
+                                                mViewPager.getCurrentItem() + 1, true);
+                                    }
+                                }
+                            });
+                        }
+                    }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
+        } else {
+            slideShowTimer = null;
+        }
     }
 }
