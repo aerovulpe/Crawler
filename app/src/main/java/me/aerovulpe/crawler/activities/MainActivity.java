@@ -1,9 +1,9 @@
 package me.aerovulpe.crawler.activities;
 
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,10 +25,13 @@ import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 
 public class MainActivity extends BaseActivity implements PhotoManagerActivity, OnMenuItemClickListener, OnMenuItemLongClickListener {
 
+    private FragmentManager mManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mManager = getFragmentManager();
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
@@ -68,30 +71,28 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     }
 
     public void createAlbumListInstance(String accountID) {
-        FragmentManager manager = getSupportFragmentManager();
-        if (manager.findFragmentByTag(accountID) != null) {
-            manager.beginTransaction().show(manager.findFragmentByTag(accountID))
+        if (mManager.findFragmentByTag(accountID) != null) {
+            mManager.beginTransaction().show(mManager.findFragmentByTag(accountID))
                     .commit();
             return;
         }
 
         AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
-        manager.beginTransaction()
+        mManager.beginTransaction()
                 .add(R.id.container, fragment, accountID)
                 .commit();
     }
 
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
-        FragmentManager manager = getSupportFragmentManager();
-        if (manager.findFragmentByTag(albumTitle) != null) {
-            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle))
+        if (mManager.findFragmentByTag(albumTitle) != null) {
+            mManager.beginTransaction().show(mManager.findFragmentByTag(albumTitle))
                     .commit();
             return;
         }
 
         PhotoListFragment fragment = PhotoListFragment.newInstance(albumTitle, photos);
-        manager.beginTransaction()
+        mManager.beginTransaction()
                 .add(R.id.container, fragment, albumTitle)
                 .addToBackStack(null)
                 .commit();
@@ -99,15 +100,14 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
     @Override
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
-        FragmentManager manager = getSupportFragmentManager();
-        if (manager.findFragmentByTag(albumTitle + currentPhotoIndex) != null) {
-            manager.beginTransaction().show(manager.findFragmentByTag(albumTitle + currentPhotoIndex))
+        if (mManager.findFragmentByTag(albumTitle + currentPhotoIndex) != null) {
+            mManager.beginTransaction().show(mManager.findFragmentByTag(albumTitle + currentPhotoIndex))
                     .commit();
             return;
         }
 
         PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
-        manager.beginTransaction()
+        mManager.beginTransaction()
                 .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
                 .addToBackStack(null)
                 .commit();

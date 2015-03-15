@@ -2,14 +2,14 @@ package me.aerovulpe.crawler.fragments;
 
 
 import android.app.Activity;
+import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -307,7 +307,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     }
 
     private void showContextMenu() {
-        FragmentManager fragmentManager = getChildFragmentManager();
+        FragmentManager fragmentManager = getFragmentManager();
         DialogFragment menuDialogFragment = ContextMenuDialogFragment.newInstance((int) getResources()
                 .getDimension(R.dimen.tool_bar_height), getMenuObjects());
         fragmentManager.beginTransaction().add(menuDialogFragment, null).commit();
