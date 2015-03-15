@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
@@ -48,7 +49,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
-    private DialogFragment mMenuDialogFragment;
     private boolean enteredWithToolBar;
     private boolean mShowText;
 
@@ -77,8 +77,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
-        mMenuDialogFragment = ContextMenuDialogFragment.newInstance((int) getResources()
-                .getDimension(R.dimen.tool_bar_height), getMenuObjects());
         setRetainInstance(true);
     }
 
@@ -296,7 +294,15 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
     @Override
     public boolean onLongClick(View v) {
-        mMenuDialogFragment.show(getChildFragmentManager(), "ContextMenuDialogFragment");
+        showContextMenu();
         return true;
+    }
+
+    private void showContextMenu() {
+        FragmentManager fragmentManager = getChildFragmentManager();
+        DialogFragment menuDialogFragment = ContextMenuDialogFragment.newInstance((int) getResources()
+                .getDimension(R.dimen.tool_bar_height), getMenuObjects());
+        fragmentManager.beginTransaction().add(menuDialogFragment, null).commit();
+
     }
 }
