@@ -34,7 +34,7 @@ public class PhotoViewFragment extends Fragment {
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
     public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
-    protected Timer timerDescriptionScrolling;
+    private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private List<Photo> mPhotos;
     private int mCurrentPhotoIndex;
