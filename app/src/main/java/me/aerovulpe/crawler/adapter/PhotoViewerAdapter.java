@@ -163,4 +163,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
     public void setShowText(boolean showText) {
         mShowText = showText;
     }
+
+    public CachedImageFetcher getCachedImageFetcher() {
+        return cachedImageFetcher;
+    }
 }

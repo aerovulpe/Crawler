@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.yalantis.contextmenu.lib.MenuObject;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
@@ -115,9 +116,23 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
     @Override
     public void onMenuItemClick(View view, int i) {
+        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
         switch (i) {
             case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
-                ((PhotoViewerFragment) ((MenuObject) view.getTag()).getTag()).toggleSlideShow();
+                photoViewerFragment.toggleSlideShow();
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SAVE:
+                if (photoViewerFragment.savePhoto(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
+                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SHARE:
+                photoViewerFragment.sharePhoto(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
+                break;
+            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
+                photoViewerFragment.setAsWallpaper(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
                 break;
             case PhotoViewerFragment.MENU_ITEM_SETTINGS:
                 Intent intent = new Intent(this, PreferencesActivity.class);

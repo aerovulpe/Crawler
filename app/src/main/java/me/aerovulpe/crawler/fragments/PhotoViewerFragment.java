@@ -5,13 +5,16 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +27,8 @@ import com.viewpagerindicator.CirclePageIndicator;
 import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
 import com.yalantis.contextmenu.lib.MenuObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -43,7 +48,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
     public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1,
-            MENU_ITEM_SHARE = 2, MENU_ITEM_MAKE_WALLPAPER = 3, MENU_ITEM_SETTINGS = 4;
+            MENU_ITEM_SAVE = 2, MENU_ITEM_SHARE = 3, MENU_ITEM_MAKE_WALLPAPER = 4, MENU_ITEM_SETTINGS = 5;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
@@ -284,25 +289,28 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             toggleSlideShow = new MenuObject("Pause SlideShow");
             toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
         }
-        toggleSlideShow.setTag(this);
+
+        MenuObject save = new MenuObject("Save Photo");
+        save.setResource(android.R.drawable.ic_menu_save);
 
         MenuObject share = new MenuObject("Share Photo");
-        Bitmap b = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_share);
-        share.setBitmap(b);
+        share.setResource(android.R.drawable.ic_menu_share);
 
         MenuObject makeWallpaper = new MenuObject("Make Wallpaper");
-        BitmapDrawable bd = new BitmapDrawable(getResources(),
-                BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_set_as));
-        makeWallpaper.setDrawable(bd);
+        makeWallpaper.setResource(android.R.drawable.ic_menu_set_as);
 
         MenuObject settings = new MenuObject("Settings");
         settings.setResource(android.R.drawable.ic_menu_preferences);
 
         menuObjects.add(close);
         menuObjects.add(toggleSlideShow);
+        menuObjects.add(save);
         menuObjects.add(share);
         menuObjects.add(makeWallpaper);
         menuObjects.add(settings);
+
+        for (MenuObject menuObject : menuObjects) menuObject.setTag(this);
+
         return menuObjects;
     }
 
@@ -361,5 +369,75 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer = null;
             getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+    }
+
+    public int getCurrentPhotoIndex() {
+        return mCurrentPhotoIndex;
+    }
+
+    public Photo getPhoto(int position) {
+        return mPhotos.get(position);
+    }
+
+    public void sharePhoto(Photo photo) {
+        if (photo == null) {
+            Toast.makeText(getActivity(), "Unable to share photo", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        //we assume the type is image/jpg
+        shareIntent.setType("image/jpg");
+        String sharedText = photo.getName() + ": " + photo.getDescription();
+        shareIntent.putExtra(Intent.EXTRA_STREAM, savePhoto(photo));
+        shareIntent.putExtra(Intent.EXTRA_TEXT, sharedText);
+
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, photo.getTitle());
+
+        //Start the actual sharing activity
+        try {
+            List<ResolveInfo> relevantActivities = getActivity().getPackageManager().queryIntentActivities(shareIntent, 0);
+            if (relevantActivities == null || relevantActivities.size() == 0) {
+                Log.i(LOG_PREFIX, "No activity found that can handle image/jpg. Performing simple text share");
+                Intent backupShareIntent = new Intent();
+                backupShareIntent.setAction(Intent.ACTION_SEND);
+                backupShareIntent.setType("text/plain");
+                String backupSharedText = photo.getFullImageUrl() + "\n\n" + sharedText;
+                backupShareIntent.putExtra(Intent.EXTRA_TEXT, backupSharedText);
+                startActivity(backupShareIntent);
+            } else {
+                startActivity(shareIntent);
+            }
+
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(getActivity(), "Unable to share photo", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public String savePhoto(Photo photo) {
+        try {
+            return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
+                    mPhotoViewerAdapter.getCachedImageFetcher()
+                            .cachedFetchImage(new URL(photo.getFullImageUrl())), photo.getName(), photo.getDescription());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Toast.makeText(getActivity(), "Could not save image", Toast.LENGTH_LONG).show();
+            return null;
+        }
+    }
+
+    public void setAsWallpaper(Photo photo) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_ATTACH_DATA);
+        String mimeType = "image/jpg";
+        Uri uri = Uri.parse(savePhoto(photo));
+
+
+        intent.setDataAndType(uri, mimeType);
+        intent.putExtra("mimeType", mimeType);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        Log.i(LOG_PREFIX, "Attempting to set photo as wallpaper uri:" + uri);
+        startActivity(Intent.createChooser(intent, "Set Photo As"));
     }
 }
