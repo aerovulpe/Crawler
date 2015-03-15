@@ -139,6 +139,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 "decore. Quod idque labore et nam, vim at atqui errem perpetua, quo ad iudico " +
                 "liberavisse definitiones." + " " + mPhotos.get(position).getName());
 
+        descriptionSwitcher.setTag(position);
+
         container.addView(rootView);
         return rootView;
     }

@@ -141,6 +141,15 @@ public class PhotoViewFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if (timerDescriptionScrolling != null) {
+            timerDescriptionScrolling.cancel();
+            timerDescriptionScrolling = null;
+        }
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
@@ -149,14 +158,13 @@ public class PhotoViewFragment extends Fragment {
     }
 
     public void setUpScrollingOfDescription() {
-        if (getView() == null) return;
-        final ViewPager viewPager = (ViewPager) getView().findViewById(R.id.view_pager);
         //use the same timer. Cancel if running
         if (timerDescriptionScrolling != null) {
             timerDescriptionScrolling.cancel();
+        } else {
+            timerDescriptionScrolling = new Timer("TextScrolling");
         }
 
-        timerDescriptionScrolling = new Timer("TextScrolling");
         final Activity activity = getActivity();
         long msBetweenSwaps = 3500;
 
@@ -168,9 +176,10 @@ public class PhotoViewFragment extends Fragment {
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                Photo currentPhoto = mPhotos.get(viewPager.getCurrentItem());
+                                Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
 
-                                TextSwitcher switcherDescription = (TextSwitcher) viewPager.findViewById(R.id.photo_description_switcher);
+                                TextSwitcher switcherDescription = (TextSwitcher) mViewPager
+                                        .findViewWithTag(mViewPager.getCurrentItem());
 
                                 updateScrollingDescription(currentPhoto, switcherDescription);
 
@@ -190,11 +199,11 @@ public class PhotoViewFragment extends Fragment {
     private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
 
 
-        String description = "Lorem ipsum dolor sit amet, duo id purto dicta ubique, falli tempor " +
+        String description = currentPhoto.getName() + " " + "Lorem ipsum dolor sit amet, duo id purto dicta ubique, falli tempor " +
                 "invidunt cu vix. Eum tota accumsan no, inermis maiorum nam ei, pro an iusto commodo" +
                 " tincidunt. Mea quod mediocrem dissentiet ei, utroque eleifend id sit. Eum an alia " +
                 "decore. Quod idque labore et nam, vim at atqui errem perpetua, quo ad iudico " +
-                "liberavisse definitiones." + " " + currentPhoto.getName();
+                "liberavisse definitiones.";
 
         TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
 
@@ -210,7 +219,6 @@ public class PhotoViewFragment extends Fragment {
             return;
         }
 
-
         int indexEndCurrentDescription = descriptionView.getLayout().getLineEnd(1);
 
         //if we are not displaying all characters, let swap to the not displayed substring
@@ -220,9 +228,6 @@ public class PhotoViewFragment extends Fragment {
         } else if (indexEndCurrentDescription >= currentDescription.length() && indexEndCurrentDescription < description.length()) {
             //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
             switcherDescription.setText(description);
-        } else {
-            //do nothing (ie. leave the text)
         }
-
     }
 }
