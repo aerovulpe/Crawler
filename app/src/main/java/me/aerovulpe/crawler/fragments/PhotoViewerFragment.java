@@ -203,6 +203,10 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
             setShowText(true);
         }
+        // Prevent following view from fucking up.
+        int currentPosition = mViewPager.getCurrentItem();
+        mViewPager.setAdapter(mPhotoViewerAdapter);
+        mViewPager.setCurrentItem(currentPosition);
     }
 
     private void setShowText(boolean showText) {
