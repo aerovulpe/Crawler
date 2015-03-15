@@ -138,6 +138,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer.cancel();
             slideShowTimer = null;
         }
+        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
