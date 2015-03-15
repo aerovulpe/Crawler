@@ -171,26 +171,15 @@ public class PhotoViewFragment extends Fragment {
         //schedule this to
         timerDescriptionScrolling.scheduleAtFixedRate(
                 new TimerTask() {
-                    int i = 0;
-
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
                                 Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
-
                                 TextSwitcher switcherDescription = (TextSwitcher) mViewPager
                                         .findViewWithTag(mViewPager.getCurrentItem());
-
                                 updateScrollingDescription(currentPhoto, switcherDescription);
-
-                                //this is the max times we will swap (to make sure we don't create an infinite timer by mistake
-                                if (i > 30) {
-                                    timerDescriptionScrolling.cancel();
-                                }
-                                i++;
                             }
                         });
-
                     }
                 }, msBetweenSwaps, msBetweenSwaps);
     }
