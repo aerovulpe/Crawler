@@ -108,8 +108,8 @@ public class AlbumListFragment extends Fragment {
 
     @Override
     public void onPause() {
-        super.onPause();
         ((PhotoManager) getActivity()).enableDrawer(false);
+        super.onPause();
         if (mAlbumsAdapter == null) return;
         mIndex = mainList.getFirstVisiblePosition() * mAlbumsAdapter.getSlotsPerRow();
         View v = mainList.getChildAt(0);
@@ -118,8 +118,8 @@ public class AlbumListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        super.onResume();
         ((PhotoManager) getActivity()).enableDrawer(true);
+        super.onResume();
         if (mAlbumsAdapter == null) return;
         mainList.post(new Runnable() {
             @Override
