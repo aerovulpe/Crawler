@@ -222,6 +222,7 @@ public class AlbumListFragment extends Fragment {
     private void showPhotos(String albumTitle, List<Photo> photos) {
         Log.d(TAG, "SHOW PHOTOS()");
         PhotoManager managerActivity = (PhotoManager) getActivity();
+        managerActivity.enableDrawer(false);
         managerActivity.createPhotoListInstance(albumTitle, photos);
     }
 }
