@@ -403,10 +403,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         return mPhotos.get(position);
     }
 
-    public void setSlideShowRunning(boolean isSlideShowRunning) {
-        this.isSlideShowRunning = isSlideShowRunning;
-    }
-
     public void sharePhoto(Photo photo) {
         if (photo == null) {
             Toast.makeText(getActivity(), "Unable to share photo", Toast.LENGTH_LONG).show();
