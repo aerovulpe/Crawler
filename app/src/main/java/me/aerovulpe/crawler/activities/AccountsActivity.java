@@ -23,14 +23,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 
-import me.aerovulpe.crawler.Callback;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.base.BaseActivity;
@@ -55,8 +54,6 @@ public class AccountsActivity extends BaseActivity {
     private static final int CONTEXT_MENU_DELETE = 1;
 
     private AccountsAdapter adapter;
-    private ListView mainList;
-    private LayoutInflater inflater;
     private AccountsDatabase accountsDb = AccountsDatabase.get();
 
     @Override
@@ -64,37 +61,33 @@ public class AccountsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accounts);
 
-        Callback<String> accountSelectedCallback = new Callback<String>() {
+        ListView mainList = (ListView) findViewById(R.id.accounts_list);
+        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb.queryAll().getAllAndClose());
+        mainList.setAdapter(adapter);
+        mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void callback(String accountId) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(AccountsActivity.this,
                         MainActivity.class);
-                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, accountId);
+                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, adapter.getItem(position).id);
                 AccountsActivity.this.startActivity(intent);
             }
-        };
-
-        mainList = (ListView) findViewById(R.id.accounts_list);
-        inflater = LayoutInflater.from(this);
-        adapter = new AccountsAdapter(accountsDb, accountSelectedCallback, inflater);
-        mainList.setAdapter(adapter);
+        });
         registerForContextMenu(mainList);
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenuInfo menuInfo) {
-        if (v.getId() != R.id.accounts_list) {
-            return;
-        }
+        if (v.getId() == R.id.accounts_list) {
+            AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+            Account account = adapter.getItem(info.position);
+            menu.setHeaderTitle(account.toString());
 
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        Account account = (Account) adapter.getItem(info.position);
-        menu.setHeaderTitle(account.toString());
-
-        String[] menuItems = getResources().getStringArray(R.array.account_actions);
-        for (int i = 0; i < menuItems.length; i++) {
-            menu.add(Menu.NONE, i, i, menuItems[i]);
+            String[] menuItems = getResources().getStringArray(R.array.account_actions);
+            for (int i = 0; i < menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
         }
     }
 
@@ -102,7 +95,7 @@ public class AccountsActivity extends BaseActivity {
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item
                 .getMenuInfo();
-        Account account = (Account) adapter.getItem(menuInfo.position);
+        Account account = adapter.getItem(menuInfo.position);
 
         switch (item.getItemId()) {
             case CONTEXT_MENU_EDIT:

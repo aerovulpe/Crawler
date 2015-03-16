@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.activities;
 
 
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -9,11 +10,11 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -23,7 +24,6 @@ import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
 import java.util.List;
 
-import me.aerovulpe.crawler.Callback;
 import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
@@ -51,25 +51,19 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mManager = getFragmentManager();
-        if (savedInstanceState == null) {
-            Intent intent = getIntent();
-            if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
-                createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
-            }
-        }
-        Callback<String> accountSelectedCallback = new Callback<String>() {
-            @Override
-            public void callback(String accountId) {
-                createAlbumListInstance(accountId);
-            }
-        };
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        adapter = new AccountsAdapter(accountsDb, accountSelectedCallback, LayoutInflater.from(this));
+        mManager = getFragmentManager();
+        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb.queryAll().getAllAndClose());
         mDrawerList.setAdapter(adapter);
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                createAlbumListInstance(adapter.getItem(position).id);
+            }
+        });
         mTitle = mDrawerTitle = getTitle();
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mToolbar = (Toolbar) findViewById(R.id.app_bar);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 mToolbar, R.string.drawer_open, R.string.drawer_close) {
@@ -97,6 +91,13 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         if (getSupportActionBar() != null) getSupportActionBar().setHomeButtonEnabled(true);
+
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            if (intent.hasExtra(AlbumListFragment.ARG_ACCOUNT_ID)) {
+                createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
+            }
+        }
     }
 
     @Override
@@ -154,46 +155,45 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     }
 
     public void createAlbumListInstance(String accountID) {
-        if (mManager.findFragmentByTag(accountID) != null) {
-            mManager.beginTransaction().replace(R.id.content_frame, mManager.findFragmentByTag(accountID))
-                    .commit();
-            return;
-        }
+        FragmentTransaction fragmentTransaction = mManager.beginTransaction();
+        if (mManager.findFragmentByTag(accountID) != null)
+            fragmentTransaction.replace(R.id.content_frame, mManager.findFragmentByTag(accountID));
+        else
+            fragmentTransaction.add(R.id.content_frame, AlbumListFragment.newInstance(accountID), accountID);
 
-        AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
-        mManager.beginTransaction()
-                .add(R.id.content_frame, fragment, accountID)
-                .commit();
+        fragmentTransaction.commit();
+        mManager.executePendingTransactions();
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
-        if (mManager.findFragmentByTag(albumTitle) != null) {
-            mManager.beginTransaction().replace(R.id.content_frame, mManager.findFragmentByTag(albumTitle))
-                    .addToBackStack(null)
-                    .commit();
-            return;
-        }
+        FragmentTransaction fragmentTransaction = mManager.beginTransaction();
+        if (mManager.findFragmentByTag(albumTitle) != null)
+            fragmentTransaction.replace(R.id.content_frame, mManager.findFragmentByTag(albumTitle));
+        else
+            fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
 
-        PhotoListFragment fragment = PhotoListFragment.newInstance(albumTitle, photos);
-        mManager.beginTransaction()
-                .add(R.id.content_frame, fragment, albumTitle)
-                .addToBackStack(null)
-                .commit();
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        mManager.executePendingTransactions();
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     @Override
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
         PhotoViewerFragment fragment = (PhotoViewerFragment) mManager.findFragmentByTag(albumTitle + currentPhotoIndex);
-        if (fragment != null) {
-            mManager.beginTransaction().replace(R.id.content_frame, fragment).addToBackStack(null).commit();
-        } else {
+        FragmentTransaction fragmentTransaction = mManager.beginTransaction();
+        if (fragment != null)
+            fragmentTransaction.replace(R.id.content_frame, fragment);
+        else
             fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
-            mManager.beginTransaction()
-                    .add(R.id.content_frame, fragment, albumTitle + currentPhotoIndex)
-                    .addToBackStack(null)
-                    .commit();
-        }
+
+        fragmentTransaction.add(R.id.content_frame, fragment, albumTitle + currentPhotoIndex);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        mManager.executePendingTransactions();
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         fragment.setSlideShowRunning(isSlideShow);
     }
 

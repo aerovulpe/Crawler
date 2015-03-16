@@ -16,93 +16,48 @@
 
 package me.aerovulpe.crawler.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
 
-import me.aerovulpe.crawler.Callback;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Account;
-import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.AccountsUtil;
 
-/**
- * The controller for the accounts list.
- *
- * @author haeberling@google.com (Sascha Haeberling)
- */
-public class AccountsAdapter extends BaseAdapter {
-    private final AccountsDatabase db;
-    private final Callback<String> callback;
-    private final LayoutInflater inflater;
-    private List<Account> accounts;
+public class AccountsAdapter extends ArrayAdapter<Account> {
+    private final Context mContext;
+    int mElementId;
+    private List<Account> mAccounts;
 
-    /**
-     * Instatiates the accounts adapter.
-     *
-     * @param db       The database which stores the accounts.
-     * @param callback The callback to be called when a row is clicked.
-     * @param inflater The inflater used to inflate the layouts for the rows.
-     */
-    public AccountsAdapter(AccountsDatabase db, Callback<String> callback,
-                           LayoutInflater inflater) {
-        this.db = db;
-        this.callback = callback;
-        this.inflater = inflater;
-        refreshData();
+    public AccountsAdapter(Context context, int elementId, List<Account> accounts) {
+        super(context, elementId, accounts);
+        mElementId = elementId;
+        mContext = context;
+        mAccounts = accounts;
     }
 
     @Override
     public int getCount() {
-        return accounts.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return accounts.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
+        return mAccounts.size();
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = inflater.inflate(R.layout.account_entry, null);
+            convertView = LayoutInflater.from(mContext).inflate(mElementId, parent, false);
         }
-        final Account account = accounts.get(position);
+        final Account account = mAccounts.get(position);
         ((ImageView) convertView.findViewById(R.id.service_logo))
                 .setImageResource(AccountsUtil.getAccountLogoResource(account.type));
         ((TextView) convertView.findViewById(R.id.account_name))
                 .setText(account.name);
         ((TextView) convertView.findViewById(R.id.account_id)).setText(account.id);
-
-        convertView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                callback.callback(account.id);
-            }
-        });
-        convertView.setLongClickable(true);
-
         return convertView;
-    }
-
-    @Override
-    public void notifyDataSetChanged() {
-        refreshData();
-        super.notifyDataSetChanged();
-    }
-
-    private void refreshData() {
-        this.accounts = db.queryAll().getAllAndClose();
     }
 }
