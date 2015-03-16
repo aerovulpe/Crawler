@@ -179,7 +179,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
-        fragment.setSlideShowRunning(isSlideShow);
+        fragment.toggleSlideShow();
     }
 
     @Override
