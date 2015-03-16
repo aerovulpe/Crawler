@@ -111,7 +111,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
                     .addToBackStack(null)
                     .commit();
         }
-        fragment.setSlideShowRunning(true);
+        fragment.setSlideShowRunning(isSlideShow);
     }
 
     @Override
