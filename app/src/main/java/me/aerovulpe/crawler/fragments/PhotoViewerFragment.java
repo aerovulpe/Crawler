@@ -160,7 +160,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                 .putBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, mShowText).apply();
     }
 
-    public void setUpScrollingOfDescription() {
+    private void setUpScrollingOfDescription() {
         //use the same timer. Cancel if running
         if (timerDescriptionScrolling != null) {
             timerDescriptionScrolling.cancel();
@@ -377,6 +377,10 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
     public Photo getPhoto(int position) {
         return mPhotos.get(position);
+    }
+
+    public void setSlideShowRunning(boolean isSlideShowRunning) {
+        this.isSlideShowRunning = isSlideShowRunning;
     }
 
     public void sharePhoto(Photo photo) {

@@ -13,5 +13,5 @@ public interface PhotoManagerActivity {
 
     public void createPhotoListInstance(String albumTitle, List<Photo> photos);
 
-    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex);
+    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow);
 }

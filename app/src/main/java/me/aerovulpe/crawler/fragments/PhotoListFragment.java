@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 
+import com.melnykov.fab.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,6 +86,14 @@ public class PhotoListFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.photo_list, container, false);
         mainList = (ListView) rootView.findViewById(R.id.photolist);
+        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fab.attachToListView(mainList);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displayPhoto(mPhotos.get(0), true);
+            }
+        });
         this.inflater = inflater;
         loadPhotos();
         return rootView;
@@ -132,7 +142,7 @@ public class PhotoListFragment extends Fragment {
                     new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
                         @Override
                         public void thumbnailClicked(Photo photo) {
-                            displayPhoto(photo);
+                            displayPhoto(photo, false);
                         }
                     };
             mPhotosAdapter = new PhotosAdapter(wrap(mPhotos), inflater,
@@ -147,8 +157,8 @@ public class PhotoListFragment extends Fragment {
         mainList.invalidateViews();
     }
 
-    private void displayPhoto(Photo photo) {
+    private void displayPhoto(Photo photo, boolean isSlideShow) {
         ((PhotoManagerActivity) getActivity())
-                .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo));
+                .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo), isSlideShow);
     }
 }

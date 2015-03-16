@@ -7,5 +7,5 @@
     <color name="crawlerPrimaryTextColor">@color/md_white_1000</color>
     <color name="crawlerSecondaryTextColor">@color/md_grey_700</color>
     <color name="crawlerHighlightColor">@color/md_indigo_A700</color>
-    <color name="crawlerRipple">@color/md_pink_200</color>
+    <color name="crawlerRipple">@color/md_pink_A400</color>
 </resources>

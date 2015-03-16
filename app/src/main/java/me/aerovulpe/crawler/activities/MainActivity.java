@@ -100,18 +100,18 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     }
 
     @Override
-    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
-        if (mManager.findFragmentByTag(albumTitle + currentPhotoIndex) != null) {
-            mManager.beginTransaction().show(mManager.findFragmentByTag(albumTitle + currentPhotoIndex))
+    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
+        PhotoViewerFragment fragment = (PhotoViewerFragment) mManager.findFragmentByTag(albumTitle + currentPhotoIndex);
+        if (fragment != null) {
+            mManager.beginTransaction().show(fragment).commit();
+        } else {
+            fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+            mManager.beginTransaction()
+                    .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
+                    .addToBackStack(null)
                     .commit();
-            return;
         }
-
-        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
-        mManager.beginTransaction()
-                .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
-                .addToBackStack(null)
-                .commit();
+        fragment.setSlideShowRunning(true);
     }
 
     @Override
