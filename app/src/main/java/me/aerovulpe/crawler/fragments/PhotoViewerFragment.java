@@ -60,7 +60,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private List<Photo> mPhotos;
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
-    private int mExpectedIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean enteredWithToolBar;
@@ -93,7 +92,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
-        mExpectedIndex = -1;
         setRetainInstance(true);
     }
 
@@ -132,6 +130,23 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             //Bind the indicator to the adapter
             CirclePageIndicator pageIndicator = (CirclePageIndicator) getView().findViewById(R.id.pageIndicator);
             pageIndicator.setViewPager(mViewPager);
+            pageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+                    if (isSlideShowRunning && state == ViewPager.SCROLL_STATE_DRAGGING)
+                        toggleSlideShow();
+                }
+            });
             if (mShowText) pageIndicator.setVisibility(View.VISIBLE);
         }
         setUpScrollingOfDescription();
@@ -366,12 +381,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                                     if (mViewPager.getCurrentItem() == mPhotos.size() - 1) {
                                         mViewPager.setCurrentItem(0);
                                         toggleSlideShow();
-                                    } else if (mViewPager.getCurrentItem() == mExpectedIndex ||
-                                            mExpectedIndex == -1) {
-                                        mExpectedIndex = mViewPager.getCurrentItem() + 1;
-                                        mViewPager.setCurrentItem(mExpectedIndex, true);
                                     } else {
-                                        toggleSlideShow();
+                                        mViewPager.setCurrentItem(
+                                                mViewPager.getCurrentItem() + 1, true);
                                     }
                                 }
                             });
@@ -379,7 +391,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                     }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
         } else {
             slideShowTimer = null;
-            mExpectedIndex = -1;
             getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
