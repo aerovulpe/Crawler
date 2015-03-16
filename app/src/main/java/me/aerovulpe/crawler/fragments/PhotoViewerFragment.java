@@ -332,12 +332,10 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         isSlideShowRunning = !isSlideShowRunning;
         String message;
         if (isSlideShowRunning) {
-            if (mViewPager.getCurrentItem() == 0)
-                message = "Slideshow Started";
-            else message = "Slideshow Resumed";
+            message = "Slideshow Started";
         } else {
             if (mViewPager.getCurrentItem() == 0)
-                message = "Slideshow Stopped";
+                message = "Slideshow Ended";
             else message = "Slideshow Paused";
         }
         setUpSlideShowTask();
