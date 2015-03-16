@@ -157,11 +157,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
 
     public void createAlbumListInstance(String accountID) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        if (mManager.findFragmentByTag(accountID) != null)
-            fragmentTransaction.replace(R.id.content_frame, mManager.findFragmentByTag(accountID));
-        else
-            fragmentTransaction.add(R.id.content_frame, AlbumListFragment.newInstance(accountID), accountID);
-
+        fragmentTransaction.add(R.id.content_frame, AlbumListFragment.newInstance(accountID), null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
     }
@@ -169,11 +165,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        if (mManager.findFragmentByTag(albumTitle) != null)
-            fragmentTransaction.replace(R.id.content_frame, mManager.findFragmentByTag(albumTitle));
-        else
-            fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
-
+        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
@@ -181,14 +173,9 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
 
     @Override
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
-        PhotoViewerFragment fragment = (PhotoViewerFragment) mManager.findFragmentByTag(albumTitle + currentPhotoIndex);
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        if (fragment != null)
-            fragmentTransaction.replace(R.id.content_frame, fragment);
-        else
-            fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
-
-        fragmentTransaction.add(R.id.content_frame, fragment, albumTitle + currentPhotoIndex);
+        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+        fragmentTransaction.add(R.id.content_frame, fragment, null);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
@@ -225,12 +212,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                 if (restoreActionBar) getSupportActionBar().show();
             }
         }
-    }
-
-    @Override
-    public void enableDrawer(boolean enable) {
-        if (enable) mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        else mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     @Override

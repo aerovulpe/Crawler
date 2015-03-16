@@ -111,7 +111,6 @@ public class PhotoListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ((PhotoManager) getActivity()).enableDrawer(false);
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().hide();
