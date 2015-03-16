@@ -196,7 +196,7 @@ public class AlbumListFragment extends Fragment {
     }
 
     private void showAlbums() {
-        if (albums == null) {
+        if (albums == null || getActivity() == null) {
             return;
         }
 
