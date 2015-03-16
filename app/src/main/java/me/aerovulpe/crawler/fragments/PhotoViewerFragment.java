@@ -149,7 +149,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer = null;
         }
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        ((PhotoManagerActivity) getActivity()).setFullScreen(false);
+        ((PhotoManagerActivity) getActivity()).setFullScreen(false, false);
     }
 
     @Override
@@ -352,7 +352,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer = new Timer("SlideShow");
         }
 
-        ((PhotoManagerActivity) getActivity()).setFullScreen(isSlideShowRunning);
+        ((PhotoManagerActivity) getActivity()).setFullScreen(isSlideShowRunning, false);
         if (isSlideShowRunning) {
             getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to
