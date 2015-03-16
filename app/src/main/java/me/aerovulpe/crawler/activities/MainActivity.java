@@ -155,7 +155,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
     public void createAlbumListInstance(String accountID) {
         if (mManager.findFragmentByTag(accountID) != null) {
-            mManager.beginTransaction().show(mManager.findFragmentByTag(accountID))
+            mManager.beginTransaction().replace(R.id.content_frame, mManager.findFragmentByTag(accountID))
                     .commit();
             return;
         }
@@ -169,7 +169,8 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
         if (mManager.findFragmentByTag(albumTitle) != null) {
-            mManager.beginTransaction().show(mManager.findFragmentByTag(albumTitle))
+            mManager.beginTransaction().replace(R.id.content_frame, mManager.findFragmentByTag(albumTitle))
+                    .addToBackStack(null)
                     .commit();
             return;
         }
@@ -185,7 +186,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
         PhotoViewerFragment fragment = (PhotoViewerFragment) mManager.findFragmentByTag(albumTitle + currentPhotoIndex);
         if (fragment != null) {
-            mManager.beginTransaction().show(fragment).commit();
+            mManager.beginTransaction().replace(R.id.content_frame, fragment).addToBackStack(null).commit();
         } else {
             fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
             mManager.beginTransaction()
