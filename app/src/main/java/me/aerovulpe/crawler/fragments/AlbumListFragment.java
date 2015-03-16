@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,7 +37,7 @@ import me.aerovulpe.crawler.ui.ThumbnailItem;
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
-public class AlbumListFragment extends Fragment {
+public class AlbumListFragment extends Fragment implements FragmentManager.OnBackStackChangedListener {
 
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
     private static final String TAG = AlbumListFragment.class.getSimpleName();
@@ -108,8 +109,8 @@ public class AlbumListFragment extends Fragment {
 
     @Override
     public void onPause() {
-        ((PhotoManager) getActivity()).enableDrawer(false);
         super.onPause();
+        ((PhotoManager) getActivity()).enableDrawer(false);
         if (mAlbumsAdapter == null) return;
         mIndex = mainList.getFirstVisiblePosition() * mAlbumsAdapter.getSlotsPerRow();
         View v = mainList.getChildAt(0);
@@ -118,8 +119,8 @@ public class AlbumListFragment extends Fragment {
 
     @Override
     public void onResume() {
-        ((PhotoManager) getActivity()).enableDrawer(true);
         super.onResume();
+        ((PhotoManager) getActivity()).enableDrawer(true);
         if (mAlbumsAdapter == null) return;
         mainList.post(new Runnable() {
             @Override
@@ -127,6 +128,7 @@ public class AlbumListFragment extends Fragment {
                 mainList.setSelectionFromTop(mIndex / mAlbumsAdapter.getSlotsPerRow(), mTop);
             }
         });
+        getFragmentManager().addOnBackStackChangedListener(this);
     }
 
     /**
@@ -224,5 +226,10 @@ public class AlbumListFragment extends Fragment {
         PhotoManager managerActivity = (PhotoManager) getActivity();
         managerActivity.enableDrawer(false);
         managerActivity.createPhotoListInstance(albumTitle, photos);
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        if (getActivity() != null) ((PhotoManager) getActivity()).enableDrawer(true);
     }
 }
