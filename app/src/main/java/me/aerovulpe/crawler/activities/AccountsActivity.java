@@ -132,7 +132,7 @@ public class AccountsActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, MENU_ADD_ACCOUNT, 0, R.string.add_account).setIcon(
                 android.R.drawable.ic_menu_add);
-        menu.add(0, MENU_PREFERENCES, 1, R.string.preferences).setIcon(
+        menu.add(0, MENU_PREFERENCES, 1, R.string.action_settings).setIcon(
                 android.R.drawable.ic_menu_manage);
         menu.add(0, MENU_ABOUT, 2, R.string.about).setIcon(
                 android.R.drawable.ic_menu_info_details);

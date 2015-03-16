@@ -10,7 +10,6 @@
     <!-- Accounts List -->
     <string name="accounts_you_follow">Accounts you follow:</string>
     <string name="add_account">Add account</string>
-    <string name="preferences">Preferences</string>
     <string name="about">About</string>
 
     <!--  Add/Edit Accounts Dialog -->

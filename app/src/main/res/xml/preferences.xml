@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
-  xmlns:android="http://schemas.android.com/apk/res/android" android:title="PicView Preferences" android:orderingFromXml="true">
-<CheckBoxPreference android:title="3G data" android:summary="When disabled, data is only fetched via WiFi." android:defaultValue="false" android:key="threeGLoading"></CheckBoxPreference><EditTextPreference android:dialogTitle="Cache Size (MB)" android:key="cacheSize" android:title="Cache Size" android:summary="Set the maximum size for the cache." android:numeric="integer" android:dialogMessage="Recommended are at least 200MB" android:defaultValue="400"></EditTextPreference>
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orderingFromXml="true"
+    android:title="Crawler Settings">
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="threeGLoading"
+        android:summary="When disabled, data is only fetched via WiFi."
+        android:title="3G data"/>
+    <EditTextPreference
+        android:defaultValue="400"
+        android:dialogMessage="Recommended are at least 200MB"
+        android:dialogTitle="Cache Size (MB)"
+        android:key="cacheSize"
+        android:numeric="integer"
+        android:summary="Set the maximum size for the cache."
+        android:title="Cache Size"/>
 
-<PreferenceCategory android:title="Foo Bar Category"><Preference android:title="FooBar" android:key="foobar"></Preference></PreferenceCategory>
-
+    <PreferenceCategory android:title="Foo Bar Category">
+        <Preference
+            android:key="foobar"
+            android:title="FooBar"/>
+    </PreferenceCategory>
 </PreferenceScreen>

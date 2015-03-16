@@ -20,7 +20,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import me.aerovulpe.crawler.R;
@@ -35,6 +40,7 @@ import me.aerovulpe.crawler.data.ImageDatabase;
  */
 public class PreferencesActivity extends PreferenceActivity {
     int oldCacheValue;
+    private Toolbar mActionBar;
 
     private static int getCurrentCacheValue(Context context) {
         return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
@@ -51,6 +57,7 @@ public class PreferencesActivity extends PreferenceActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         addPreferencesFromResource(R.xml.preferences);
+        mActionBar.setTitle(getTitle());
     }
 
     @Override
@@ -69,5 +76,24 @@ public class PreferencesActivity extends PreferenceActivity {
                     "Changing cache: " + (currentCacheValue - oldCacheValue) + " MB",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void setContentView(int layoutResID) {
+        ViewGroup contentView = (ViewGroup) LayoutInflater.from(this).inflate(
+                R.layout.activity_preferences, new LinearLayout(this), false);
+
+        mActionBar = (Toolbar) contentView.findViewById(R.id.app_bar);
+        mActionBar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        ViewGroup contentWrapper = (ViewGroup) contentView.findViewById(R.id.content_wrapper);
+        LayoutInflater.from(this).inflate(layoutResID, contentWrapper, true);
+
+        getWindow().setContentView(contentView);
     }
 }
