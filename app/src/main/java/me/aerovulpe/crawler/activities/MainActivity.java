@@ -3,10 +3,12 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.yalantis.contextmenu.lib.MenuObject;
@@ -112,6 +114,36 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
                     .commit();
         }
         fragment.setSlideShowRunning(isSlideShow);
+    }
+
+    @Override
+    public void setFullScreen(boolean fullScreen, boolean restoreActionBar) {
+        if (fullScreen) {
+            if (Build.VERSION.SDK_INT < 16) { //ye olde method
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            } else { // Jellybean and up, new hotness
+                View decorView = getWindow().getDecorView();
+                // Hide the status bar.
+                int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                decorView.setSystemUiVisibility(uiOptions);
+                // Remember that you should never show the action bar if the
+                // status bar is hidden, so hide that too if necessary.
+                getSupportActionBar().hide();
+            }
+        } else {
+            if (Build.VERSION.SDK_INT < 16) { //ye olde method
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            } else { // Jellybean and up, new hotness
+                View decorView = getWindow().getDecorView();
+                // !Hide the status bar.
+                int uiOptions = View.SYSTEM_UI_FLAG_VISIBLE;
+                decorView.setSystemUiVisibility(uiOptions);
+                // Remember that you should never show the action bar if the
+                // status bar is hidden, so !hide that too if necessary.
+                if (restoreActionBar) getSupportActionBar().show();
+            }
+        }
     }
 
     @Override

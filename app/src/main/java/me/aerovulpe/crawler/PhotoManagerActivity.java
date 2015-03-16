@@ -14,4 +14,6 @@ public interface PhotoManagerActivity {
     public void createPhotoListInstance(String albumTitle, List<Photo> photos);
 
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow);
+
+    public void setFullScreen(boolean fullScreen, boolean restoreActionBar);
 }
