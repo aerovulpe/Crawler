@@ -60,6 +60,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private List<Photo> mPhotos;
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
+    private int mExpectedIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean enteredWithToolBar;
@@ -92,6 +93,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
+        mExpectedIndex = -1;
         setRetainInstance(true);
     }
 
@@ -364,9 +366,12 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                                     if (mViewPager.getCurrentItem() == mPhotos.size() - 1) {
                                         mViewPager.setCurrentItem(0);
                                         toggleSlideShow();
+                                    } else if (mViewPager.getCurrentItem() == mExpectedIndex ||
+                                            mExpectedIndex == -1) {
+                                        mExpectedIndex = mViewPager.getCurrentItem() + 1;
+                                        mViewPager.setCurrentItem(mExpectedIndex, true);
                                     } else {
-                                        mViewPager.setCurrentItem(
-                                                mViewPager.getCurrentItem() + 1, true);
+                                        toggleSlideShow();
                                     }
                                 }
                             });
@@ -374,6 +379,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                     }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
         } else {
             slideShowTimer = null;
+            mExpectedIndex = -1;
             getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
