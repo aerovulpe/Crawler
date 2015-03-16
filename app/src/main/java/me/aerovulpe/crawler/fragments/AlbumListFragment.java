@@ -120,7 +120,7 @@ public class AlbumListFragment extends Fragment {
         });
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
             ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().hide();
+                    .getSupportActionBar().show();
     }
 
     /**
