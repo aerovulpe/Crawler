@@ -60,8 +60,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                createAlbumListInstance(adapter.getItem(position).id);
-                mDrawerLayout.closeDrawers();
+                Intent intent = new Intent(MainActivity.this,
+                        MainActivity.class);
+                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, adapter.getItem(position).id);
+                MainActivity.this.finish();
+                MainActivity.this.startActivity(intent);
             }
         });
         mTitle = mDrawerTitle = getTitle();
