@@ -330,12 +330,18 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
     public void toggleSlideShow() {
         isSlideShowRunning = !isSlideShowRunning;
+        String message;
         if (isSlideShowRunning) {
-            Toast.makeText(getActivity(), "Slideshow Started", Toast.LENGTH_SHORT).show();
+            if (mViewPager.getCurrentItem() == 0)
+                message = "Slideshow Started";
+            else message = "Slideshow Resumed";
         } else {
-            Toast.makeText(getActivity(), "Slideshow Paused", Toast.LENGTH_SHORT).show();
+            if (mViewPager.getCurrentItem() == 0)
+                message = "Slideshow Stopped";
+            else message = "Slideshow Paused";
         }
         setUpSlideShowTask();
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
     public void setUpSlideShowTask() {
