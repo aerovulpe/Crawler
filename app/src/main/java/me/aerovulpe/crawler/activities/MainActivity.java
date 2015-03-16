@@ -3,12 +3,18 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.yalantis.contextmenu.lib.MenuObject;
@@ -17,9 +23,12 @@ import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
 import java.util.List;
 
+import me.aerovulpe.crawler.Callback;
 import me.aerovulpe.crawler.PhotoManagerActivity;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.base.BaseActivity;
+import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
@@ -29,6 +38,14 @@ import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 public class MainActivity extends BaseActivity implements PhotoManagerActivity, OnMenuItemClickListener, OnMenuItemLongClickListener {
 
     private FragmentManager mManager;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private AccountsAdapter adapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private CharSequence mDrawerTitle;
+    private CharSequence mTitle;
+    private AccountsDatabase accountsDb = AccountsDatabase.get();
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +58,45 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
                 createAlbumListInstance(intent.getExtras().getString(AlbumListFragment.ARG_ACCOUNT_ID));
             }
         }
+        Callback<String> accountSelectedCallback = new Callback<String>() {
+            @Override
+            public void callback(String accountId) {
+                createAlbumListInstance(accountId);
+            }
+        };
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        adapter = new AccountsAdapter(accountsDb, accountSelectedCallback, LayoutInflater.from(this));
+        mDrawerList.setAdapter(adapter);
+        mTitle = mDrawerTitle = getTitle();
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mToolbar = (Toolbar) findViewById(R.id.app_bar);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                mToolbar, R.string.drawer_open, R.string.drawer_close) {
+
+            /**
+             * Called when a drawer has settled in a completely closed state.
+             */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /**
+             * Called when a drawer has settled in a completely open state.
+             */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mDrawerTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        // Set the drawer toggle as the DrawerListener
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) getSupportActionBar().setHomeButtonEnabled(true);
     }
 
     @Override
@@ -57,11 +113,35 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
     }
 
     @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // Pass the event to ActionBarDrawerToggle, if it returns
+        // true, then it has handled the app icon touch event
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        // Handle your other action bar items...
+
         return super.onOptionsItemSelected(item);
+    }
+
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -82,7 +162,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
         AlbumListFragment fragment = AlbumListFragment.newInstance(accountID);
         mManager.beginTransaction()
-                .add(R.id.container, fragment, accountID)
+                .add(R.id.content_frame, fragment, accountID)
                 .commit();
     }
 
@@ -96,7 +176,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
         PhotoListFragment fragment = PhotoListFragment.newInstance(albumTitle, photos);
         mManager.beginTransaction()
-                .add(R.id.container, fragment, albumTitle)
+                .add(R.id.content_frame, fragment, albumTitle)
                 .addToBackStack(null)
                 .commit();
     }
@@ -109,7 +189,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
         } else {
             fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
             mManager.beginTransaction()
-                    .add(R.id.container, fragment, albumTitle + currentPhotoIndex)
+                    .add(R.id.content_frame, fragment, albumTitle + currentPhotoIndex)
                     .addToBackStack(null)
                     .commit();
         }
