@@ -91,7 +91,7 @@ public class PhotoListFragment extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                displayPhoto(mPhotos.get(0), true);
+                displayPhoto(mPhotos.get(mainList.getFirstVisiblePosition()), true);
             }
         });
         this.inflater = inflater;
