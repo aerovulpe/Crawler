@@ -16,7 +16,7 @@ import com.melnykov.fab.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aerovulpe.crawler.PhotoManagerActivity;
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
 import me.aerovulpe.crawler.adapter.PhotosAdapter;
@@ -158,7 +158,7 @@ public class PhotoListFragment extends Fragment {
     }
 
     private void displayPhoto(Photo photo, boolean isSlideShow) {
-        ((PhotoManagerActivity) getActivity())
+        ((PhotoManager) getActivity())
                 .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo), isSlideShow);
     }
 }

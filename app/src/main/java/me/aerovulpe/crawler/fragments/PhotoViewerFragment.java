@@ -36,7 +36,7 @@ import java.util.TimerTask;
 
 import me.aerovulpe.crawler.CrawlerConfig;
 import me.aerovulpe.crawler.PhotoClickListener;
-import me.aerovulpe.crawler.PhotoManagerActivity;
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
@@ -166,7 +166,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer = null;
         }
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        ((PhotoManagerActivity) getActivity()).setFullScreen(false, false);
+        ((PhotoManager) getActivity()).setFullScreen(false, false);
     }
 
     @Override
@@ -369,7 +369,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             slideShowTimer = new Timer("SlideShow");
         }
 
-        ((PhotoManagerActivity) getActivity()).setFullScreen(isSlideShowRunning, false);
+        ((PhotoManager) getActivity()).setFullScreen(isSlideShowRunning, false);
         if (isSlideShowRunning) {
             getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to

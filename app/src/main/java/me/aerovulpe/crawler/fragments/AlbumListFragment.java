@@ -14,7 +14,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aerovulpe.crawler.PhotoManagerActivity;
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AlbumsAdapter;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
@@ -109,6 +109,7 @@ public class AlbumListFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        ((PhotoManager) getActivity()).enableDrawer(false);
         if (mAlbumsAdapter == null) return;
         mIndex = mainList.getFirstVisiblePosition() * mAlbumsAdapter.getSlotsPerRow();
         View v = mainList.getChildAt(0);
@@ -118,6 +119,7 @@ public class AlbumListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        ((PhotoManager) getActivity()).enableDrawer(true);
         if (mAlbumsAdapter == null) return;
         mainList.post(new Runnable() {
             @Override
@@ -219,7 +221,7 @@ public class AlbumListFragment extends Fragment {
 
     private void showPhotos(String albumTitle, List<Photo> photos) {
         Log.d(TAG, "SHOW PHOTOS()");
-        PhotoManagerActivity managerActivity = (PhotoManagerActivity) getActivity();
+        PhotoManager managerActivity = (PhotoManager) getActivity();
         managerActivity.createPhotoListInstance(albumTitle, photos);
     }
 }

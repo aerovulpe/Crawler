@@ -24,7 +24,7 @@ import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
 import java.util.List;
 
-import me.aerovulpe.crawler.PhotoManagerActivity;
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.base.BaseActivity;
@@ -35,7 +35,7 @@ import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 
 
-public class MainActivity extends BaseActivity implements PhotoManagerActivity, OnMenuItemClickListener, OnMenuItemLongClickListener {
+public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener, OnMenuItemLongClickListener {
 
     private FragmentManager mManager;
     private DrawerLayout mDrawerLayout;
@@ -61,6 +61,7 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 createAlbumListInstance(adapter.getItem(position).id);
+                mDrawerLayout.closeDrawers();
             }
         });
         mTitle = mDrawerTitle = getTitle();
@@ -163,7 +164,6 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
 
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     @Override
@@ -177,7 +177,6 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     @Override
@@ -193,7 +192,6 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         fragment.setSlideShowRunning(isSlideShow);
     }
 
@@ -227,6 +225,12 @@ public class MainActivity extends BaseActivity implements PhotoManagerActivity, 
                 if (restoreActionBar) getSupportActionBar().show();
             }
         }
+    }
+
+    @Override
+    public void enableDrawer(boolean enable) {
+        if (enable) mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        else mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     @Override
