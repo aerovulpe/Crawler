@@ -28,23 +28,36 @@ import java.util.List;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Account;
+import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.AccountsUtil;
 
 public class AccountsAdapter extends ArrayAdapter<Account> {
     private final Context mContext;
-    int mElementId;
+    private int mElementId;
     private List<Account> mAccounts;
+    private AccountsDatabase mAccountsDatabase;
 
-    public AccountsAdapter(Context context, int elementId, List<Account> accounts) {
-        super(context, elementId, accounts);
+    public AccountsAdapter(Context context, int elementId, AccountsDatabase db) {
+        super(context, elementId, db.queryAll().getAllAndClose());
         mElementId = elementId;
         mContext = context;
-        mAccounts = accounts;
+        mAccountsDatabase = db;
+        refreshData();
     }
 
     @Override
     public int getCount() {
         return mAccounts.size();
+    }
+
+    @Override
+    public Account getItem(int position) {
+        return mAccounts.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     @Override
@@ -59,5 +72,15 @@ public class AccountsAdapter extends ArrayAdapter<Account> {
                 .setText(account.name);
         ((TextView) convertView.findViewById(R.id.account_id)).setText(account.id);
         return convertView;
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        refreshData();
+        super.notifyDataSetChanged();
+    }
+
+    private void refreshData() {
+        mAccounts = mAccountsDatabase.queryAll().getAllAndClose();
     }
 }

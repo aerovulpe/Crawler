@@ -62,7 +62,7 @@ public class AccountsActivity extends BaseActivity {
         setContentView(R.layout.accounts);
 
         ListView mainList = (ListView) findViewById(R.id.accounts_list);
-        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb.queryAll().getAllAndClose());
+        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
         mainList.setAdapter(adapter);
         mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

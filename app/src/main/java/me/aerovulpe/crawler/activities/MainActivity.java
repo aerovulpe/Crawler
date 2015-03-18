@@ -54,7 +54,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mManager = getFragmentManager();
-        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb.queryAll().getAllAndClose());
+        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
         mDrawerList.setAdapter(adapter);
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
