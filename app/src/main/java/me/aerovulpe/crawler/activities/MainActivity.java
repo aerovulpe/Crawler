@@ -10,12 +10,15 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yalantis.contextmenu.lib.MenuObject;
@@ -28,8 +31,10 @@ import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.base.BaseActivity;
+import me.aerovulpe.crawler.data.Account;
 import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
@@ -53,6 +58,19 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         setContentView(R.layout.activity_main);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        View header = LayoutInflater.from(this).inflate(R.layout.account_entry, null);
+        ((ImageView) header.findViewById(R.id.service_logo))
+                .setImageResource(android.R.drawable.ic_menu_add);
+        ((TextView) header.findViewById(R.id.account_name))
+                .setText("Add new account");
+        header.findViewById(R.id.account_id).setVisibility(View.GONE);
+        header.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAddAccountDialog();
+            }
+        });
+        mDrawerList.addHeaderView(header);
         mManager = getFragmentManager();
         adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
         mDrawerList.setAdapter(adapter);
@@ -62,7 +80,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this,
                         MainActivity.class);
-                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, adapter.getItem(position).id);
+                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, ((Account) mDrawerList
+                        .getItemAtPosition(position)).id);
                 MainActivity.this.finish();
                 MainActivity.this.startActivity(intent);
             }
@@ -253,5 +272,21 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     @Override
     public void onMenuItemLongClick(View view, int i) {
 
+    }
+
+    /**
+     * Shows the dialog for adding a new account.
+     */
+    private void showAddAccountDialog() {
+        AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
+            @Override
+            public void onAddAccount(int type, String id, String name) {
+                accountsDb.put(-1, type, id, name);
+                adapter.notifyDataSetChanged();
+            }
+        };
+        AddEditAccountFragment dialog = new AddEditAccountFragment();
+        dialog.setAccountCallback(accountCallback);
+        dialog.show(getFragmentManager(), "accountAddDialog");
     }
 }
