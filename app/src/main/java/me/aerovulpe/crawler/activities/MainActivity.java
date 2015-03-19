@@ -139,6 +139,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         }
         // Handle your other action bar items...
 
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, PreferencesActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
