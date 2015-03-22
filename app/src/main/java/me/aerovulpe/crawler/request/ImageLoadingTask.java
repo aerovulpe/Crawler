@@ -66,8 +66,18 @@ public class ImageLoadingTask extends AsyncTask<Void, Integer, Void> {
     @Override
     protected void onPreExecute() {
         if (cachedImageFetcher.isCached(url)) {
-            bitmap = cachedImageFetcher.cachedFetchImage(url);
-            imageView.setImageBitmap(bitmap);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bitmap = cachedImageFetcher.cachedFetchImage(url);
+                    imageView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(bitmap);
+                        }
+                    });
+                }
+            }).start();
             cached = true;
         } else {
             imageView.setImageResource(R.drawable.loading);

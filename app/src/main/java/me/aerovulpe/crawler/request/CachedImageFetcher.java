@@ -19,7 +19,6 @@ package me.aerovulpe.crawler.request;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.StrictMode;
 import android.util.Log;
 
 import java.io.IOException;
@@ -130,8 +129,6 @@ public class CachedImageFetcher {
      * Fetches the given image from the web.
      */
     private Bitmap fetchImageFromWeb(URL url) {
-        StrictMode.ThreadPolicy initPolicy = StrictMode.getThreadPolicy();
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
         Bitmap bitmap = null;
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -144,8 +141,6 @@ public class CachedImageFetcher {
             System.gc();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            StrictMode.setThreadPolicy(initPolicy);
         }
         return bitmap;
     }
