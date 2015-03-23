@@ -97,7 +97,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
             ImageLoadingTask imageLoadingTask = new ImageLoadingTask(
                     photoView,
-                    new URL(mPhotos.get(position).getMediumImageUrl(photoSizeLongSide)),
+                    new URL(mPhotos.get(position).getImageUrl()),
                     cachedImageFetcher);
             imageLoadingTask.execute();
         } catch (MalformedURLException e) {
@@ -112,7 +112,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 Photo photo = mPhotos.get(position + 1);
                 if (photo != null) {
                     cachedImageFetcher.maybePrefetchImageAsync(new URL(photo
-                            .getMediumImageUrl(photoSizeLongSide)));
+                            .getImageUrl()));
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();

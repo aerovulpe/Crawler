@@ -426,7 +426,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                 Intent backupShareIntent = new Intent();
                 backupShareIntent.setAction(Intent.ACTION_SEND);
                 backupShareIntent.setType("text/plain");
-                String backupSharedText = photo.getFullImageUrl() + "\n\n" + sharedText;
+                String backupSharedText = photo.getImageUrl() + "\n\n" + sharedText;
                 backupShareIntent.putExtra(Intent.EXTRA_TEXT, backupSharedText);
                 startActivity(backupShareIntent);
             } else {
@@ -442,7 +442,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         try {
             return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
                     mPhotoViewerAdapter.getCachedImageFetcher()
-                            .cachedFetchImage(new URL(photo.getFullImageUrl())), photo.getName(), photo.getDescription());
+                            .cachedFetchImage(new URL(photo.getImageUrl())), photo.getName(), photo.getDescription());
         } catch (MalformedURLException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(), "Could not save image", Toast.LENGTH_LONG).show();

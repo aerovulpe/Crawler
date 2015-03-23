@@ -55,7 +55,7 @@ public class PhotoListFragment extends Fragment {
         List<ThumbnailItem<Photo>> result = new ArrayList<>();
         for (Photo photo : photos) {
             result.add(new ThumbnailItem<>(photo.getName(), photo
-                    .getThumbnailUrl(), photo));
+                    .getImageUrl(), photo));
         }
         return result;
     }
