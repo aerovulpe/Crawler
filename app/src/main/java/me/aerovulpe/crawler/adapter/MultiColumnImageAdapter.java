@@ -33,7 +33,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.List;
 
-import me.aerovulpe.crawler.CrawlerConfig;
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 import me.aerovulpe.crawler.view.ThumbnailSlotView;
@@ -177,7 +177,7 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
 
     public void setDisplayMetrics(DisplayMetrics displayMetrics) {
         // Determine how many thumbnails can be put onto one row.
-        float thumbnailWithPx = CrawlerConfig.ALBUM_THUMBNAIL_SIZE
+        float thumbnailWithPx = CrawlerApplication.ALBUM_THUMBNAIL_SIZE
                 * displayMetrics.density;
         slotsPerRow = (int) Math
                 .floor(displayMetrics.widthPixels / thumbnailWithPx);

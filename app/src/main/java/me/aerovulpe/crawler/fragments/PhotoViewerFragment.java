@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import me.aerovulpe.crawler.CrawlerConfig;
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
@@ -89,8 +89,8 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
-        setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
+        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         setRetainInstance(true);
     }
 
@@ -174,8 +174,8 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().show();
-        getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
-                .putBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, mShowText).apply();
+        getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+                .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText).apply();
     }
 
     private void setUpScrollingOfDescription() {

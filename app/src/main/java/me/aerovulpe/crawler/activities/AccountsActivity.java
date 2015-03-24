@@ -17,7 +17,6 @@
 package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -30,12 +29,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
-
-import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
@@ -63,42 +56,10 @@ public class AccountsActivity extends BaseActivity {
     private AccountsAdapter adapter;
     private AccountsDatabase accountsDb = AccountsDatabase.get();
 
-    public static void initImageLoader(Context context) {
-        // This configuration tuning is custom. You can tune every option, you may tune some of them,
-        // or you can create default configuration by
-        //  ImageLoaderConfiguration.createDefault(this);
-        // method.
-        ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
-        config.threadPoolSize(15);
-        config.threadPriority(Thread.NORM_PRIORITY);
-        config.denyCacheImageMultipleSizesInMemory();
-        config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
-        config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
-        config.tasksProcessingOrder(QueueProcessingType.LIFO);
-        config.writeDebugLogs(); // Remove for release app
-
-        DisplayImageOptions options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.loading)
-                .showImageForEmptyUri(R.drawable.ic_empty)
-                .showImageOnFail(R.drawable.ic_error)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
-        config.defaultDisplayImageOptions(options);
-
-        // Initialize ImageLoader with configuration.
-        ImageLoader.getInstance().init(config.build());
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accounts);
-
-        if (savedInstanceState == null) {
-            initImageLoader(this);
-        }
 
         ListView mainList = (ListView) findViewById(R.id.accounts_list);
         adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);

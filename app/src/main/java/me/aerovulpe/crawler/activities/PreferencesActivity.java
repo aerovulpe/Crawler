@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 
 
@@ -69,7 +70,7 @@ public class PreferencesActivity extends PreferenceActivity {
         super.onPause();
         int currentCacheValue = getCurrentCacheValue(this);
         if (currentCacheValue != oldCacheValue) {
-            AccountsActivity.initImageLoader(this);
+            CrawlerApplication.initImageLoader(this);
         }
     }
 
