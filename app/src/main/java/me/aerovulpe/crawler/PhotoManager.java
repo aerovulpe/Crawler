@@ -9,7 +9,7 @@ import me.aerovulpe.crawler.data.Photo;
  */
 public interface PhotoManager {
 
-    public void createPhotoListInstance(String albumTitle, List<Photo> photos);
+    public void createPhotoListInstance(String albumTitle, List<Photo> photos, boolean addToBackstack);
 
     public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow);
 

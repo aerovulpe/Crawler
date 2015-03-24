@@ -88,6 +88,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                         MainActivity.class);
                 intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, ((Account) mDrawerList
                         .getItemAtPosition(position)).id);
+                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
+                        .getItemAtPosition(position)).type);
                 MainActivity.this.finish();
                 MainActivity.this.startActivity(intent);
             }
@@ -135,7 +137,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                                     public void success(String data) {
                                         try {
                                             ArrayList<Photo> photos = (ArrayList<Photo>) ObjectSerializer.deserialize(data);
-                                            createPhotoListInstance("Test", photos);
+                                            createPhotoListInstance("Test", photos, false);
                                         } catch (IOException | ClassNotFoundException e) {
                                             Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
                                             e.printStackTrace();
@@ -227,10 +229,10 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     }
 
     @Override
-    public void createPhotoListInstance(String albumTitle, List<Photo> photos) {
+    public void createPhotoListInstance(String albumTitle, List<Photo> photos, boolean addToBackstack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
-        fragmentTransaction.addToBackStack(null);
+        if (addToBackstack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
     }
