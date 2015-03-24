@@ -30,7 +30,6 @@ import java.util.List;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
-import me.aerovulpe.crawler.base.BaseActivity;
 import me.aerovulpe.crawler.data.Account;
 import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.Photo;
