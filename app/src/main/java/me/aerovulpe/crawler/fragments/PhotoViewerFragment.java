@@ -209,11 +209,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
 
 
-        String description = currentPhoto.getName() + " " + "Lorem ipsum dolor sit amet, duo id purto dicta ubique, falli tempor " +
-                "invidunt cu vix. Eum tota accumsan no, inermis maiorum nam ei, pro an iusto commodo" +
-                " tincidunt. Mea quod mediocrem dissentiet ei, utroque eleifend id sit. Eum an alia " +
-                "decore. Quod idque labore et nam, vim at atqui errem perpetua, quo ad iudico " +
-                "liberavisse definitiones.";
+        String description = currentPhoto.getDescription();
 
         TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
 
@@ -452,7 +448,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         intent.setAction(Intent.ACTION_ATTACH_DATA);
         String mimeType = "image/jpg";
         Uri uri = Uri.parse(savePhoto(photo));
-
 
         intent.setDataAndType(uri, mimeType);
         intent.putExtra("mimeType", mimeType);

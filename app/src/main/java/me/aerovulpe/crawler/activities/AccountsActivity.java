@@ -45,6 +45,7 @@ import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 public class AccountsActivity extends BaseActivity {
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ACCOUNTS.account_id";
     public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.ACCOUNTS.account_type";
+    public static final String ARG_ACCOUNT_NAME = "me.aerovulpe.crawler.ACCOUNTS.account_name";
     private static final int MENU_ADD_ACCOUNT = 0;
     private static final int MENU_PREFERENCES = 1;
     private static final int MENU_ABOUT = 2;
@@ -71,6 +72,7 @@ public class AccountsActivity extends BaseActivity {
                         MainActivity.class);
                 intent.putExtra(ARG_ACCOUNT_ID, adapter.getItem(position).id);
                 intent.putExtra(ARG_ACCOUNT_TYPE, adapter.getItem(position).type);
+                intent.putExtra(ARG_ACCOUNT_NAME, adapter.getItem(position).name);
                 AccountsActivity.this.startActivity(intent);
             }
         });

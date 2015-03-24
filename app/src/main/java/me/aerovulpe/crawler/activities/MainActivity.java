@@ -90,6 +90,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                         .getItemAtPosition(position)).id);
                 intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
                         .getItemAtPosition(position)).type);
+                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
+                        .getItemAtPosition(position)).name);
                 MainActivity.this.finish();
                 MainActivity.this.startActivity(intent);
             }
@@ -124,7 +126,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         if (getSupportActionBar() != null) getSupportActionBar().setHomeButtonEnabled(true);
 
         if (savedInstanceState == null) {
-            Intent intent = getIntent();
+            final Intent intent = getIntent();
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
@@ -136,8 +138,10 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                                     @Override
                                     public void success(String data) {
                                         try {
-                                            ArrayList<Photo> photos = (ArrayList<Photo>) ObjectSerializer.deserialize(data);
-                                            createPhotoListInstance("Test", photos, false);
+                                            ArrayList<Photo> photos = (ArrayList<Photo>)
+                                                    ObjectSerializer.deserialize(data);
+                                            createPhotoListInstance(intent.getExtras()
+                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME), photos, false);
                                         } catch (IOException | ClassNotFoundException e) {
                                             Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
                                             e.printStackTrace();
