@@ -19,10 +19,9 @@
     <string name="account_name">Name:</string>
     <string name="choose_account_type">Choose account type</string>
     <string-array name="account_type_array">
+        <item>Tumblr</item>
+        <item>Flickr</item>
         <item>Picasa</item>
-        <item>(Fickr)</item>
-        <item>(SmugMug)</item>
-        <item>(500px)</item>
     </string-array>
 
     <string-array name="account_actions">

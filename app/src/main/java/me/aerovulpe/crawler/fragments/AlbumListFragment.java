@@ -16,6 +16,7 @@ import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.AlbumsAdapter;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
 import me.aerovulpe.crawler.data.Album;
@@ -28,7 +29,6 @@ import me.aerovulpe.crawler.ui.ThumbnailItem;
 
 public class AlbumListFragment extends Fragment {
 
-    public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ALBUM_LIST.account_id";
     private static final String TAG = AlbumListFragment.class.getSimpleName();
     private String mAccountID;
     private ListView mainList;
@@ -46,7 +46,7 @@ public class AlbumListFragment extends Fragment {
     public static AlbumListFragment newInstance(String accountID) {
         AlbumListFragment fragment = new AlbumListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_ACCOUNT_ID, accountID);
+        args.putString(AccountsActivity.ARG_ACCOUNT_ID, accountID);
         fragment.setArguments(args);
         return fragment;
     }
@@ -68,7 +68,7 @@ public class AlbumListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mAccountID = getArguments().getString(ARG_ACCOUNT_ID);
+            mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
 
         cachedWebRequestFetcher = new CachedWebRequestFetcher(

@@ -27,6 +27,9 @@ import me.aerovulpe.crawler.R;
  * @author haeberling@google.com (Sascha Haeberling)
  */
 public class AccountsUtil {
+    public static final int ACCOUNT_TYPE_TUMBLR = 0;
+    public static final int ACCOUNT_TYPE_FLICKR = 1;
+    public static final int ACCOUNT_TYPE_PICASA = 2;
     private final String[] typeNames;
 
     /**
@@ -45,14 +48,12 @@ public class AccountsUtil {
         // Important: The indexes here must match the order of "account_type_array"
         // in strings.xml.
         switch (accountType) {
-            case 0:
-                return R.drawable.picasa;
-            case 1:
+            case ACCOUNT_TYPE_TUMBLR:
+                return R.drawable.tumblr;
+            case ACCOUNT_TYPE_FLICKR:
                 return R.drawable.flickr;
-            case 2:
-                return R.drawable.smugmug;
-            case 3:
-                return R.drawable.px500;
+            case ACCOUNT_TYPE_PICASA:
+                return R.drawable.picasa;
             default:
                 // We shouldn't ever get here!
                 return R.drawable.icon;

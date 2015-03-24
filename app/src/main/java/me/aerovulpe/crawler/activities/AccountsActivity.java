@@ -35,7 +35,6 @@ import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.Account;
 import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
-import me.aerovulpe.crawler.fragments.AlbumListFragment;
 
 
 /**
@@ -44,6 +43,8 @@ import me.aerovulpe.crawler.fragments.AlbumListFragment;
  * @author haeberling@google.com (Sascha Haeberling)
  */
 public class AccountsActivity extends BaseActivity {
+    public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ACCOUNTS.account_id";
+    public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.ACCOUNTS.account_type";
     private static final int MENU_ADD_ACCOUNT = 0;
     private static final int MENU_PREFERENCES = 1;
     private static final int MENU_ABOUT = 2;
@@ -68,7 +69,8 @@ public class AccountsActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(AccountsActivity.this,
                         MainActivity.class);
-                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, adapter.getItem(position).id);
+                intent.putExtra(ARG_ACCOUNT_ID, adapter.getItem(position).id);
+                intent.putExtra(ARG_ACCOUNT_TYPE, adapter.getItem(position).type);
                 AccountsActivity.this.startActivity(intent);
             }
         });

@@ -47,8 +47,6 @@ public class CachedWebRequestFetcher {
     private FileSystemWebResponseCache fileSystemCache;
 
     /**
-     * Instantiated the {@link CachedImageFetcher}.
-     *
      * @param fileSystemCache the cache to use as a fallback, if the given value could not be
      *                        found in memory
      */
