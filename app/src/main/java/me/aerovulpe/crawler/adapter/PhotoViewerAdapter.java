@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
@@ -20,6 +19,7 @@ import java.util.List;
 import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.view.TouchImageView;
 
 /**
  * Created by Aaron on 09/03/2015.
@@ -73,7 +73,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         View rootView = inflater.inflate(R.layout.photo_view, container, false);
-        ImageView photoView = (ImageView) rootView.findViewById(R.id.photo);
+        TouchImageView photoView = (TouchImageView) rootView.findViewById(R.id.photo);
         TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
         TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
         TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
