@@ -192,6 +192,7 @@ public class TumblrCachedWebRequestFetcher extends CachedWebRequestFetcher {
                 continue;
             }
 
+            if (imag_url.contains("default_avatar")) return;
             Photo photo = new Photo();
             String imageUrl = bestUrl(imag_url);
             String filename = Uri.parse(imageUrl).getLastPathSegment();
