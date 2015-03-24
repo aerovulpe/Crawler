@@ -79,10 +79,10 @@ public class TumblrCachedWebRequestFetcher extends CachedWebRequestFetcher {
                     System.out.println(msg);
                     if (msg.contains("404 error")) {
                         Log.e(TumblrCachedWebRequestFetcher.class.getSimpleName(), msg, e);
-                        return mPhotos;
                     } else {
                         e.printStackTrace();
                     }
+                    return mPhotos;
                 }
             }
             if (next) {
