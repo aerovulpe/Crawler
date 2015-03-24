@@ -23,12 +23,11 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.viewpagerindicator.CirclePageIndicator;
 import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
 import com.yalantis.contextmenu.lib.MenuObject;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -439,15 +438,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     }
 
     public String savePhoto(Photo photo) {
-        try {
-            return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
-                    mPhotoViewerAdapter.getCachedImageFetcher()
-                            .cachedFetchImage(new URL(photo.getImageUrl())), photo.getName(), photo.getDescription());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Toast.makeText(getActivity(), "Could not save image", Toast.LENGTH_LONG).show();
-            return null;
-        }
+        return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
+                ImageLoader.getInstance().loadImageSync(photo.getImageUrl()), photo.getTitle(),
+                photo.getDescription());
     }
 
     public void setAsWallpaper(Photo photo) {

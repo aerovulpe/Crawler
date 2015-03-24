@@ -20,8 +20,6 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
-import me.aerovulpe.crawler.request.ImageLoadingTask;
-
 /**
  * A view for showing a thumbnail in e.g. a list view.
  *
@@ -29,26 +27,7 @@ import me.aerovulpe.crawler.request.ImageLoadingTask;
  */
 public class ThumbnailSlotView extends LinearLayout {
 
-    private ImageLoadingTask imageLoadingTask;
-
     public ThumbnailSlotView(Context context, AttributeSet attributes) {
         super(context, attributes);
     }
-
-    /**
-     * Gets the {@link ImageLoadingTask} that is currently loading content for
-     * this view, or <code>null</code>.
-     */
-    public ImageLoadingTask getImageLoadingTask() {
-        return imageLoadingTask;
-    }
-
-    /**
-     * Sets the {@link ImageLoadingTask} that is currently loading content for
-     * this view.
-     */
-    public void setImageLoadingTask(ImageLoadingTask task) {
-        imageLoadingTask = task;
-    }
-
 }

@@ -26,10 +26,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.data.ImageDatabase;
 
 
 /**
@@ -47,7 +45,7 @@ public class PreferencesActivity extends PreferenceActivity {
                 .getString("cacheSize", "400"));
     }
 
-    public static long getCurrentCacheValueInBytes(Context context) {
+    public static int getCurrentCacheValueInBytes(Context context) {
         return getCurrentCacheValue(context) * 1048576;
     }
 
@@ -71,10 +69,7 @@ public class PreferencesActivity extends PreferenceActivity {
         super.onPause();
         int currentCacheValue = getCurrentCacheValue(this);
         if (currentCacheValue != oldCacheValue) {
-            ImageDatabase.get(this).setMaxCacheSize(getCurrentCacheValueInBytes(this));
-            Toast.makeText(this,
-                    "Changing cache: " + (currentCacheValue - oldCacheValue) + " MB",
-                    Toast.LENGTH_SHORT).show();
+            AccountsActivity.initImageLoader(this);
         }
     }
 

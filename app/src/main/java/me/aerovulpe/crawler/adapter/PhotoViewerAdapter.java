@@ -3,7 +3,6 @@ package me.aerovulpe.crawler.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,16 +13,13 @@ import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import java.util.List;
 
 import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
-import me.aerovulpe.crawler.request.ImageLoadingTask;
 
 /**
  * Created by Aaron on 09/03/2015.
@@ -31,22 +27,19 @@ import me.aerovulpe.crawler.request.ImageLoadingTask;
 public class PhotoViewerAdapter extends PagerAdapter {
 
     private static final String LOG_PREFIX = PhotoViewerAdapter.class.getSimpleName();
-
+    private final ImageLoader mImageLoader;
     private Context mContext;
     private List<Photo> mPhotos;
     private String mAlbumTitle;
-    private CachedImageFetcher cachedImageFetcher;
     private PhotoClickListener mOnClickListener;
-
-    private int photoSizeLongSide = -1;
     private boolean mShowText;
 
     public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, PhotoClickListener onClickListener) {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(context));
         mOnClickListener = onClickListener;
+        mImageLoader = ImageLoader.getInstance();
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
@@ -86,36 +79,18 @@ public class PhotoViewerAdapter extends PagerAdapter {
         TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
         setVisibilityOfPhotoText(rootView, mShowText);
 
-        if (photoSizeLongSide < 0) {
-            // Determines the size for the photo shown full-screen (without zooming).
-            DisplayMetrics displayMetrics = mContext.getResources().getDisplayMetrics();
-            photoSizeLongSide = Math.max(displayMetrics.heightPixels,
-                    displayMetrics.widthPixels);
-        }
+        photoView.setTag(rootView);
+        photoView.setOnClickListener(mOnClickListener);
+        photoView.setOnLongClickListener(mOnClickListener);
 
-        try {
-
-            ImageLoadingTask imageLoadingTask = new ImageLoadingTask(
-                    photoView,
-                    new URL(mPhotos.get(position).getImageUrl()),
-                    cachedImageFetcher);
-            imageLoadingTask.execute();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
+        mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView);
         txtPhotoTitle.setText(mPhotos.get(position).getName());
         txtAlbumName.setText(mAlbumTitle);
 
         if (mPhotos.size() > (position + 1)) {
-            try {
-                Photo photo = mPhotos.get(position + 1);
-                if (photo != null) {
-                    cachedImageFetcher.maybePrefetchImageAsync(new URL(photo
-                            .getImageUrl()));
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
+            Photo photo = mPhotos.get(position + 1);
+            if (photo != null) {
+                mImageLoader.loadImage(photo.getImageUrl(), null);
             }
         }
 
@@ -134,9 +109,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 "liberavisse definitiones." + " " + mPhotos.get(position).getName());
 
         descriptionSwitcher.setTag(position);
-        photoView.setTag(rootView);
-        photoView.setOnClickListener(mOnClickListener);
-        photoView.setOnLongClickListener(mOnClickListener);
         container.addView(rootView);
         return rootView;
     }
@@ -162,9 +134,5 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
     public void setShowText(boolean showText) {
         mShowText = showText;
-    }
-
-    public CachedImageFetcher getCachedImageFetcher() {
-        return cachedImageFetcher;
     }
 }

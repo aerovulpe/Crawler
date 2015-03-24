@@ -29,14 +29,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import java.util.List;
 
 import me.aerovulpe.crawler.CrawlerConfig;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
-import me.aerovulpe.crawler.request.ImageLoadingTask;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 import me.aerovulpe.crawler.view.ThumbnailSlotView;
 
@@ -54,27 +52,26 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
     private final List<ThumbnailItem<T>> dataItems;
     private final LayoutInflater inflater;
     private final ThumbnailClickListener<T> listener;
-    private final CachedImageFetcher cachedImageFetcher;
+    private final ImageLoader mImageLoader;
     private int slotsPerRow;
     private int slotWidth;
 
     /**
      * Instantiates a new MultiColumnImageAdapter.
      *
-     * @param dataItems          the list of data items to display
-     * @param inflater           the inflater to be used to inflate the thumbnail slots
-     * @param listener           a listener that is notified when an album was clicked on
-     * @param cachedImageFetcher used to fetch the thumbnail images
-     * @param displayMetrics     used to determine who many thumbnails can be display on a single
-     *                           row
+     * @param dataItems      the list of data items to display
+     * @param inflater       the inflater to be used to inflate the thumbnail slots
+     * @param listener       a listener that is notified when an album was clicked on
+     * @param displayMetrics used to determine who many thumbnails can be display on a single
+     *                       row
      */
     public MultiColumnImageAdapter(List<ThumbnailItem<T>> dataItems,
                                    LayoutInflater inflater, ThumbnailClickListener<T> listener,
-                                   CachedImageFetcher cachedImageFetcher, DisplayMetrics displayMetrics) {
+                                   DisplayMetrics displayMetrics) {
         this.dataItems = dataItems;
         this.inflater = inflater;
         this.listener = listener;
-        this.cachedImageFetcher = cachedImageFetcher;
+        mImageLoader = ImageLoader.getInstance();
 
         setDisplayMetrics(displayMetrics);
     }
@@ -156,27 +153,9 @@ public abstract class MultiColumnImageAdapter<T> extends BaseAdapter {
         TextView picTitle = (TextView) slot.findViewById(R.id.picture_title);
         picTitle.setText(item.getTitle());
 
-        // We need to cancel the UI update of the image loading task for this
-        // slot, if one is present and instead set the loading icon.
-        ImageLoadingTask previousLoadingTask = slot.getImageLoadingTask();
-        if (previousLoadingTask != null) {
-            previousLoadingTask.setCancelUiUpdate(true);
-        }
-
         ImageView albumThumbnail = (ImageView) slot
                 .findViewById(R.id.album_thumbnail);
-
-        // The ImageLoadingTask will load the thumbnail asynchronously and set
-        // the result as soon as the response is in. The image will be set
-        // immediately, if the result is already in cache.
-        try {
-            ImageLoadingTask task = new ImageLoadingTask(albumThumbnail, new URL(
-                    item.getThumbnailUrl()), cachedImageFetcher);
-            slot.setImageLoadingTask(task);
-            task.execute();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        mImageLoader.displayImage(item.getThumbnailUrl(), albumThumbnail);
     }
 
     /**

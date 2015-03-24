@@ -20,9 +20,7 @@ import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
 import me.aerovulpe.crawler.adapter.PhotosAdapter;
-import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 
 public class PhotoListFragment extends Fragment {
@@ -37,7 +35,6 @@ public class PhotoListFragment extends Fragment {
     private ListView mainList;
     private LayoutInflater inflater;
 
-    private CachedImageFetcher cachedImageFetcher;
     private PhotosAdapter mPhotosAdapter;
 
     private int mIndex;
@@ -76,7 +73,6 @@ public class PhotoListFragment extends Fragment {
             mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
             mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
         }
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(getActivity()));
         setRetainInstance(true);
     }
 
@@ -147,7 +143,7 @@ public class PhotoListFragment extends Fragment {
                         }
                     };
             mPhotosAdapter = new PhotosAdapter(wrap(mPhotos), inflater,
-                    clickListener, cachedImageFetcher, getResources()
+                    clickListener, getResources()
                     .getDisplayMetrics());
         }
         mPhotosAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
