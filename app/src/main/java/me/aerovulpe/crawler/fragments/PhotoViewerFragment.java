@@ -187,7 +187,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         }
 
         final Activity activity = getActivity();
-        long msBetweenSwaps = 3500;
+        long msBetweenSwaps = 5000;
 
         //schedule this to
         timerDescriptionScrolling.scheduleAtFixedRate(
