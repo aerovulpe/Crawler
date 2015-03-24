@@ -70,7 +70,7 @@ public class PreferencesActivity extends PreferenceActivity {
         super.onPause();
         int currentCacheValue = getCurrentCacheValue(this);
         if (currentCacheValue != oldCacheValue) {
-            CrawlerApplication.initImageLoader(this);
+            CrawlerApplication.initImageLoader(this, true);
         }
     }
 

@@ -39,7 +39,7 @@ public class CrawlerApplication extends Application {
     public static final int ALBUM_THUMBNAIL_SIZE = 140;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
 
-    public static void initImageLoader(Context context) {
+    public static void initImageLoader(Context context, boolean forceInit) {
         // This configuration tuning is custom. You can tune every option, you may tune some of them,
         // or you can create default configuration by
         //  ImageLoaderConfiguration.createDefault(this);
@@ -64,12 +64,14 @@ public class CrawlerApplication extends Application {
         config.defaultDisplayImageOptions(options);
 
         // Initialize ImageLoader with configuration.
+        if (forceInit)
+            ImageLoader.getInstance().destroy();
         ImageLoader.getInstance().init(config.build());
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        initImageLoader(this);
+        initImageLoader(this, false);
     }
 }

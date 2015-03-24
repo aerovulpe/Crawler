@@ -21,7 +21,7 @@ public class BaseActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        CrawlerApplication.initImageLoader(this);
+        CrawlerApplication.initImageLoader(this, false);
     }
 
     protected Toolbar activateToolbar() {
