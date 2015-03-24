@@ -1,8 +1,9 @@
-package me.aerovulpe.crawler.base;
+package me.aerovulpe.crawler.activities;
 
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 
 /**
@@ -15,6 +16,12 @@ public class BaseActivity extends ActionBarActivity {
     protected void onStart() {
         super.onStart();
         activateToolbar();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CrawlerApplication.initImageLoader(this, false);
     }
 
     protected Toolbar activateToolbar() {

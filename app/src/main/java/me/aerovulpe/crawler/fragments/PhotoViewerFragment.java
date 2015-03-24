@@ -23,18 +23,17 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
 import com.viewpagerindicator.CirclePageIndicator;
 import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
 import com.yalantis.contextmenu.lib.MenuObject;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import me.aerovulpe.crawler.CrawlerConfig;
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
@@ -90,8 +89,8 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
-        setShowText(getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, false));
+        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         setRetainInstance(true);
     }
 
@@ -175,8 +174,8 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
             ((ActionBarActivity) getActivity())
                     .getSupportActionBar().show();
-        getActivity().getSharedPreferences(CrawlerConfig.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
-                .putBoolean(CrawlerConfig.PHOTO_DETAIL_KEY, mShowText).apply();
+        getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+                .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText).apply();
     }
 
     private void setUpScrollingOfDescription() {
@@ -426,7 +425,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
                 Intent backupShareIntent = new Intent();
                 backupShareIntent.setAction(Intent.ACTION_SEND);
                 backupShareIntent.setType("text/plain");
-                String backupSharedText = photo.getFullImageUrl() + "\n\n" + sharedText;
+                String backupSharedText = photo.getImageUrl() + "\n\n" + sharedText;
                 backupShareIntent.putExtra(Intent.EXTRA_TEXT, backupSharedText);
                 startActivity(backupShareIntent);
             } else {
@@ -439,15 +438,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     }
 
     public String savePhoto(Photo photo) {
-        try {
-            return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
-                    mPhotoViewerAdapter.getCachedImageFetcher()
-                            .cachedFetchImage(new URL(photo.getFullImageUrl())), photo.getName(), photo.getDescription());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Toast.makeText(getActivity(), "Could not save image", Toast.LENGTH_LONG).show();
-            return null;
-        }
+        return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
+                ImageLoader.getInstance().loadImageSync(photo.getImageUrl()), photo.getTitle(),
+                photo.getDescription());
     }
 
     public void setAsWallpaper(Photo photo) {

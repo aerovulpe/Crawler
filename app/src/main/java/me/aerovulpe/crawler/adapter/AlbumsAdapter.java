@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import java.util.List;
 
 import me.aerovulpe.crawler.data.Album;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 
 /**
@@ -34,7 +33,7 @@ public class AlbumsAdapter extends MultiColumnImageAdapter<Album> {
 
     public AlbumsAdapter(List<ThumbnailItem<Album>> dataItems,
                          LayoutInflater inflater, ThumbnailClickListener<Album> listener,
-                         CachedImageFetcher cachedImageFetcher, DisplayMetrics displayMetrics) {
-        super(dataItems, inflater, listener, cachedImageFetcher, displayMetrics);
+                         DisplayMetrics displayMetrics) {
+        super(dataItems, inflater, listener, displayMetrics);
     }
 }

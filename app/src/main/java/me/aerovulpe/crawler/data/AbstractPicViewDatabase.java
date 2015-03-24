@@ -23,7 +23,7 @@ import android.util.Log;
 
 import java.io.File;
 
-import me.aerovulpe.crawler.CrawlerConfig;
+import me.aerovulpe.crawler.CrawlerApplication;
 
 /**
  * Abstract super-class of all Crawler databases.
@@ -72,6 +72,6 @@ public class AbstractPicViewDatabase {
         String sdCardPath = Environment.getExternalStorageDirectory()
                 .getAbsolutePath();
         return new File(sdCardPath + File.separator + "Android" + File.separator + "data" +
-                File.separator + CrawlerConfig.APP_NAME_PATH + File.separator + dbName);
+                File.separator + CrawlerApplication.APP_NAME_PATH + File.separator + dbName);
     }
 }

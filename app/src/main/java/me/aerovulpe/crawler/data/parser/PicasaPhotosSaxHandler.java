@@ -65,14 +65,15 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
             currentPhoto = new Photo();
         } else {
             if (currentPhoto != null) {
-                // We can do better by selecting the best size. Right now we
-                // always use the last one, which should be the best one.
-                if (localName.equals("thumbnail")) {
-                    String thumbnail = attributes.getValue("", "url");
-                    currentPhoto.setThumbnailUrl(thumbnail);
-                } else if (localName.equals("content")) {
+                if (localName.equals("content")) {
                     String image = attributes.getValue("", "url");
-                    currentPhoto.setImageUrl(image);
+                    if (image != null) {
+                        int photoSizeLongSide = 1920;
+                        int pos = image.lastIndexOf('/');
+                        image = image.substring(0, pos + 1) + 's' + photoSizeLongSide
+                                + image.substring(pos);
+                        currentPhoto.setImageUrl(image);
+                    }
                 }
             }
         }

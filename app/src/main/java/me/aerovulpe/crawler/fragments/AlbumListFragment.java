@@ -19,11 +19,9 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AlbumsAdapter;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
 import me.aerovulpe.crawler.data.Album;
-import me.aerovulpe.crawler.data.FileSystemImageCache;
 import me.aerovulpe.crawler.data.FileSystemWebResponseCache;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
-import me.aerovulpe.crawler.request.CachedImageFetcher;
 import me.aerovulpe.crawler.request.CachedWebRequestFetcher;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
@@ -36,7 +34,6 @@ public class AlbumListFragment extends Fragment {
     private ListView mainList;
     private LayoutInflater inflater;
     private List<Album> albums = new ArrayList<>();
-    private CachedImageFetcher cachedImageFetcher;
     private CachedWebRequestFetcher cachedWebRequestFetcher;
     private AlbumsAdapter mAlbumsAdapter;
     private int mIndex;
@@ -74,7 +71,6 @@ public class AlbumListFragment extends Fragment {
             mAccountID = getArguments().getString(ARG_ACCOUNT_ID);
         }
 
-        cachedImageFetcher = new CachedImageFetcher(new FileSystemImageCache(getActivity()));
         cachedWebRequestFetcher = new CachedWebRequestFetcher(
                 new FileSystemWebResponseCache());
 
@@ -199,7 +195,7 @@ public class AlbumListFragment extends Fragment {
                         }
                     };
             mAlbumsAdapter = new AlbumsAdapter(wrap(albums), inflater, thumbnailClickListener,
-                    cachedImageFetcher, getResources().getDisplayMetrics());
+                    getResources().getDisplayMetrics());
         }
         mAlbumsAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
         mainList.setAdapter(mAlbumsAdapter);
