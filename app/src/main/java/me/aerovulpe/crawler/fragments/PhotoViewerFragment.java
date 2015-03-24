@@ -303,7 +303,11 @@ public class PhotoViewerFragment extends Fragment implements View.OnLongClickLis
             toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
         }
 
-        MenuObject showDetails = new MenuObject("Show photo details");
+        MenuObject showDetails;
+        if (mShowText)
+            showDetails = new MenuObject("Hide photo details");
+        else
+            showDetails = new MenuObject("Show photo details");
         showDetails.setResource(android.R.drawable.ic_menu_info_details);
 
         MenuObject save = new MenuObject("Save Photo");
