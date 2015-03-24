@@ -16,7 +16,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.List;
 
-import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.view.TouchImageView;
@@ -31,10 +30,10 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private Context mContext;
     private List<Photo> mPhotos;
     private String mAlbumTitle;
-    private PhotoClickListener mOnClickListener;
+    private View.OnLongClickListener mOnClickListener;
     private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, PhotoClickListener onClickListener) {
+    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, View.OnLongClickListener onClickListener) {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
@@ -80,7 +79,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
         setVisibilityOfPhotoText(rootView, mShowText);
 
         photoView.setTag(rootView);
-        photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
         mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView);

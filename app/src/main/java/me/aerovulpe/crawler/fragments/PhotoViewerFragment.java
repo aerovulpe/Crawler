@@ -34,7 +34,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import me.aerovulpe.crawler.CrawlerApplication;
-import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
@@ -43,12 +42,12 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewerFragment extends Fragment implements PhotoClickListener {
+public class PhotoViewerFragment extends Fragment implements View.OnLongClickListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
-    public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1,
-            MENU_ITEM_SAVE = 2, MENU_ITEM_SHARE = 3, MENU_ITEM_MAKE_WALLPAPER = 4, MENU_ITEM_SETTINGS = 5;
+    public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1, MENU_ITEM_SHOW_DETAILS = 2,
+            MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5, MENU_ITEM_SETTINGS = 6;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
@@ -241,15 +240,16 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
         }
     }
 
-    private void toggleDetailViews(View view) {
+    public void toggleDetailViews() {
+        View view = getView();
         if (mShowText) {
             if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
+                view.findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
             setShowText(false);
         } else {
-            if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
+            if (view != null)
+                view.findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
             setShowText(true);
         }
@@ -269,11 +269,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             if (getView() != null)
                 getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
         }
-    }
-
-    @Override
-    public void onClick(View v) {
-        toggleDetailViews((View) v.getTag());
     }
 
     private List<MenuObject> getMenuObjects() {
@@ -308,6 +303,9 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
             toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
         }
 
+        MenuObject showDetails = new MenuObject("Show photo details");
+        showDetails.setResource(android.R.drawable.ic_menu_info_details);
+
         MenuObject save = new MenuObject("Save Photo");
         save.setResource(android.R.drawable.ic_menu_save);
 
@@ -322,6 +320,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
 
         menuObjects.add(close);
         menuObjects.add(toggleSlideShow);
+        menuObjects.add(showDetails);
         menuObjects.add(save);
         menuObjects.add(share);
         menuObjects.add(makeWallpaper);

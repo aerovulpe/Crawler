@@ -248,6 +248,9 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
             case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
                 photoViewerFragment.toggleSlideShow();
                 break;
+            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
+                photoViewerFragment.toggleDetailViews();
+                break;
             case PhotoViewerFragment.MENU_ITEM_SAVE:
                 if (photoViewerFragment.savePhoto(photoViewerFragment
                         .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
