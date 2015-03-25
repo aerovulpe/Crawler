@@ -25,25 +25,17 @@ import com.yalantis.contextmenu.lib.MenuObject;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
-import me.aerovulpe.crawler.data.Account;
-import me.aerovulpe.crawler.data.AccountsDatabase;
 import me.aerovulpe.crawler.data.AccountsUtil;
-import me.aerovulpe.crawler.data.FileSystemWebResponseCache;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
-import me.aerovulpe.crawler.request.AsyncRequestTask;
-import me.aerovulpe.crawler.request.TumblrCachedWebRequestFetcher;
-import me.aerovulpe.crawler.util.ObjectSerializer;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener, OnMenuItemLongClickListener {
@@ -55,7 +47,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
-    private AccountsDatabase accountsDb = AccountsDatabase.get();
     private Toolbar mToolbar;
 
     @Override
@@ -78,22 +69,22 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         });
         mDrawerList.addHeaderView(header);
         mManager = getFragmentManager();
-        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
+//        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
         mDrawerList.setAdapter(adapter);
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(MainActivity.this,
-                        MainActivity.class);
-                intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, ((Account) mDrawerList
-                        .getItemAtPosition(position)).id);
-                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
-                        .getItemAtPosition(position)).type);
-                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
-                        .getItemAtPosition(position)).name);
-                MainActivity.this.finish();
-                MainActivity.this.startActivity(intent);
+//                Intent intent = new Intent(MainActivity.this,
+//                        MainActivity.class);
+//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, ((Account) mDrawerList
+//                        .getItemAtPosition(position)).id);
+//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
+//                        .getItemAtPosition(position)).type);
+//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
+//                        .getItemAtPosition(position)).name);
+//                MainActivity.this.finish();
+//                MainActivity.this.startActivity(intent);
             }
         });
         mTitle = mDrawerTitle = getTitle();
@@ -130,30 +121,30 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
-                        AsyncRequestTask request = new AsyncRequestTask(new TumblrCachedWebRequestFetcher(
-                                new FileSystemWebResponseCache()),
-                                "http://" + intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID) + ".tumblr.com/page/", false, "Loading photos...", this,
-                                new AsyncRequestTask.RequestCallback() {
-
-                                    @Override
-                                    public void success(String data) {
-                                        try {
-                                            ArrayList<Photo> photos = (ArrayList<Photo>)
-                                                    ObjectSerializer.deserialize(data);
-                                            createPhotoListInstance(intent.getExtras()
-                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME), photos, false);
-                                        } catch (IOException | ClassNotFoundException e) {
-                                            Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
-                                            e.printStackTrace();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void error(String message) {
-                                        Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                        request.execute();
+//                        AsyncRequestTask request = new AsyncRequestTask(new TumblrCachedWebRequestFetcher(
+//                                new FileSystemWebResponseCache()),
+//                                "http://" + intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID) + ".tumblr.com/page/", false, "Loading photos...", this,
+//                                new AsyncRequestTask.RequestCallback() {
+//
+//                                    @Override
+//                                    public void success(String data) {
+//                                        try {
+//                                            ArrayList<Photo> photos = (ArrayList<Photo>)
+//                                                    ObjectSerializer.deserialize(data);
+//                                            createPhotoListInstance(intent.getExtras()
+//                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME), photos, false);
+//                                        } catch (IOException | ClassNotFoundException e) {
+//                                            Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
+//                                            e.printStackTrace();
+//                                        }
+//                                    }
+//
+//                                    @Override
+//                                    public void error(String message) {
+//                                        Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                });
+//                        request.execute();
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;
@@ -326,7 +317,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
             @Override
             public void onAddAccount(int type, String id, String name) {
-                accountsDb.put(-1, type, id, name);
+//                accountsDb.put(-1, type, id, name);
                 adapter.notifyDataSetChanged();
             }
         };

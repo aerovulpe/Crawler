@@ -20,10 +20,7 @@ import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.AlbumsAdapter;
 import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
 import me.aerovulpe.crawler.data.Album;
-import me.aerovulpe.crawler.data.FileSystemWebResponseCache;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.AsyncRequestTask;
-import me.aerovulpe.crawler.request.CachedWebRequestFetcher;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
 import me.aerovulpe.crawler.ui.ThumbnailItem;
 
@@ -34,7 +31,6 @@ public class AlbumListFragment extends Fragment {
     private ListView mainList;
     private LayoutInflater inflater;
     private List<Album> albums = new ArrayList<>();
-    private CachedWebRequestFetcher cachedWebRequestFetcher;
     private AlbumsAdapter mAlbumsAdapter;
     private int mIndex;
     private int mTop;
@@ -71,8 +67,8 @@ public class AlbumListFragment extends Fragment {
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
 
-        cachedWebRequestFetcher = new CachedWebRequestFetcher(
-                new FileSystemWebResponseCache());
+//        cachedWebRequestFetcher = new CachedWebRequestFetcher(
+//                new FileSystemWebResponseCache());
 
         setRetainInstance(true);
     }
@@ -123,42 +119,42 @@ public class AlbumListFragment extends Fragment {
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
-                url.getUrl(), false, "Loading albums...", getActivity(),
-                new AsyncRequestTask.RequestCallback() {
-                    @Override
-                    public void success(String data) {
-                        AlbumListFragment.this.albums = Album.parseFromPicasaXml(data);
-                        Log.d(TAG, "Albums loaded: " + AlbumListFragment.this.albums.size());
-                        showAlbums();
-                    }
-
-                    @Override
-                    public void error(String message) {
-                        Log.e(TAG, "Could not load albums: " + message);
-                        showError("Error while fetching albums");
-                    }
-                });
-        request.execute();
+//        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
+//                url.getUrl(), false, "Loading albums...", getActivity(),
+//                new AsyncRequestTask.RequestCallback() {
+//                    @Override
+//                    public void success(String data) {
+//                        AlbumListFragment.this.albums = Album.parseFromPicasaXml(data);
+//                        Log.d(TAG, "Albums loaded: " + AlbumListFragment.this.albums.size());
+//                        showAlbums();
+//                    }
+//
+//                    @Override
+//                    public void error(String message) {
+//                        Log.e(TAG, "Could not load albums: " + message);
+//                        showError("Error while fetching albums");
+//                    }
+//                });
+//        request.execute();
     }
 
     private void doPhotosRequest(final String albumTitle, String gdataUrl) {
-        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
-                gdataUrl, false, "Loading photos...", getActivity(),
-                new AsyncRequestTask.RequestCallback() {
-
-                    @Override
-                    public void success(String data) {
-                        showPhotos(albumTitle, Photo.parseFromPicasaXml(data));
-                    }
-
-                    @Override
-                    public void error(String message) {
-                        Log.e(TAG, "Could not load photos: " + message);
-                        showError("Error while fetching photos");
-                    }
-                });
-        request.execute();
+//        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
+//                gdataUrl, false, "Loading photos...", getActivity(),
+//                new AsyncRequestTask.RequestCallback() {
+//
+//                    @Override
+//                    public void success(String data) {
+//                        showPhotos(albumTitle, Photo.parseFromPicasaXml(data));
+//                    }
+//
+//                    @Override
+//                    public void error(String message) {
+//                        Log.e(TAG, "Could not load photos: " + message);
+//                        showError("Error while fetching photos");
+//                    }
+//                });
+//        request.execute();
     }
 
     /**

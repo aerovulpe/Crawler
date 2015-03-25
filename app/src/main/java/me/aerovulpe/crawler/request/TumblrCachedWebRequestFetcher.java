@@ -16,24 +16,15 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aerovulpe.crawler.data.FileSystemWebResponseCache;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.util.ObjectSerializer;
 
 /**
  * Created by Aaron on 24/03/2015.
  */
-public class TumblrCachedWebRequestFetcher extends CachedWebRequestFetcher {
+public class TumblrCachedWebRequestFetcher {
     private ArrayList<Photo> mPhotos = new ArrayList<>();
     private int[] sizes = new int[]{1280, 500, 400, 250};
-
-    /**
-     * @param fileSystemCache the cache to use as a fallback, if the given value could not be
-     *                        found in memory
-     */
-    public TumblrCachedWebRequestFetcher(FileSystemWebResponseCache fileSystemCache) {
-        super(fileSystemCache);
-    }
 
     public static boolean isImage(String uri) {
         boolean isImage = false;
@@ -114,7 +105,6 @@ public class TumblrCachedWebRequestFetcher extends CachedWebRequestFetcher {
         return new String(hexChars);
     }
 
-    @Override
     public String fetchFromWeb(URL url) {
         try {
             return ObjectSerializer.serialize((java.io.Serializable) download(url.toString()));

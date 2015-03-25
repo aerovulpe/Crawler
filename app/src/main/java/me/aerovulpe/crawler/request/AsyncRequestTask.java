@@ -19,9 +19,6 @@ package me.aerovulpe.crawler.request;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
-
-import java.net.URL;
 
 /**
  * A task that executes an HTTP request asynchronously, without blocking the UI
@@ -36,14 +33,13 @@ public class AsyncRequestTask extends AsyncTask<Void, Integer, String> {
     private final RequestCallback callback;
     private final boolean forceFetchFromWeb;
     private final Context context;
-    private CachedWebRequestFetcher fetcher;
     private ProgressDialog progressDialog = null;
     private String errorMessage;
     private boolean wasTakenFromDisk = false;
-    public AsyncRequestTask(CachedWebRequestFetcher fetcher, String url,
+
+    public AsyncRequestTask(String url,
                             boolean forceFetchFromWeb, String loadingMessage, Context context,
                             RequestCallback callback) {
-        this.fetcher = fetcher;
         this.url = url;
         this.forceFetchFromWeb = forceFetchFromWeb;
         this.context = context;
@@ -64,15 +60,6 @@ public class AsyncRequestTask extends AsyncTask<Void, Integer, String> {
 
     @Override
     protected String doInBackground(Void... params) {
-        try {
-            CachedResponse<String> cachedResponse = fetcher.cachedFetch(new URL(url),
-                    forceFetchFromWeb);
-            wasTakenFromDisk = (cachedResponse.cacheStatus == CachedResponse.FROM_FILE);
-            return cachedResponse.content;
-        } catch (Exception e) {
-            e.printStackTrace();
-            errorMessage = e.getMessage();
-        }
         return null;
     }
 
@@ -106,23 +93,7 @@ public class AsyncRequestTask extends AsyncTask<Void, Integer, String> {
      *                differ, we call the callback once again
      */
     private void checkForNewerVersionAsync(final String oldData) {
-        AsyncRequestTask task = new AsyncRequestTask(fetcher, url, true, null,
-                context, new RequestCallback() {
-            @Override
-            public void success(String data) {
-                if (!data.equals(oldData)) {
-                    Log.d(TAG, "Data in DB has changed, notifying "
-                            + "callback a second time..");
-                    callback.success(data);
-                }
-            }
 
-            @Override
-            public void error(String message) {
-                // Nothing we can do.
-            }
-        });
-        task.execute();
     }
 
     public static interface RequestCallback {
