@@ -30,7 +30,7 @@ public class CrawlerProvider extends ContentProvider {
                         " ON " + CrawlerContract.AlbumEntry.TABLE_NAME +
                         "." + CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY +
                         " = " + CrawlerContract.AccountEntry.TABLE_NAME +
-                        "." + CrawlerContract.AccountEntry._ID);
+                        "." + CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID);
     }
 
     private static final SQLiteQueryBuilder sPhotosByAlbumQueryBuilder;
@@ -96,7 +96,7 @@ public class CrawlerProvider extends ContentProvider {
         String selection = sAlbumNameSelection;
         String[] selectionArgs = new String[]{albumName};
 
-        return sAlbumsByAccountQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+        return sPhotosByAlbumQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 selection,
                 selectionArgs,

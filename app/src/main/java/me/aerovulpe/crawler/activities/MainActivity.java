@@ -34,7 +34,6 @@ import me.aerovulpe.crawler.data.AccountsUtil;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
-import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 
 
@@ -226,7 +225,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     @Override
     public void createPhotoListInstance(String albumTitle, List<Photo> photos, boolean addToBackstack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
+//        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
         if (addToBackstack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();

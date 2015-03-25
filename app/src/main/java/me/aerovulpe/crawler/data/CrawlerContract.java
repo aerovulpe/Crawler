@@ -8,7 +8,6 @@ import android.util.Xml;
 
 import org.xml.sax.SAXException;
 
-import me.aerovulpe.crawler.data.parser.PicasaAlbumsSaxHandler;
 import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
 
 /**
@@ -42,6 +41,7 @@ public class CrawlerContract {
         public static final String COLUMN_ACCOUNT_ID = "account_id";
         public static final String COLUMN_ACCOUNT_NAME = "account_name";
         public static final String COLUMN_ACCOUNT_TYPE = "account_type";
+        public static final String COLUMN_ACCOUNT_TIME = "account_time";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACCOUNTS).build();
@@ -68,6 +68,7 @@ public class CrawlerContract {
         public static final String COLUMN_ALBUM_NAME = "album_name";
         public static final String COLUMN_ALBUM_THUMBNAIL_URL = "album_thumbnail_url";
         public static final String COLUMN_ALBUM_PHOTO_DATA = "album_photo_data";
+        public static final String COLUMN_ALBUM_TIME = "album_time";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ALBUMS).build();
@@ -76,31 +77,19 @@ public class CrawlerContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static final String CONTENT_TYPE =
-                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
-
         public static Uri buildAlbumsUriWithAccountID(String accountID) {
             return CONTENT_URI.buildUpon().appendPath(accountID).build();
         }
 
-        public static final String CONTENT_ITEM_TYPE =
-                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
+        public static final String CONTENT_TYPE =
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
 
         public static String getAccountIDFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
 
-        /**
-         * Parses Picasa albums XML
-         */
-        public static void parseFromPicasaXml(String xmlStr) {
-            PicasaAlbumsSaxHandler handler = new PicasaAlbumsSaxHandler();
-            try {
-                Xml.parse(xmlStr, handler);
-            } catch (SAXException e) {
-                Log.e(TAG, e.getMessage(), e);
-            }
-        }
+        public static final String CONTENT_ITEM_TYPE =
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
 
 
     }
@@ -116,6 +105,7 @@ public class CrawlerContract {
         public static final String COLUMN_PHOTO_TITLE = "photo_title";
         public static final String COLUMN_PHOTO_URL = "photo_url";
         public static final String COLUMN_PHOTO_DESCRIPTION = "photo_description";
+        public static final String COLUMN_PHOTO_TIME = "photo_time";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS).build();
@@ -124,15 +114,12 @@ public class CrawlerContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static final String CONTENT_TYPE =
-                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
-
         public static Uri buildPhotosUriWithAlbumName(String albumName) {
             return CONTENT_URI.buildUpon().appendPath(albumName).build();
         }
 
-        public static final String CONTENT_ITEM_TYPE =
-                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
+        public static final String CONTENT_TYPE =
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
 
         public static String getAlbumNameFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
@@ -156,6 +143,9 @@ public class CrawlerContract {
                 Log.e(TAG, e.getMessage(), e);
             }
         }
+
+        public static final String CONTENT_ITEM_TYPE =
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
 
 
     }

@@ -103,7 +103,8 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             Cursor cursor = adapter.getCursor();
             AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
             if (cursor != null && cursor.moveToPosition(info.position))
-                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME));
+                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME) + " (" +
+                        cursor.getString(COL_ACCOUNT_ID) + ")");
 
             String[] menuItems = getResources().getStringArray(R.array.account_actions);
             for (int i = 0; i < menuItems.length; i++) {
@@ -161,10 +162,12 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
             @Override
             public void onAddAccount(int type, String id, String name) {
+                if (name == null || name.isEmpty()) name = id;
                 ContentValues values = new ContentValues();
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
                 getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
             }
         };
@@ -189,8 +192,9 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String sortOrder = CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME + " ASC";
         return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI, ACCOUNTS_COLUMNS, null,
-                null, null);
+                null, sortOrder);
     }
 
     @Override

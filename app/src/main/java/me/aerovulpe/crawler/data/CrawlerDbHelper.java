@@ -29,6 +29,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 AccountEntry.COLUMN_ACCOUNT_ID + " TEXT NOT NULL, " +
                 AccountEntry.COLUMN_ACCOUNT_NAME + " TEXT NOT NULL, " +
                 AccountEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
+                AccountEntry.COLUMN_ACCOUNT_TIME + " INTEGER NOT NULL, " +
 
                 // To assure the application has just one account entry per id
                 // per type, it's created a UNIQUE constraint with REPLACE strategy
@@ -42,15 +43,17 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 AlbumEntry.COLUMN_ALBUM_NAME + " TEXT NOT NULL, " +
                 AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL + " TEXT NOT NULL, " +
                 AlbumEntry.COLUMN_ALBUM_PHOTO_DATA + " TEXT NOT NULL, " +
+                AlbumEntry.COLUMN_ALBUM_TIME + " INTEGER NOT NULL, " +
 
                 // Set up the account column as a foreign key to the accounts table.
                 " FOREIGN KEY (" + AlbumEntry.COLUMN_ACCOUNT_KEY + ") REFERENCES " +
-                AccountEntry.TABLE_NAME + " (" + AccountEntry._ID + "), " +
+                AccountEntry.TABLE_NAME + " (" + AccountEntry.COLUMN_ACCOUNT_ID + "), " +
 
                 // To assure the application has just one album entry per name
-                // per account, it's created a UNIQUE constraint with REPLACE strategy
+                // per account per data, it's created a UNIQUE constraint with REPLACE strategy
                 "UNIQUE (" + AlbumEntry.COLUMN_ALBUM_NAME + ", " +
-                AlbumEntry.COLUMN_ACCOUNT_KEY + ") ON CONFLICT REPLACE);";
+                AlbumEntry.COLUMN_ACCOUNT_KEY + ", " + AlbumEntry.COLUMN_ALBUM_PHOTO_DATA +
+                ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_PHOTOS_TABLE = "CREATE TABLE " + PhotoEntry.TABLE_NAME + " (" +
                 PhotoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -60,6 +63,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 PhotoEntry.COLUMN_PHOTO_TITLE + " TEXT NOT NULL, " +
                 PhotoEntry.COLUMN_PHOTO_URL + " TEXT NOT NULL, " +
                 PhotoEntry.COLUMN_PHOTO_DESCRIPTION + " TEXT NOT NULL, " +
+                PhotoEntry.COLUMN_PHOTO_TIME + " INTEGER NOT NULL, " +
 
                 // Set up the album column as a foreign key to the albums table.
                 " FOREIGN KEY (" + PhotoEntry.COLUMN_ALBUM_KEY + ") REFERENCES " +

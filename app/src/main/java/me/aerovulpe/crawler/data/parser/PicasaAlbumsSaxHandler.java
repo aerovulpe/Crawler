@@ -17,27 +17,32 @@
 package me.aerovulpe.crawler.data.parser;
 
 
+import android.content.ContentValues;
+import android.content.Context;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
-import me.aerovulpe.crawler.data.Album;
+import me.aerovulpe.crawler.data.CrawlerContract;
 
 /**
  * A SAX handler for parsing Picasa Albums XML.
- *
- * @author haeberling@google.com (Sascha Haeberling)
  */
 public class PicasaAlbumsSaxHandler extends DefaultHandler {
-    private List<Album> albums = new ArrayList<Album>();
-    private Album currentAlbum;
+    public static final int CACHE_SIZE = 50;
+    private final Context mContext;
+    private final Vector<ContentValues> mContentCache;
     private StringBuilder builder = new StringBuilder();
+    private ContentValues currentAlbumValues;
+    private String mAccountID;
 
-    public List<Album> getAlbums() {
-        return albums;
+    public PicasaAlbumsSaxHandler(Context context, String accountID) {
+        mContext = context;
+        mAccountID = accountID;
+        mContentCache = new Vector<>(CACHE_SIZE);
     }
 
     @Override
@@ -49,10 +54,15 @@ public class PicasaAlbumsSaxHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName)
             throws SAXException {
         if (localName.equals("entry")) {
-            albums.add(currentAlbum);
+            mContentCache.add(currentAlbumValues);
+            if (mContentCache.size() >= CACHE_SIZE) {
+                mContext.getContentResolver().bulkInsert(CrawlerContract.AlbumEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                mContentCache.clear();
+            }
         } else if (localName.equals("title")) {
-            if (currentAlbum != null) {
-                currentAlbum.setName(builder.toString());
+            if (currentAlbumValues != null) {
+                currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, builder.toString());
             }
         }
         builder.setLength(0);
@@ -62,20 +72,32 @@ public class PicasaAlbumsSaxHandler extends DefaultHandler {
     public void startElement(String uri, String localName, String qName,
                              Attributes attributes) throws SAXException {
         if (localName.equals("entry")) {
-            currentAlbum = new Album();
+            currentAlbumValues = new ContentValues();
+            currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAccountID);
+            currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
         } else {
-            if (currentAlbum != null) {
+            if (currentAlbumValues != null) {
                 if (localName.equals("thumbnail")) {
                     String thumbnail = attributes.getValue("", "url");
-                    currentAlbum.setThumbnailUrl(thumbnail);
+                    currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, thumbnail);
                 } else if (localName.equals("link")) {
                     if (attributes.getValue("", "rel").equals(
                             "http://schemas.google.com/g/2005#feed")) {
                         String gdataUrl = attributes.getValue("", "href");
-                        currentAlbum.setGdataUrl(gdataUrl);
+                        currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, gdataUrl);
                     }
                 }
             }
         }
+    }
+
+    @Override
+    public void endDocument() throws SAXException {
+        if (!mContentCache.isEmpty()) {
+            mContext.getContentResolver().bulkInsert(CrawlerContract.AlbumEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+        }
+        super.endDocument();
     }
 }

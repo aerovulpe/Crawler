@@ -2,36 +2,48 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
+import android.widget.GridView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
-import me.aerovulpe.crawler.adapter.AlbumsAdapter;
-import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
-import me.aerovulpe.crawler.data.Album;
+import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
+import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.request.AsyncRequestTask;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
-import me.aerovulpe.crawler.ui.ThumbnailItem;
 
-public class AlbumListFragment extends Fragment {
+public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final int COL_ALBUM_NAME = 1;
+    public static final int COL_ALBUM_THUMBNAIL_URL = 2;
+    public static final int COL_ALBUM_PHOTO_DATA = 3;
     private static final String TAG = AlbumListFragment.class.getSimpleName();
+    private static final int ALBUMS_LOADER = 0;
+
+    private static String[] ALBUMS_COLUMNS = {
+            CrawlerContract.AlbumEntry.TABLE_NAME + "." + CrawlerContract.AlbumEntry._ID,
+            CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME,
+            CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL,
+            CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA
+    };
+
     private String mAccountID;
-    private ListView mainList;
-    private LayoutInflater inflater;
-    private List<Album> albums = new ArrayList<>();
-    private AlbumsAdapter mAlbumsAdapter;
+    private GridView mainGrid;
+    private ThumbnailAdapter mAlbumsAdapter;
     private int mIndex;
     private int mTop;
 
@@ -47,45 +59,33 @@ public class AlbumListFragment extends Fragment {
         return fragment;
     }
 
-    /**
-     * Wraps a list of {@link Album}s into a list of {@link ThumbnailItem}s, so
-     * they can be displayed in the list.
-     */
-    private static List<ThumbnailItem<Album>> wrap(List<Album> albums) {
-        List<ThumbnailItem<Album>> result = new ArrayList<>();
-        for (Album album : albums) {
-            result.add(new ThumbnailItem<>(album.getName(), album
-                    .getThumbnailUrl(), album));
-        }
-        return result;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
-
-//        cachedWebRequestFetcher = new CachedWebRequestFetcher(
-//                new FileSystemWebResponseCache());
-
+        mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_ALBUMS);
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.album_list, container, false);
-        mainList = (ListView) rootView.findViewById(R.id.albumlist);
-        this.inflater = inflater;
+        View rootView = inflater.inflate(R.layout.fragment_album_grid, container, false);
+        mainGrid = (GridView) rootView.findViewById(R.id.gridView);
+        mainGrid.setAdapter(mAlbumsAdapter);
 
         // TODO: This is picasa specific.
         if (mAccountID != null) {
             doAlbumsRequest(mAccountID);
-        } else {
-            showAlbums();
         }
         return rootView;
     }
@@ -94,48 +94,32 @@ public class AlbumListFragment extends Fragment {
     public void onPause() {
         super.onPause();
         if (mAlbumsAdapter == null) return;
-        mIndex = mainList.getFirstVisiblePosition() * mAlbumsAdapter.getSlotsPerRow();
-        View v = mainList.getChildAt(0);
-        mTop = (v == null) ? 0 : (v.getTop() - mainList.getPaddingTop());
+        mIndex = mainGrid.getFirstVisiblePosition();
+        View v = mainGrid.getChildAt(0);
+        mTop = (v == null) ? 0 : (v.getTop() - mainGrid.getPaddingTop());
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        getLoaderManager().restartLoader(ALBUMS_LOADER, null, this);
         if (mAlbumsAdapter == null) return;
-        mainList.post(new Runnable() {
+        mainGrid.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelectionFromTop(mIndex / mAlbumsAdapter.getSlotsPerRow(), mTop);
+                mainGrid.setSelection(mIndex);
             }
         });
     }
 
     /**
      * Loads the albums for the given user.
-     * <p/>
-     * TODO: This is Picasa specific.
      */
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-//        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
-//                url.getUrl(), false, "Loading albums...", getActivity(),
-//                new AsyncRequestTask.RequestCallback() {
-//                    @Override
-//                    public void success(String data) {
-//                        AlbumListFragment.this.albums = Album.parseFromPicasaXml(data);
-//                        Log.d(TAG, "Albums loaded: " + AlbumListFragment.this.albums.size());
-//                        showAlbums();
-//                    }
-//
-//                    @Override
-//                    public void error(String message) {
-//                        Log.e(TAG, "Could not load albums: " + message);
-//                        showError("Error while fetching albums");
-//                    }
-//                });
-//        request.execute();
+        AsyncRequestTask request = new AsyncRequestTask(getActivity(), mAccountID);
+        request.execute(url.getUrl());
     }
 
     private void doPhotosRequest(final String albumTitle, String gdataUrl) {
@@ -174,36 +158,30 @@ public class AlbumListFragment extends Fragment {
         });
         builder.setMessage(message);
         builder.show();
-
-    }
-
-    private void showAlbums() {
-        if (albums == null || getActivity() == null) {
-            return;
-        }
-
-        if (mAlbumsAdapter == null) {
-            MultiColumnImageAdapter.ThumbnailClickListener<Album> thumbnailClickListener =
-                    new MultiColumnImageAdapter.ThumbnailClickListener<Album>() {
-                        @Override
-                        public void thumbnailClicked(Album album) {
-                            doPhotosRequest(album.getName(), album.getGdataUrl());
-                        }
-                    };
-            mAlbumsAdapter = new AlbumsAdapter(wrap(albums), inflater, thumbnailClickListener,
-                    getResources().getDisplayMetrics());
-        }
-        mAlbumsAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
-        mainList.setAdapter(mAlbumsAdapter);
-        BaseAdapter adapter = (BaseAdapter) mainList.getAdapter();
-        adapter.notifyDataSetChanged();
-        adapter.notifyDataSetInvalidated();
-        mainList.invalidateViews();
     }
 
     private void showPhotos(String albumTitle, List<Photo> photos) {
         Log.d(TAG, "SHOW PHOTOS()");
         PhotoManager managerActivity = (PhotoManager) getActivity();
         managerActivity.createPhotoListInstance(albumTitle, photos, true);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = CrawlerContract.AlbumEntry.buildAlbumsUriWithAccountID(mAccountID);
+        String sortOrder = CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME + " ASC";
+        return new CursorLoader(getActivity(), uri, ALBUMS_COLUMNS, null,
+                null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAlbumsAdapter.swapCursor(data);
+        mainGrid.setSelection(mIndex);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAlbumsAdapter.swapCursor(null);
     }
 }
