@@ -6,8 +6,8 @@
 
     <GridView
         android:id="@+id/photo_gridView"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_margin="5dp"
         android:columnWidth="100dp"
         android:drawSelectorOnTop="true"
@@ -16,5 +16,16 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="5dp">
     </GridView>
+
+    <!--<com.melnykov.fab.FloatingActionButton-->
+    <!--android:id="@+id/fab"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="bottom|end"-->
+    <!--android:layout_margin="16dp"-->
+    <!--android:src="@android:drawable/ic_media_play"-->
+    <!--app:fab_colorNormal="@color/crawlerPrimaryColor"-->
+    <!--app:fab_colorPressed="@color/crawlerBackgroundAccent"-->
+    <!--app:fab_colorRipple="@color/crawlerRipple"/>-->
 
 </FrameLayout>

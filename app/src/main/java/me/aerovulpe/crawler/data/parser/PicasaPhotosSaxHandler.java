@@ -17,27 +17,30 @@
 package me.aerovulpe.crawler.data.parser;
 
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.util.Log;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
-import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.data.CrawlerContract;
 
-/**
- * A SAX handler for parsing Picasa Photos XML.
- *
- * @author haeberling@google.com (Sascha Haeberling)
- */
 public class PicasaPhotosSaxHandler extends DefaultHandler {
-    private List<Photo> albums = new ArrayList<>();
-    private Photo currentPhoto;
+    public static final int CACHE_SIZE = 50;
+    private final Context mContext;
+    private final Vector<ContentValues> mContentCache;
+    private final String mAlbumID;
     private StringBuilder builder = new StringBuilder();
+    private ContentValues currentPhotoValues;
 
-    public List<Photo> getPhotos() {
-        return albums;
+    public PicasaPhotosSaxHandler(Context context, String albumID) {
+        mContext = context;
+        mAlbumID = albumID;
+        mContentCache = new Vector<>(CACHE_SIZE);
     }
 
     @Override
@@ -49,10 +52,15 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
     public void endElement(String uri, String localName, String qName)
             throws SAXException {
         if (localName.equals("entry")) {
-            albums.add(currentPhoto);
+            mContentCache.add(currentPhotoValues);
+            if (mContentCache.size() >= CACHE_SIZE) {
+                mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                mContentCache.clear();
+            }
         } else if (localName.equals("title")) {
-            if (currentPhoto != null) {
-                currentPhoto.setName(builder.toString());
+            if (currentPhotoValues != null) {
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, builder.toString());
             }
         }
         builder.setLength(0);
@@ -62,9 +70,12 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
     public void startElement(String uri, String localName, String qName,
                              Attributes attributes) throws SAXException {
         if (localName.equals("entry")) {
-            currentPhoto = new Photo();
+            currentPhotoValues = new ContentValues();
+            Log.d("PHOTOPARSER", "parsing photo");
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
         } else {
-            if (currentPhoto != null) {
+            if (currentPhotoValues != null) {
                 if (localName.equals("content")) {
                     String image = attributes.getValue("", "url");
                     if (image != null) {
@@ -72,10 +83,20 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
                         int pos = image.lastIndexOf('/');
                         image = image.substring(0, pos + 1) + 's' + photoSizeLongSide
                                 + image.substring(pos);
-                        currentPhoto.setImageUrl(image);
+                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, image);
                     }
                 }
             }
         }
+    }
+
+    @Override
+    public void endDocument() throws SAXException {
+        if (!mContentCache.isEmpty()) {
+            mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+        }
+        super.endDocument();
     }
 }

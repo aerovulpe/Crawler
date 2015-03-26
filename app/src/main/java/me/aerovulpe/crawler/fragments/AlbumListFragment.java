@@ -13,30 +13,30 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
-
-import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final int COL_ALBUM_NAME = 1;
-    public static final int COL_ALBUM_THUMBNAIL_URL = 2;
-    public static final int COL_ALBUM_PHOTO_DATA = 3;
+    public static final int COL_ALBUM_ID = 2;
+    public static final int COL_ALBUM_THUMBNAIL_URL = 3;
+    public static final int COL_ALBUM_PHOTO_DATA = 4;
     private static final String TAG = AlbumListFragment.class.getSimpleName();
-    private static final int ALBUMS_LOADER = 0;
+    private static final int ALBUMS_LOADER = 1;
 
     private static String[] ALBUMS_COLUMNS = {
             CrawlerContract.AlbumEntry.TABLE_NAME + "." + CrawlerContract.AlbumEntry._ID,
             CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME,
+            CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID,
             CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL,
             CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA
     };
@@ -80,10 +80,22 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_album_grid, container, false);
-        mainGrid = (GridView) rootView.findViewById(R.id.gridView);
+        mainGrid = (GridView) rootView.findViewById(R.id.photo_gridView);
         mainGrid.setAdapter(mAlbumsAdapter);
 
-        // TODO: This is picasa specific.
+        mainGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Cursor cursor = mAlbumsAdapter.getCursor();
+
+                if (cursor != null && cursor.moveToPosition(position)) {
+                    showPhotos(cursor.getString(COL_ALBUM_NAME),
+                            cursor.getString(COL_ALBUM_ID),
+                            cursor.getString(COL_ALBUM_PHOTO_DATA));
+                }
+            }
+        });
+
         if (mAccountID != null) {
             doAlbumsRequest(mAccountID);
         }
@@ -118,27 +130,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        AsyncRequestTask request = new AsyncRequestTask(getActivity(), mAccountID);
-        request.execute(url.getUrl());
-    }
-
-    private void doPhotosRequest(final String albumTitle, String gdataUrl) {
-//        AsyncRequestTask request = new AsyncRequestTask(cachedWebRequestFetcher,
-//                gdataUrl, false, "Loading photos...", getActivity(),
-//                new AsyncRequestTask.RequestCallback() {
-//
-//                    @Override
-//                    public void success(String data) {
-//                        showPhotos(albumTitle, Photo.parseFromPicasaXml(data));
-//                    }
-//
-//                    @Override
-//                    public void error(String message) {
-//                        Log.e(TAG, "Could not load photos: " + message);
-//                        showError("Error while fetching photos");
-//                    }
-//                });
-//        request.execute();
+        AsyncRequestTask request = new AsyncRequestTask(getActivity(), AsyncRequestTask.TYPE_FLICKR_ALBUMS);
+        request.execute(url.getUrl(), mAccountID);
     }
 
     /**
@@ -160,10 +153,10 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         builder.show();
     }
 
-    private void showPhotos(String albumTitle, List<Photo> photos) {
+    private void showPhotos(String albumTitle, String albumID, String photoDataUrl) {
         Log.d(TAG, "SHOW PHOTOS()");
         PhotoManager managerActivity = (PhotoManager) getActivity();
-        managerActivity.createPhotoListInstance(albumTitle, photos, true);
+        managerActivity.createPhotoListInstance(albumTitle, albumID, photoDataUrl, true);
     }
 
     @Override

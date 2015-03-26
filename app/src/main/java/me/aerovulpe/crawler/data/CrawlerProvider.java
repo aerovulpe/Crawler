@@ -43,15 +43,15 @@ public class CrawlerProvider extends ContentProvider {
                         " ON " + CrawlerContract.PhotoEntry.TABLE_NAME +
                         "." + CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY +
                         " = " + CrawlerContract.AlbumEntry.TABLE_NAME +
-                        "." + CrawlerContract.AlbumEntry._ID);
+                        "." + CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID);
     }
 
     private static final String sAccountIDSelection =
             CrawlerContract.AccountEntry.TABLE_NAME +
                     "." + CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " = ? ";
-    private static final String sAlbumNameSelection =
+    private static final String sAlbumUrlSelection =
             CrawlerContract.AlbumEntry.TABLE_NAME +
-                    "." + CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME + " = ? ";
+                    "." + CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID + " = ? ";
     private CrawlerDbHelper mOpenHelper;
 
     private static UriMatcher buildUriMatcher() {
@@ -91,10 +91,10 @@ public class CrawlerProvider extends ContentProvider {
         );
     }
 
-    private Cursor getPhotosByAlbumName(Uri uri, String[] projection, String sortOrder) {
-        String albumName = CrawlerContract.PhotoEntry.getAlbumNameFromUri(uri);
-        String selection = sAlbumNameSelection;
-        String[] selectionArgs = new String[]{albumName};
+    private Cursor getPhotosByAlbumID(Uri uri, String[] projection, String sortOrder) {
+        String albumID = CrawlerContract.PhotoEntry.getAlbumIDFromUri(uri);
+        String selection = sAlbumUrlSelection;
+        String[] selectionArgs = new String[]{albumID};
 
         return sPhotosByAlbumQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
@@ -130,7 +130,7 @@ public class CrawlerProvider extends ContentProvider {
                 break;
             }
             case PHOTOS_WITH_ALBUM: {
-                retCursor = getPhotosByAlbumName(uri, projection, sortOrder);
+                retCursor = getPhotosByAlbumID(uri, projection, sortOrder);
                 break;
             }
             case ALBUMS: {

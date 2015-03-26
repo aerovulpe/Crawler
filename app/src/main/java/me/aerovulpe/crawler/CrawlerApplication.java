@@ -51,7 +51,6 @@ public class CrawlerApplication extends Application {
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
-        config.writeDebugLogs(); // Remove for release app
 
         DisplayImageOptions options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.loading)

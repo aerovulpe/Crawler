@@ -43,6 +43,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 AlbumEntry.COLUMN_ALBUM_NAME + " TEXT NOT NULL, " +
                 AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL + " TEXT NOT NULL, " +
                 AlbumEntry.COLUMN_ALBUM_PHOTO_DATA + " TEXT NOT NULL, " +
+                AlbumEntry.COLUMN_ALBUM_ID + " TEXT NOT NULL, " +
                 AlbumEntry.COLUMN_ALBUM_TIME + " INTEGER NOT NULL, " +
 
                 // Set up the account column as a foreign key to the accounts table.
@@ -60,14 +61,14 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 PhotoEntry.COLUMN_ALBUM_KEY + " TEXT NOT NULL, " +
                 PhotoEntry.COLUMN_PHOTO_NAME + " TEXT NOT NULL, " +
-                PhotoEntry.COLUMN_PHOTO_TITLE + " TEXT NOT NULL, " +
+                PhotoEntry.COLUMN_PHOTO_TITLE + " TEXT, " +
                 PhotoEntry.COLUMN_PHOTO_URL + " TEXT NOT NULL, " +
-                PhotoEntry.COLUMN_PHOTO_DESCRIPTION + " TEXT NOT NULL, " +
+                PhotoEntry.COLUMN_PHOTO_DESCRIPTION + " TEXT, " +
                 PhotoEntry.COLUMN_PHOTO_TIME + " INTEGER NOT NULL, " +
 
                 // Set up the album column as a foreign key to the albums table.
                 " FOREIGN KEY (" + PhotoEntry.COLUMN_ALBUM_KEY + ") REFERENCES " +
-                AlbumEntry.TABLE_NAME + " (" + AlbumEntry._ID + "), " +
+                AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + "), " +
 
                 // To assure the application has just one photo entry per url
                 // per album, it's created a UNIQUE constraint with REPLACE strategy

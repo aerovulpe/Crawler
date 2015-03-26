@@ -29,6 +29,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
+import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
 /**
  * The controller for the albums list.
@@ -64,9 +65,8 @@ public class ThumbnailAdapter extends CursorAdapter {
             thumbnailUrl = cursor.getString(AlbumListFragment.COL_ALBUM_THUMBNAIL_URL);
             thumbnailTitle = cursor.getString(AlbumListFragment.COL_ALBUM_NAME);
         } else if (mType == TYPE_PHOTOS) {
-            // TODO
-//            thumbnailUrl = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
-//            thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_NAME);
+            thumbnailUrl = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
+            thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_NAME);
         }
         mImageLoader.displayImage(thumbnailUrl,
                 holder.imageView);

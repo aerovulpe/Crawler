@@ -5,6 +5,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -19,22 +20,17 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.yalantis.contextmenu.lib.MenuObject;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
-
-import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.AccountsUtil;
-import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
-import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
+import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener, OnMenuItemLongClickListener {
@@ -219,27 +215,25 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         fragmentTransaction.add(R.id.content_frame, AlbumListFragment.newInstance(accountID), null);
         fragmentTransaction.commit();
-        mManager.executePendingTransactions();
     }
 
     @Override
-    public void createPhotoListInstance(String albumTitle, List<Photo> photos, boolean addToBackstack) {
+    public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl, boolean addToBackstack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-//        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle, photos), albumTitle);
+        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle,
+                albumID, photoDataUrl), albumTitle);
         if (addToBackstack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        mManager.executePendingTransactions();
     }
 
     @Override
-    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
+    public void createPhotoViewInstance(Cursor photosCursor, int currentPhotoIndex, boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
-        fragmentTransaction.add(R.id.content_frame, fragment, null);
+//        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photosCursor, currentPhotoIndex);
+//        fragmentTransaction.add(R.id.content_frame, fragment, null);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        mManager.executePendingTransactions();
-        if (isSlideShow) fragment.toggleSlideShow();
+//        if (isSlideShow) fragment.toggleSlideShow();
     }
 
     @Override
@@ -276,32 +270,32 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
 
     @Override
     public void onMenuItemClick(View view, int i) {
-        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
-        switch (i) {
-            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
-                photoViewerFragment.toggleSlideShow();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
-                photoViewerFragment.toggleDetailViews();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SAVE:
-                if (photoViewerFragment.savePhoto(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
-                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SHARE:
-                photoViewerFragment.sharePhoto(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-                break;
-            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
-                photoViewerFragment.setAsWallpaper(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SETTINGS:
-                Intent intent = new Intent(this, PreferencesActivity.class);
-                startActivity(intent);
-                break;
-        }
+//        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
+//        switch (i) {
+//            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
+//                photoViewerFragment.toggleSlideShow();
+//                break;
+//            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
+//                photoViewerFragment.toggleDetailViews();
+//                break;
+//            case PhotoViewerFragment.MENU_ITEM_SAVE:
+//                if (photoViewerFragment.savePhoto(photoViewerFragment
+//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
+//                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
+//                break;
+//            case PhotoViewerFragment.MENU_ITEM_SHARE:
+//                photoViewerFragment.sharePhoto(photoViewerFragment
+//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
+//                break;
+//            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
+//                photoViewerFragment.setAsWallpaper(photoViewerFragment
+//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
+//                break;
+//            case PhotoViewerFragment.MENU_ITEM_SETTINGS:
+//                Intent intent = new Intent(this, PreferencesActivity.class);
+//                startActivity(intent);
+//                break;
+//     }
     }
 
     @Override

@@ -29,16 +29,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import me.aerovulpe.crawler.data.parser.PicasaAlbumsSaxHandler;
+import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
 
-public class AsyncRequestTask extends AsyncTask<String, Integer, Void> {
+public class AsyncRequestTask extends AsyncTask<String, Void, Void> {
 
+    public static final int TYPE_FLICKR_ALBUMS = 301;
+    public static final int TYPE_FLICKR_PHOTOS = 302;
     private static final String TAG = AsyncRequestTask.class.getSimpleName();
     private final Context mContext;
-    private final String mAccountID;
+    private final int mType;
 
-    public AsyncRequestTask(Context context, String accountID) {
+    public AsyncRequestTask(Context context, int type) {
         mContext = context;
-        mAccountID = accountID;
+        mType = type;
     }
 
     @Override
@@ -53,7 +56,11 @@ public class AsyncRequestTask extends AsyncTask<String, Integer, Void> {
             conn.connect();
             InputStream is = conn.getInputStream();
 
-            Xml.parse(is, Xml.Encoding.UTF_8, new PicasaAlbumsSaxHandler(mContext, mAccountID));
+            if (mType == TYPE_FLICKR_ALBUMS) {
+                Xml.parse(is, Xml.Encoding.UTF_8, new PicasaAlbumsSaxHandler(mContext, params[1]));
+            } else if (mType == TYPE_FLICKR_PHOTOS) {
+                Xml.parse(is, Xml.Encoding.UTF_8, new PicasaPhotosSaxHandler(mContext, params[1]));
+            }
         } catch (IOException | SAXException e) {
             e.printStackTrace();
         }
