@@ -41,7 +41,7 @@ public class Photo implements Serializable, Parcelable {
     private String imageUrl;
     private String description;
 
-    public static List<Photo> parseFromCursor(Cursor cursor) {
+    public static List<Photo> fromCursor(Cursor cursor) {
         List<Photo> photos = new ArrayList<>(cursor.getCount());
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {

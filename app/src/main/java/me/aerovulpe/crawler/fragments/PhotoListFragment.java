@@ -9,12 +9,14 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
+
+import com.melnykov.fab.FloatingActionButton;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
@@ -22,6 +24,7 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
+import me.aerovulpe.crawler.ui.RecyclerItemClickListener;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -46,7 +49,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private String mAlbumID;
     private String mPhotoDataUrl;
 
-    private GridView mainGrid;
+    private RecyclerView mRecyclerView;
 
     private ThumbnailAdapter mPhotosAdapter;
 
@@ -92,24 +95,34 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_grid, container, false);
-        mainGrid = (GridView) rootView.findViewById(R.id.photo_gridView);
-        mainGrid.setAdapter(mPhotosAdapter);
-//        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
-//        fab.attachToListView(mainGrid);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                displayPhoto(mPhotos.get(mainGrid.getFirstVisiblePosition() *
-////                        mPhotosAdapter.getSlotsPerRow()), true);
-//            }
-//        });
-        mainGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_gridView);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 4));
+        mRecyclerView.setAdapter(mPhotosAdapter);
+        FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
+        fab.attachToRecyclerView(mRecyclerView);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onClick(View v) {
                 Cursor cursor = mPhotosAdapter.getCursor();
-                displayPhoto(cursor, position, false);
+                displayPhoto(cursor, ((GridLayoutManager)
+                        mRecyclerView.getLayoutManager())
+                        .findFirstCompletelyVisibleItemPosition(), true);
             }
         });
+        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), mRecyclerView,
+                new RecyclerItemClickListener.OnItemClickListener() {
+
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        Cursor cursor = mPhotosAdapter.getCursor();
+                        displayPhoto(cursor, position, false);
+                    }
+
+                    @Override
+                    public void onItemLongClick(View view, int position) {
+                    }
+                }));
+
         if (mAlbumID != null && mPhotoDataUrl != null) {
             doPhotosRequest();
         }
@@ -120,9 +133,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public void onPause() {
         super.onPause();
         if (mPhotosAdapter == null) return;
-        mIndex = mainGrid.getFirstVisiblePosition();
-        View v = mainGrid.getChildAt(0);
-        mTop = (v == null) ? 0 : (v.getTop() - mainGrid.getPaddingTop());
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        View v = mRecyclerView.getChildAt(0);
+        mTop = (v == null) ? 0 : (v.getTop() - mRecyclerView.getPaddingTop());
     }
 
     @Override
@@ -133,10 +146,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     .getSupportActionBar().hide();
         getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
         if (mPhotosAdapter == null) return;
-        mainGrid.post(new Runnable() {
+        mRecyclerView.post(new Runnable() {
             @Override
             public void run() {
-                mainGrid.setSelection(mIndex);
+                mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
     }
@@ -165,7 +178,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mPhotosAdapter.swapCursor(data);
-        mainGrid.setSelection(mIndex);
+        mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
     }
 
     @Override
@@ -175,6 +188,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
         ((PhotoManager) getActivity())
-                .createPhotoViewInstance(mAlbumTitle, Photo.parseFromCursor(cursor), initPos, isSlideShow);
+                .createPhotoViewInstance(mAlbumTitle, Photo.fromCursor(cursor), initPos, isSlideShow);
     }
 }

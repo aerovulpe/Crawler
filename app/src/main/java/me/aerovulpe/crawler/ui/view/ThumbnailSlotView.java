@@ -14,7 +14,7 @@
  * the License.
  */
 
-package me.aerovulpe.crawler.view;
+package me.aerovulpe.crawler.ui.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

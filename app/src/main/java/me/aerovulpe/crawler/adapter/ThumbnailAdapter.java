@@ -19,10 +19,10 @@ package me.aerovulpe.crawler.adapter;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,7 +37,7 @@ import me.aerovulpe.crawler.fragments.PhotoListFragment;
 /**
  * The controller for the albums list.
  */
-public class ThumbnailAdapter extends CursorAdapter {
+public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter.ViewHolder> {
 
     public static final int TYPE_ALBUMS = 0;
     public static final int TYPE_PHOTOS = 1;
@@ -45,23 +45,13 @@ public class ThumbnailAdapter extends CursorAdapter {
     private final int mType;
 
     public ThumbnailAdapter(Context context, Cursor cursor, int flags, int type) {
-        super(context, cursor, flags);
+        super(context, cursor);
         mImageLoader = ImageLoader.getInstance();
         mType = type;
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        final View view = LayoutInflater.from(context).inflate(R.layout.row_grid, parent, false);
-        final ViewHolder holder = new ViewHolder(view);
-        view.setTag(holder);
-        return view;
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        final ViewHolder holder = (ViewHolder) view.getTag();
-
+    public void onBindViewHolder(final ViewHolder viewHolder, Cursor cursor) {
         String thumbnailUrl = null;
         String thumbnailTitle = null;
         if (mType == TYPE_ALBUMS) {
@@ -71,9 +61,9 @@ public class ThumbnailAdapter extends CursorAdapter {
             thumbnailUrl = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
             thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_NAME);
         }
-        holder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        viewHolder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         mImageLoader.displayImage(thumbnailUrl,
-                holder.imageView, new ImageLoadingListener() {
+                viewHolder.imageView, new ImageLoadingListener() {
                     @Override
                     public void onLoadingStarted(String imageUri, View view) {
 
@@ -87,7 +77,7 @@ public class ThumbnailAdapter extends CursorAdapter {
                     @Override
                     public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                         if (mType == TYPE_PHOTOS) {
-                            holder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                            viewHolder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         }
                     }
 
@@ -96,14 +86,22 @@ public class ThumbnailAdapter extends CursorAdapter {
 
                     }
                 });
-        holder.titleView.setText(thumbnailTitle);
+        viewHolder.titleView.setText(thumbnailTitle);
     }
 
-    static class ViewHolder {
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.row_grid, parent, false);
+        return new ViewHolder(itemView);
+    }
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
         public final ImageView imageView;
         public final TextView titleView;
 
         ViewHolder(View view) {
+            super(view);
             this.imageView = (ImageView) view.findViewById(R.id.image);
             this.titleView = (TextView) view.findViewById(R.id.text);
         }

@@ -19,7 +19,7 @@ import java.util.List;
 import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.view.TouchImageView;
+import me.aerovulpe.crawler.ui.view.TouchImageView;
 
 /**
  * Created by Aaron on 09/03/2015.
