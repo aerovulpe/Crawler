@@ -13,11 +13,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -100,6 +103,13 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 ////                        mPhotosAdapter.getSlotsPerRow()), true);
 //            }
 //        });
+        mainGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Cursor cursor = mPhotosAdapter.getCursor();
+                displayPhoto(cursor, position, false);
+            }
+        });
         if (mAlbumID != null && mPhotoDataUrl != null) {
             doPhotosRequest();
         }
@@ -163,8 +173,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mPhotosAdapter.swapCursor(null);
     }
 
-//    private void displayPhoto(Photo photo, boolean isSlideShow) {
-//        ((PhotoManager) getActivity())
-//                .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo), isSlideShow);
-//    }
+    private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
+        ((PhotoManager) getActivity())
+                .createPhotoViewInstance(mAlbumTitle, Photo.parseFromCursor(cursor), initPos, isSlideShow);
+    }
 }

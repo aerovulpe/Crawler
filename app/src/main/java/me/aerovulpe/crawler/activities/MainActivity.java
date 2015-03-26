@@ -3,7 +3,11 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.LoaderManager;
+import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
@@ -20,21 +24,39 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.yalantis.contextmenu.lib.MenuObject;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
 import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
+
+import java.util.List;
 
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.AccountsUtil;
+import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
+import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 
 
-public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener, OnMenuItemLongClickListener {
+public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener,
+        OnMenuItemLongClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final int COL_ACCOUNT_ID = 1;
+    public static final int COL_ACCOUNT_NAME = 2;
+    public static final int COL_ACCOUNT_TYPE = 3;
+    private static final int ACCOUNTS_LOADER = 0;
+    private static String[] ACCOUNTS_COLUMNS = {
+            CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE
+    };
     private FragmentManager mManager;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -64,22 +86,26 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         });
         mDrawerList.addHeaderView(header);
         mManager = getFragmentManager();
-//        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
+        adapter = new AccountsAdapter(this, null, 0);
         mDrawerList.setAdapter(adapter);
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Intent intent = new Intent(MainActivity.this,
-//                        MainActivity.class);
-//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, ((Account) mDrawerList
-//                        .getItemAtPosition(position)).id);
-//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
-//                        .getItemAtPosition(position)).type);
-//                intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, ((Account) mDrawerList
-//                        .getItemAtPosition(position)).name);
-//                MainActivity.this.finish();
-//                MainActivity.this.startActivity(intent);
+                Cursor cursor = adapter.getCursor();
+                // Account for header
+                if (cursor != null && cursor.moveToPosition(position - 1)) {
+                    Intent intent = new Intent(MainActivity.this,
+                            MainActivity.class);
+                    intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID,
+                            cursor.getString(COL_ACCOUNT_ID));
+                    intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE,
+                            cursor.getInt(COL_ACCOUNT_TYPE));
+                    intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME,
+                            cursor.getString(COL_ACCOUNT_NAME));
+                    MainActivity.this.finish();
+                    MainActivity.this.startActivity(intent);
+                }
             }
         });
         mTitle = mDrawerTitle = getTitle();
@@ -149,12 +175,19 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                 }
             }
         }
+        getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
     }
 
     @Override
@@ -227,13 +260,13 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     }
 
     @Override
-    public void createPhotoViewInstance(Cursor photosCursor, int currentPhotoIndex, boolean isSlideShow) {
+    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-//        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photosCursor, currentPhotoIndex);
-//        fragmentTransaction.add(R.id.content_frame, fragment, null);
+        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+        fragmentTransaction.add(R.id.content_frame, fragment, null);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-//        if (isSlideShow) fragment.toggleSlideShow();
+        if (isSlideShow) fragment.toggleSlideShow();
     }
 
     @Override
@@ -270,32 +303,32 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
 
     @Override
     public void onMenuItemClick(View view, int i) {
-//        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
-//        switch (i) {
-//            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
-//                photoViewerFragment.toggleSlideShow();
-//                break;
-//            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
-//                photoViewerFragment.toggleDetailViews();
-//                break;
-//            case PhotoViewerFragment.MENU_ITEM_SAVE:
-//                if (photoViewerFragment.savePhoto(photoViewerFragment
-//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
-//                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
-//                break;
-//            case PhotoViewerFragment.MENU_ITEM_SHARE:
-//                photoViewerFragment.sharePhoto(photoViewerFragment
-//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-//                break;
-//            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
-//                photoViewerFragment.setAsWallpaper(photoViewerFragment
-//                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-//                break;
-//            case PhotoViewerFragment.MENU_ITEM_SETTINGS:
-//                Intent intent = new Intent(this, PreferencesActivity.class);
-//                startActivity(intent);
-//                break;
-//     }
+        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
+        switch (i) {
+            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
+                photoViewerFragment.toggleSlideShow();
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
+                photoViewerFragment.toggleDetailViews();
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SAVE:
+                if (photoViewerFragment.savePhoto(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
+                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SHARE:
+                photoViewerFragment.sharePhoto(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
+                break;
+            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
+                photoViewerFragment.setAsWallpaper(photoViewerFragment
+                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
+                break;
+            case PhotoViewerFragment.MENU_ITEM_SETTINGS:
+                Intent intent = new Intent(this, PreferencesActivity.class);
+                startActivity(intent);
+                break;
+        }
     }
 
     @Override
@@ -310,12 +343,34 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
             @Override
             public void onAddAccount(int type, String id, String name) {
-//                accountsDb.put(-1, type, id, name);
-                adapter.notifyDataSetChanged();
+                if (name == null || name.isEmpty()) name = id;
+                ContentValues values = new ContentValues();
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
+                getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
             }
         };
         AddEditAccountFragment dialog = new AddEditAccountFragment();
         dialog.setAccountCallback(accountCallback);
         dialog.show(getFragmentManager(), "accountAddDialog");
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String sortOrder = CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME + " ASC";
+        return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI, ACCOUNTS_COLUMNS, null,
+                null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 }
