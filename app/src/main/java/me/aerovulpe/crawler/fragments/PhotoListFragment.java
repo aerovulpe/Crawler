@@ -54,7 +54,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private ThumbnailAdapter mPhotosAdapter;
 
     private int mIndex;
-    private int mTop;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -95,7 +94,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_grid, container, false);
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_gridView);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 4));
         mRecyclerView.setAdapter(mPhotosAdapter);
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
@@ -134,8 +133,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         super.onPause();
         if (mPhotosAdapter == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-        View v = mRecyclerView.getChildAt(0);
-        mTop = (v == null) ? 0 : (v.getTop() - mRecyclerView.getPaddingTop());
     }
 
     @Override

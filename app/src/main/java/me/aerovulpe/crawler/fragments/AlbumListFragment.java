@@ -80,7 +80,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_album_grid, container, false);
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_gridView);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.album_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 4));
         mRecyclerView.setAdapter(mAlbumsAdapter);
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), mRecyclerView,

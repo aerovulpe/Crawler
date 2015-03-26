@@ -5,7 +5,7 @@
              android:background="@color/crawlerBackgroundColor">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/photo_gridView"
+        android:id="@+id/album_grid"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
