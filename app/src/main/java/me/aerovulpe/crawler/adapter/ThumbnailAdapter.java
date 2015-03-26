@@ -18,6 +18,7 @@ package me.aerovulpe.crawler.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
@@ -68,8 +71,31 @@ public class ThumbnailAdapter extends CursorAdapter {
             thumbnailUrl = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
             thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_NAME);
         }
+        holder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         mImageLoader.displayImage(thumbnailUrl,
-                holder.imageView);
+                holder.imageView, new ImageLoadingListener() {
+                    @Override
+                    public void onLoadingStarted(String imageUri, View view) {
+
+                    }
+
+                    @Override
+                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+
+                    }
+
+                    @Override
+                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                        if (mType == TYPE_PHOTOS) {
+                            holder.imageView.setScaleType(ImageView.ScaleType.CENTER);
+                        }
+                    }
+
+                    @Override
+                    public void onLoadingCancelled(String imageUri, View view) {
+
+                    }
+                });
         holder.titleView.setText(thumbnailTitle);
     }
 
