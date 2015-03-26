@@ -87,7 +87,7 @@ public class ThumbnailAdapter extends CursorAdapter {
                     @Override
                     public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                         if (mType == TYPE_PHOTOS) {
-                            holder.imageView.setScaleType(ImageView.ScaleType.CENTER);
+                            holder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         }
                     }
 
