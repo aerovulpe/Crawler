@@ -135,7 +135,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        AsyncRequestTask request = new AsyncRequestTask(getActivity(), AsyncRequestTask.TYPE_FLICKR_ALBUMS);
+        AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                AsyncRequestTask.TYPE_FLICKR_ALBUMS, "Loading albums...");
         request.execute(url.getUrl(), mAccountID);
     }
 

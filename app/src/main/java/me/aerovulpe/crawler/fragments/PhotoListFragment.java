@@ -162,7 +162,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void doPhotosRequest() {
-        AsyncRequestTask request = new AsyncRequestTask(getActivity(), AsyncRequestTask.TYPE_FLICKR_PHOTOS);
+        AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                AsyncRequestTask.TYPE_FLICKR_PHOTOS, "Loading photos...");
         request.execute(mPhotoDataUrl, mAlbumID);
     }
 
