@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 
 import com.melnykov.fab.FloatingActionButton;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
@@ -95,7 +96,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_grid, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_grid);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 4));
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                CrawlerApplication.getColumnsPerRow(getActivity())));
         mRecyclerView.setAdapter(mPhotosAdapter);
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.attachToRecyclerView(mRecyclerView);

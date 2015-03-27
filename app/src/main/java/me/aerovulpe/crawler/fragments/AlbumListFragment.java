@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
@@ -81,7 +82,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_album_grid, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.album_grid);
-        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 4));
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                CrawlerApplication.getColumnsPerRow(getActivity())));
         mRecyclerView.setAdapter(mAlbumsAdapter);
         mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), mRecyclerView,
                 new RecyclerItemClickListener.OnItemClickListener() {

@@ -18,6 +18,7 @@ package me.aerovulpe.crawler;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.DisplayMetrics;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -36,7 +37,7 @@ public class CrawlerApplication extends Application {
     /**
      * The size of the album thumbnails (in dp).
      */
-    public static final int ALBUM_THUMBNAIL_SIZE = 140;
+    public static final int ALBUM_THUMBNAIL_SIZE = 125;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
 
     public static void initImageLoader(Context context, boolean forceInit) {
@@ -66,6 +67,14 @@ public class CrawlerApplication extends Application {
         if (forceInit)
             ImageLoader.getInstance().destroy();
         ImageLoader.getInstance().init(config.build());
+    }
+
+    public static int getColumnsPerRow(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float thumbnailWithPx = CrawlerApplication.ALBUM_THUMBNAIL_SIZE
+                * displayMetrics.density;
+        return (int) Math
+                .floor(displayMetrics.widthPixels / thumbnailWithPx);
     }
 
     @Override
