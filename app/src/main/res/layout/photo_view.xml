@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="fill_parent"
              android:layout_height="fill_parent"
-             android:background="#000"
+             android:background="@color/crawlerBackgroundColor"
              android:orientation="vertical">
 
     <me.aerovulpe.crawler.ui.view.TouchImageView
@@ -16,7 +16,7 @@
         android:id="@+id/photo_album_name_background"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:background="#77000000"
+        android:background="@color/crawlerBackgroundColor"
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 

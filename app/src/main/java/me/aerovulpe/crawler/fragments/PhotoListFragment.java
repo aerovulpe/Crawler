@@ -81,6 +81,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
         }
         mPhotosAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_PHOTOS);
+        if (mAlbumID != null && mPhotoDataUrl != null) {
+            doPhotosRequest();
+        }
         setRetainInstance(true);
     }
 
@@ -124,9 +127,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     }
                 }));
 
-        if (mAlbumID != null && mPhotoDataUrl != null) {
-            doPhotosRequest();
-        }
         return rootView;
     }
 

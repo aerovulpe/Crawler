@@ -67,6 +67,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
         mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_ALBUMS);
+        if (mAccountID != null) {
+            doAlbumsRequest(mAccountID);
+        }
         setRetainInstance(true);
     }
 
@@ -103,9 +106,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                     }
                 }));
 
-        if (mAccountID != null) {
-            doAlbumsRequest(mAccountID);
-        }
         return rootView;
     }
 
