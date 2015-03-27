@@ -65,8 +65,15 @@ public class CrawlerApplication extends Application {
 
         // Initialize ImageLoader with configuration.
         if (forceInit)
-            ImageLoader.getInstance().destroy();
+            if (ImageLoader.getInstance().isInited())
+                ImageLoader.getInstance().destroy();
         ImageLoader.getInstance().init(config.build());
+    }
+
+    public static void clearImageCache(Context context) {
+        ImageLoader.getInstance().clearDiskCache();
+        ImageLoader.getInstance().destroy();
+        initImageLoader(context, true);
     }
 
     public static int getColumnsPerRow(Context context) {

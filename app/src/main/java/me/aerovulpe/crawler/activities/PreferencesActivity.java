@@ -63,13 +63,16 @@ public class PreferencesActivity extends PreferenceActivity {
     protected void onResume() {
         super.onResume();
         oldCacheValue = getCurrentCacheValue(this);
+        CrawlerApplication.initImageLoader(this, false);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         int currentCacheValue = getCurrentCacheValue(this);
-        if (currentCacheValue != oldCacheValue) {
+        if (currentCacheValue < oldCacheValue) {
+            CrawlerApplication.clearImageCache(this);
+        } else if (currentCacheValue > oldCacheValue) {
             CrawlerApplication.initImageLoader(this, true);
         }
     }
