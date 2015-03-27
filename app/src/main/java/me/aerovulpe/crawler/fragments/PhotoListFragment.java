@@ -184,7 +184,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mPhotosAdapter.swapCursor(data);
-        mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
     }
 
     @Override

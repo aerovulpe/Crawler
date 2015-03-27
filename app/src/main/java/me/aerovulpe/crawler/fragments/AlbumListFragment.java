@@ -176,7 +176,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mAlbumsAdapter.swapCursor(data);
-        mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
     }
 
     @Override
