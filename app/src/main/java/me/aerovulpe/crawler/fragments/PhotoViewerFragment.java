@@ -395,6 +395,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     }
 
     public int getCurrentPhotoIndex() {
+        mCurrentPhotoIndex = mViewPager.getCurrentItem();
         return mCurrentPhotoIndex;
     }
 
