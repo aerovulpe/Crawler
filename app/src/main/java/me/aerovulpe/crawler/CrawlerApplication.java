@@ -56,7 +56,7 @@ public class CrawlerApplication extends Application {
         DisplayImageOptions options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.loading)
                 .showImageForEmptyUri(R.drawable.ic_empty)
-                .showImageOnFail(R.drawable.ic_error)
+                .showImageOnFail(R.drawable.load_failed)
                 .cacheInMemory(true)
                 .cacheOnDisk(true)
                 .considerExifParams(true)
