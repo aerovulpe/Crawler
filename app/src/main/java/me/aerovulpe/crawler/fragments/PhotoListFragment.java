@@ -162,9 +162,15 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void doPhotosRequest() {
-        AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                AsyncRequestTask.TYPE_FLICKR_PHOTOS, "Loading photos...");
-        request.execute(mPhotoDataUrl, mAlbumID);
+        if (mPhotoDataUrl.contains("picasaweb")) {
+            AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                    AsyncRequestTask.TYPE_FLICKR_PHOTOS, "Loading photos...");
+            request.execute(mPhotoDataUrl, mAlbumID);
+        } else if (mPhotoDataUrl.contains("tumblr")) {
+            AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                    AsyncRequestTask.TYPE_TUMBLR_PHOTOS, "Loading photos...");
+            request.execute(mPhotoDataUrl, mAlbumID);
+        }
     }
 
     @Override

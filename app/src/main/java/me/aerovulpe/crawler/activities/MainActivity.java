@@ -42,6 +42,7 @@ import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
+import me.aerovulpe.crawler.request.TumblrPhotosUrl;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener,
@@ -142,30 +143,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
-//                        AsyncRequestTask request = new AsyncRequestTask(new TumblrCachedWebRequestFetcher(
-//                                new FileSystemWebResponseCache()),
-//                                "http://" + intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID) + ".tumblr.com/page/", false, "Loading photos...", this,
-//                                new AsyncRequestTask.RequestCallback() {
-//
-//                                    @Override
-//                                    public void success(String data) {
-//                                        try {
-//                                            ArrayList<Photo> photos = (ArrayList<Photo>)
-//                                                    ObjectSerializer.deserialize(data);
-//                                            createPhotoListInstance(intent.getExtras()
-//                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME), photos, false);
-//                                        } catch (IOException | ClassNotFoundException e) {
-//                                            Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
-//                                            e.printStackTrace();
-//                                        }
-//                                    }
-//
-//                                    @Override
-//                                    public void error(String message) {
-//                                        Toast.makeText(MainActivity.this, "Could not load photos: ", Toast.LENGTH_SHORT).show();
-//                                    }
-//                                });
-//                        request.execute();
+                        createPhotoListInstance(intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_NAME),
+                                intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
+                                new TumblrPhotosUrl(intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_ID)).getUrl(), false);
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;

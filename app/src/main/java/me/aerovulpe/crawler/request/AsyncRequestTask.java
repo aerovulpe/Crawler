@@ -34,6 +34,7 @@ import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
 
 public class AsyncRequestTask extends AsyncTask<String, Void, Void> {
 
+    public static final int TYPE_TUMBLR_PHOTOS = 101;
     public static final int TYPE_FLICKR_ALBUMS = 301;
     public static final int TYPE_FLICKR_PHOTOS = 302;
     private static final String TAG = AsyncRequestTask.class.getSimpleName();
@@ -61,6 +62,10 @@ public class AsyncRequestTask extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
         Log.d(TAG, "Fetching from web: " + params[0]);
+        if (mType == TYPE_TUMBLR_PHOTOS) {
+            new TumblrRequestTask(mContext, params[1]).parse(params[0]);
+            return null;
+        }
         try {
             URL url = new URL(params[0]);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
