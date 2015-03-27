@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.SQLException;
 import android.net.Uri;
 import android.util.Log;
 
@@ -15,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashSet;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -123,19 +125,28 @@ public class TumblrRequestTask {
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-        mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+        try {
+            mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         download(url);
         if (!mContentCache.isEmpty()) {
-            mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            try {
+                mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             mContentCache.clear();
         }
     }
 
     private void download(String url) {
+        HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
+        boolean next = false;
         for (int i = 1; i <= fin; i++) {
-            boolean next = false;
             int attempts = 0;
             while (attempts < 10) {
                 try {
@@ -150,15 +161,10 @@ public class TumblrRequestTask {
                     for (int j = 0; j < elems; j++) {
                         String next_url = link.get(j).attr("href");
                         if (next_url.contains("page/")) {
-                            String[] aux = next_url.split("/");
-                            try {
-                                int num = Integer.parseInt(aux[aux.length - 1]);
-                                if (num > i) {
-                                    next = true;
-                                }
-                            } catch (NumberFormatException e) {
-                                e.printStackTrace();
-                            }
+                            int lastKnownPage = Integer.parseInt(Uri.parse(next_url)
+                                    .getLastPathSegment());
+                            pages.add(lastKnownPage);
+                            next = pages.contains(i + 1);
                         }
                     }
                 } catch (SocketTimeoutException e) {
@@ -179,6 +185,7 @@ public class TumblrRequestTask {
             if (next) {
                 fin++;
             } else {
+                Log.d("PAGES", pages.toString());
                 return;
             }
         }
@@ -209,8 +216,12 @@ public class TumblrRequestTask {
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
             mContentCache.add(currentPhotoValues);
             if (mContentCache.size() >= CACHE_SIZE) {
-                mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                try {
+                    mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 mContentCache.clear();
             }
 
