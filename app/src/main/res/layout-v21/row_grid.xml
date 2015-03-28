@@ -2,14 +2,14 @@
               android:layout_width="140dp"
               android:layout_height="175dp"
               android:layout_margin="5dp"
-              android:background="@drawable/grid_color_selector"
-              android:clickable="true"
-              android:focusable="true"
+              android:background="@drawable/ripple"
+              android:elevation="8dp"
               android:orientation="vertical"
               android:paddingBottom="5dp"
               android:paddingLeft="5dp"
               android:paddingRight="5dp"
               android:paddingTop="10dp"
+              android:stateListAnimator="@anim/raise"
               android:weightSum="4">
 
     <ImageView

@@ -43,8 +43,9 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
     public static final int TYPE_PHOTOS = 1;
     private final ImageLoader mImageLoader;
     private final int mType;
+    private OnItemClickListener mItemClickListener;
 
-    public ThumbnailAdapter(Context context, Cursor cursor, int flags, int type) {
+    public ThumbnailAdapter(Context context, Cursor cursor, int type) {
         super(context, cursor);
         mImageLoader = ImageLoader.getInstance();
         mType = type;
@@ -96,7 +97,15 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
         return new ViewHolder(itemView);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public void setItemClickListener(OnItemClickListener itemClickListener) {
+        mItemClickListener = itemClickListener;
+    }
+
+    public interface OnItemClickListener {
+        public void onItemClick(View view, int position);
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public final ImageView imageView;
         public final TextView titleView;
 
@@ -104,6 +113,13 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
             super(view);
             this.imageView = (ImageView) view.findViewById(R.id.image);
             this.titleView = (TextView) view.findViewById(R.id.text);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (mItemClickListener != null)
+                mItemClickListener.onItemClick(v, getAdapterPosition());
         }
     }
 }

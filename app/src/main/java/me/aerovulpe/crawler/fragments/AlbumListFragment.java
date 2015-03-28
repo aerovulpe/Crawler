@@ -24,7 +24,6 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
-import me.aerovulpe.crawler.ui.RecyclerItemClickListener;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -66,7 +65,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         if (getArguments() != null) {
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
-        mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_ALBUMS);
+        mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_ALBUMS);
         if (mAccountID != null) {
             doAlbumsRequest(mAccountID);
         }
@@ -87,24 +86,18 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.album_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
+        mAlbumsAdapter.setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Cursor cursor = mAlbumsAdapter.getCursor();
+                if (cursor != null && cursor.moveToPosition(position)) {
+                    showPhotos(cursor.getString(COL_ALBUM_NAME),
+                            cursor.getString(COL_ALBUM_ID),
+                            cursor.getString(COL_ALBUM_PHOTO_DATA));
+                }
+            }
+        });
         mRecyclerView.setAdapter(mAlbumsAdapter);
-        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), mRecyclerView,
-                new RecyclerItemClickListener.OnItemClickListener() {
-
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        Cursor cursor = mAlbumsAdapter.getCursor();
-                        if (cursor != null && cursor.moveToPosition(position)) {
-                            showPhotos(cursor.getString(COL_ALBUM_NAME),
-                                    cursor.getString(COL_ALBUM_ID),
-                                    cursor.getString(COL_ALBUM_PHOTO_DATA));
-                        }
-                    }
-
-                    @Override
-                    public void onItemLongClick(View view, int position) {
-                    }
-                }));
 
         return rootView;
     }

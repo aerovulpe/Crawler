@@ -25,7 +25,6 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncRequestTask;
-import me.aerovulpe.crawler.ui.RecyclerItemClickListener;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -80,7 +79,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mAlbumID = getArguments().getString(ARG_ALBUM_ID);
             mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
         }
-        mPhotosAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_PHOTOS);
+        mPhotosAdapter = new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_PHOTOS);
         setRetainInstance(true);
     }
 
@@ -122,19 +121,13 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                         .findFirstCompletelyVisibleItemPosition(), true);
             }
         });
-        mRecyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), mRecyclerView,
-                new RecyclerItemClickListener.OnItemClickListener() {
-
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        Cursor cursor = mPhotosAdapter.getCursor();
-                        displayPhoto(cursor, position, false);
-                    }
-
-                    @Override
-                    public void onItemLongClick(View view, int position) {
-                    }
-                }));
+        mPhotosAdapter.setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Cursor cursor = mPhotosAdapter.getCursor();
+                displayPhoto(cursor, position, false);
+            }
+        });
 
         return rootView;
     }
