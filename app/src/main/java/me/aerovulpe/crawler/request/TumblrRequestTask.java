@@ -4,7 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -29,13 +32,16 @@ public class TumblrRequestTask {
     private final Context mContext;
     private final Vector<ContentValues> mContentCache;
     private final String mAlbumID;
+    private final boolean mLazyRequest;
+    private boolean mRun = true;
 
     private int[] sizes = new int[]{1280, 500, 400, 250};
 
-    public TumblrRequestTask(Context context, String albumID) {
+    public TumblrRequestTask(Context context, String albumID, boolean lazyRequest) {
         mContext = context;
         mAlbumID = albumID;
         mContentCache = new Vector<>(CACHE_SIZE);
+        mLazyRequest = lazyRequest;
     }
 
     private static boolean isImage(String uri) {
@@ -133,12 +139,10 @@ public class TumblrRequestTask {
         download(url);
         if (!mContentCache.isEmpty()) {
             try {
-                mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                insertAndClearCache();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            mContentCache.clear();
         }
     }
 
@@ -146,7 +150,7 @@ public class TumblrRequestTask {
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
         boolean next = false;
-        for (int i = 1; i <= fin; i++) {
+        for (int i = 1; i <= fin && mRun; i++) {
             int attempts = 0;
             while (attempts < 10) {
                 try {
@@ -173,11 +177,24 @@ public class TumblrRequestTask {
                     }
                 } catch (IOException e) {
                     String msg = e.getMessage();
-                    System.out.println(msg);
                     if (msg.contains("404 error")) {
                         Log.e(TumblrRequestTask.class.getSimpleName(), msg, e);
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(mContext, "No pages found. Please check the Tumblr Id",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
                     } else {
                         e.printStackTrace();
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(mContext, "No pages found. Error downloading images",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
                     }
                     return;
                 }
@@ -217,12 +234,16 @@ public class TumblrRequestTask {
             mContentCache.add(currentPhotoValues);
             if (mContentCache.size() >= CACHE_SIZE) {
                 try {
-                    mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                    int numInserted = insertAndClearCache();
+                    if (numInserted == 0) {
+                        if (mLazyRequest) {
+                            mRun = false;
+                            break;
+                        }
+                    }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                mContentCache.clear();
             }
 
             Log.d("IMAGE Data : \n", "URL " + imag_url + "\n"
@@ -260,12 +281,12 @@ public class TumblrRequestTask {
         String folder = uri.split(fileName)[0];              // Get the folder where is the image
         int fin = fileName.lastIndexOf('_');
         if (fin > 6) {
-            /* Obtain The root of filename without tag size (_xxx) */
+            // Obtain The root of filename without tag size (_xxx)
             //System.out.println(fileName);
             fileName = fileName.substring(0, fin);
-            for (int i = 0; i < sizes.length; i++) {
-                    /* Make a URI for each tag and check if exists in server */
-                String auxUri = folder + fileName + "_" + sizes[i] + "." + extension;
+            for (int size : sizes) {
+                // Make a URI for each tag and check if exists in server
+                String auxUri = folder + fileName + "_" + size + "." + extension;
                 Log.d("AUX URL", auxUri);
                 if (isImage(auxUri)) {
                     return auxUri;
@@ -273,5 +294,12 @@ public class TumblrRequestTask {
             }
         }
         return uri;
+    }
+
+    private int insertAndClearCache() {
+        int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                mContentCache.toArray(new ContentValues[mContentCache.size()]));
+        mContentCache.clear();
+        return numInserted;
     }
 }

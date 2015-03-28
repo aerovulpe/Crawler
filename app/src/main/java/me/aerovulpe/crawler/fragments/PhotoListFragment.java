@@ -81,9 +81,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
         }
         mPhotosAdapter = new ThumbnailAdapter(getActivity(), null, 0, ThumbnailAdapter.TYPE_PHOTOS);
-        if (mAlbumID != null && mPhotoDataUrl != null) {
-            doPhotosRequest();
-        }
         setRetainInstance(true);
     }
 
@@ -91,6 +88,18 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
+        if (mAlbumID != null && mPhotoDataUrl != null) {
+            if (mPhotoDataUrl.contains("tumblr") &&
+                    getActivity().getContentResolver()
+                            .query(CrawlerContract.AlbumEntry
+                                    .buildAlbumsUriWithAccountID(mAlbumID)
+                                    , null, null, null, null)
+                            .getCount() != 0) {
+                doPhotosRequest(true);
+            } else {
+                doPhotosRequest(false);
+            }
+        }
     }
 
     @Override
@@ -161,15 +170,21 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     .getSupportActionBar().show();
     }
 
-    private void doPhotosRequest() {
+    private void doPhotosRequest(boolean lazyRequest) {
         if (mPhotoDataUrl.contains("picasaweb")) {
             AsyncRequestTask request = new AsyncRequestTask(getActivity(),
                     AsyncRequestTask.TYPE_FLICKR_PHOTOS, "Loading photos...");
             request.execute(mPhotoDataUrl, mAlbumID);
         } else if (mPhotoDataUrl.contains("tumblr")) {
-            AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                    AsyncRequestTask.TYPE_TUMBLR_PHOTOS, "Loading photos...");
-            request.execute(mPhotoDataUrl, mAlbumID);
+            if (lazyRequest) {
+                AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_LAZY, null);
+                request.execute(mPhotoDataUrl, mAlbumID);
+            } else {
+                AsyncRequestTask request = new AsyncRequestTask(getActivity(),
+                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_FULL, "Loading photos...");
+                request.execute(mPhotoDataUrl, mAlbumID);
+            }
         }
     }
 
