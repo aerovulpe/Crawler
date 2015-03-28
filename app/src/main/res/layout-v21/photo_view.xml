@@ -18,6 +18,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="#77000000"
+        android:elevation="24dp"
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 
@@ -38,11 +39,10 @@
         android:layout_height="75dip"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/text_background"
+        android:elevation="24dp"
         android:orientation="vertical"
         android:paddingBottom="10dip"
         android:paddingEnd="50dp"
-        android:paddingLeft="20dip"
-        android:paddingRight="50dip"
         android:paddingStart="20dp"
         android:paddingTop="0dip">
 
