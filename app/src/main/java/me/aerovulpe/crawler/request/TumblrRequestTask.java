@@ -235,11 +235,9 @@ public class TumblrRequestTask {
             if (mContentCache.size() >= CACHE_SIZE) {
                 try {
                     int numInserted = insertAndClearCache();
-                    if (numInserted == 0) {
-                        if (mLazyRequest) {
-                            mRun = false;
-                            break;
-                        }
+                    if (numInserted == 0 && mLazyRequest) {
+                        mRun = false;
+                        break;
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
