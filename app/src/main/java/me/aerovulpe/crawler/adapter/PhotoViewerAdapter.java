@@ -124,6 +124,11 @@ public class PhotoViewerAdapter extends PagerAdapter {
         container.removeView((View) object);
     }
 
+    public void swapPhotos(List<Photo> newPhotos) {
+        mPhotos = newPhotos;
+        notifyDataSetChanged();
+    }
+
     public boolean isShowText() {
         return mShowText;
     }

@@ -242,7 +242,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     }
 
     @Override
-    public void createPhotoViewInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
+    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
         fragmentTransaction.add(R.id.content_frame, fragment, null);
@@ -250,6 +250,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
         if (isSlideShow) fragment.toggleSlideShow();
+        return fragment;
     }
 
     @Override

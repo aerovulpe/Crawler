@@ -9,6 +9,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -43,7 +44,7 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewerFragment extends Fragment implements PhotoClickListener {
+public class PhotoViewerFragment extends Fragment implements PhotoClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
@@ -461,5 +462,13 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener 
     @Override
     public void onClick(View v) {
         toggleDetailViews();
+    }
+
+    @Override
+    public void photoCursorChanged(Cursor photoCursor) {
+        int currentItem = mViewPager.getCurrentItem();
+        mPhotos = Photo.fromCursor(photoCursor);
+        mPhotoViewerAdapter.swapPhotos(mPhotos);
+        mViewPager.setCurrentItem(currentItem);
     }
 }

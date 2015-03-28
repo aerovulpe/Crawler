@@ -53,6 +53,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private ThumbnailAdapter mPhotosAdapter;
 
+    private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
+
     private int mIndex;
 
     public PhotoListFragment() {
@@ -192,6 +194,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mPhotosAdapter.swapCursor(data);
+        if (mOnPhotoCursorChangedListener != null)
+            mOnPhotoCursorChangedListener.photoCursorChanged(data);
     }
 
     @Override
@@ -200,7 +204,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
-        ((PhotoManager) getActivity())
-                .createPhotoViewInstance(mAlbumTitle, Photo.fromCursor(cursor), initPos, isSlideShow);
+        mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
+                .createPhotoViewerInstance(mAlbumTitle, Photo.fromCursor(cursor), initPos, isSlideShow);
+    }
+
+    public interface OnPhotoCursorChangedListener {
+        public void photoCursorChanged(Cursor photoCursor);
     }
 }
