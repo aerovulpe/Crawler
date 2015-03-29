@@ -19,6 +19,7 @@ import java.util.List;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.ui.view.TouchImageView;
+import me.aerovulpe.crawler.util.OnPhotoClickListener;
 
 /**
  * Created by Aaron on 09/03/2015.
@@ -30,10 +31,10 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private Context mContext;
     private List<Photo> mPhotos;
     private String mAlbumTitle;
-    private View.OnClickListener mOnClickListener;
+    private OnPhotoClickListener mOnClickListener;
     private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, View.OnClickListener onClickListener) {
+    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, OnPhotoClickListener onClickListener) {
         mContext = context;
         mPhotos = photos;
         mAlbumTitle = albumTitle;
@@ -80,6 +81,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
         photoView.setTag(rootView);
         photoView.setOnClickListener(mOnClickListener);
+        photoView.setOnLongClickListener(mOnClickListener);
 
         mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView);
         txtPhotoTitle.setText(mPhotos.get(position).getName());

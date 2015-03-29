@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,16 +37,17 @@ import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.util.OnPhotoClickListener;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewerFragment extends Fragment implements View.OnClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
+public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
     public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1, MENU_ITEM_SHOW_DETAILS = 2,
-            MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5, MENU_ITEM_SETTINGS = 6;
+            MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
     public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
@@ -60,9 +60,9 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
     private PhotoViewerAdapter mPhotoViewerAdapter;
-    private boolean enteredWithToolBar;
     private boolean mShowText;
     private boolean isSlideShowRunning;
+    private boolean mIsFullscreen;
     private Timer slideShowTimer;
 
     public PhotoViewerFragment() {
@@ -90,8 +90,10 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
-        setRetainInstance(true);
+        mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
         setHasOptionsMenu(true);
+        setRetainInstance(true);
     }
 
     @Override
@@ -100,21 +102,14 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_viewer, container, false);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
+        mViewPager.setAdapter(mPhotoViewerAdapter);
         return rootView;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        enteredWithToolBar = (((ActionBarActivity) activity).getSupportActionBar() != null) &&
-                ((ActionBarActivity) activity).getSupportActionBar().isShowing();
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        mViewPager.setAdapter(mPhotoViewerAdapter);
         if (mInitPhotoIndex != -1) {
             mViewPager.setCurrentItem(mInitPhotoIndex);
             mInitPhotoIndex = -1;
@@ -147,6 +142,7 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
         }
         setUpScrollingOfDescription();
         setUpSlideShowTask();
+        ((PhotoManager) getActivity()).setFullScreen(mIsFullscreen, true);
     }
 
     @Override
@@ -162,17 +158,22 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
             slideShowTimer = null;
         }
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        ((PhotoManager) getActivity()).setFullScreen(false, false);
+        mIsFullscreen = ((PhotoManager) getActivity()).isFullScreen();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null && enteredWithToolBar)
-            ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().show();
         getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
                 .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText).apply();
+        getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+                .putBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, mIsFullscreen).apply();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        ((PhotoManager) getActivity()).setFullScreen(false, true);
     }
 
     private void setUpScrollingOfDescription() {
@@ -277,7 +278,7 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
 
         menu.add(0, MENU_ITEM_SHOW_DETAILS, 0, "Toggle photo details")
                 .setIcon(android.R.drawable.ic_menu_info_details)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
 
         menu.add(0, MENU_ITEM_SAVE, 0, "Save Photo")
                 .setIcon(android.R.drawable.ic_menu_save)
@@ -435,9 +436,19 @@ public class PhotoViewerFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void photoCursorChanged(Cursor photoCursor) {
+        if ((photoCursor != null && mPhotos != null) &&
+                photoCursor.getCount() == mPhotos.size())
+            return;
         int currentItem = mViewPager.getCurrentItem();
         mPhotos = Photo.fromCursor(photoCursor);
         mPhotoViewerAdapter.swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
+        Toast.makeText(getActivity(), "Photos swapped", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        toggleDetailViews();
+        return true;
     }
 }

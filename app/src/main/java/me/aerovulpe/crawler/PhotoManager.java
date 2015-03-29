@@ -17,4 +17,6 @@ public interface PhotoManager {
     public void setFullScreen(boolean fullScreen, boolean restoreActionBar);
 
     public void toggleFullScreen();
+
+    public boolean isFullScreen();
 }

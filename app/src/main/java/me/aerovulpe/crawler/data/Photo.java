@@ -44,7 +44,7 @@ public class Photo implements Serializable, Parcelable {
     private String description;
 
     public static List<Photo> fromCursor(Cursor cursor) {
-        List<Photo> photos = new ArrayList<>(cursor.getCount());
+        final List<Photo> photos = new ArrayList<>(cursor.getCount());
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
             Photo photo = new Photo();
@@ -52,10 +52,17 @@ public class Photo implements Serializable, Parcelable {
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
             photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-            // Preemptive loading.
-            ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
             photos.add(photo);
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (Photo photo : photos) {
+                    // Preemptive loading.
+                    ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
+                }
+            }
+        }).start();
         return photos;
     }
 

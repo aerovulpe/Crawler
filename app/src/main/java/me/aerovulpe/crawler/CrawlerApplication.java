@@ -39,6 +39,7 @@ public class CrawlerApplication extends Application {
      */
     public static final int ALBUM_THUMBNAIL_SIZE = 125;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
+    public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
 
     public static void initImageLoader(Context context, boolean forceInit) {
         // This configuration tuning is custom. You can tune every option, you may tune some of them,
@@ -46,8 +47,7 @@ public class CrawlerApplication extends Application {
         //  ImageLoaderConfiguration.createDefault(this);
         // method.
         ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
-        config.threadPoolSize(10);
-        config.threadPriority(Thread.NORM_PRIORITY + 2);
+        config.threadPoolSize(15);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));

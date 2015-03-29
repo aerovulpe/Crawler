@@ -308,6 +308,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
+    public boolean isFullScreen() {
+        return mIsFullScreen;
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder = CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME + " ASC";
         return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI, ACCOUNTS_COLUMNS, null,
