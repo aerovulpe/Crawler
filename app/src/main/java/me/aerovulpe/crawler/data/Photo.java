@@ -4,6 +4,8 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +52,8 @@ public class Photo implements Serializable, Parcelable {
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
             photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+            // Preemptive loading.
+            ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
             photos.add(photo);
         }
         return photos;

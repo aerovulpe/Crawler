@@ -472,14 +472,5 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
         mPhotos = Photo.fromCursor(photoCursor);
         mPhotoViewerAdapter.swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
-        // preemptive loading
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (Photo photo : mPhotos) {
-                    ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
-                }
-            }
-        }).start();
     }
 }
