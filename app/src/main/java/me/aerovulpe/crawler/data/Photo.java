@@ -47,13 +47,18 @@ public class Photo implements Serializable, Parcelable {
         List<Photo> photos = new ArrayList<>(cursor.getCount());
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            Photo photo = new Photo();
+            final Photo photo = new Photo();
             photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
             photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-            // Preemptive loading.
-            ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // Preemptive loading.
+                    ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
+                }
+            }).start();
             photos.add(photo);
         }
         return photos;
