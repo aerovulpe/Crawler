@@ -144,9 +144,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onResume() {
         super.onResume();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-            ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().hide();
+//        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
+//            ((ActionBarActivity) getActivity())
+//                    .getSupportActionBar().hide();
         getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
         if (mPhotosAdapter == null) return;
         mRecyclerView.post(new Runnable() {

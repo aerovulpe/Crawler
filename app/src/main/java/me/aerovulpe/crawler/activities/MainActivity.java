@@ -24,11 +24,6 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.yalantis.contextmenu.lib.MenuObject;
-import com.yalantis.contextmenu.lib.interfaces.OnMenuItemClickListener;
-import com.yalantis.contextmenu.lib.interfaces.OnMenuItemLongClickListener;
 
 import java.util.List;
 
@@ -45,8 +40,7 @@ import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.request.TumblrPhotosUrl;
 
 
-public class MainActivity extends BaseActivity implements PhotoManager, OnMenuItemClickListener,
-        OnMenuItemLongClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
@@ -66,6 +60,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
     private Toolbar mToolbar;
+    private boolean mIsFullScreen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -283,41 +278,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, OnMenuIt
                 if (restoreActionBar) getSupportActionBar().show();
             }
         }
+        mIsFullScreen = fullScreen;
     }
 
     @Override
-    public void onMenuItemClick(View view, int i) {
-        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) ((MenuObject) view.getTag()).getTag();
-        switch (i) {
-            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
-                photoViewerFragment.toggleSlideShow();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
-                photoViewerFragment.toggleDetailViews();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SAVE:
-                if (photoViewerFragment.savePhoto(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex())) != null)
-                    Toast.makeText(this, "Photo saved.", Toast.LENGTH_LONG).show();
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SHARE:
-                photoViewerFragment.sharePhoto(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-                break;
-            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
-                photoViewerFragment.setAsWallpaper(photoViewerFragment
-                        .getPhoto(photoViewerFragment.getCurrentPhotoIndex()));
-                break;
-            case PhotoViewerFragment.MENU_ITEM_SETTINGS:
-                Intent intent = new Intent(this, PreferencesActivity.class);
-                startActivity(intent);
-                break;
-        }
-    }
-
-    @Override
-    public void onMenuItemLongClick(View view, int i) {
-
+    public void toggleFullScreen() {
+        setFullScreen(!mIsFullScreen, true);
     }
 
     /**

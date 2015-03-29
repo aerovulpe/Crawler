@@ -46,8 +46,8 @@ public class CrawlerApplication extends Application {
         //  ImageLoaderConfiguration.createDefault(this);
         // method.
         ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
-        config.threadPoolSize(15);
-        config.threadPriority(Thread.NORM_PRIORITY);
+        config.threadPoolSize(10);
+        config.threadPriority(Thread.NORM_PRIORITY + 2);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));

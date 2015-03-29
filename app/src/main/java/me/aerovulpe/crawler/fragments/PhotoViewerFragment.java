@@ -2,9 +2,7 @@ package me.aerovulpe.crawler.fragments;
 
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +15,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -26,8 +27,6 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.viewpagerindicator.CirclePageIndicator;
-import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
-import com.yalantis.contextmenu.lib.MenuObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import me.aerovulpe.crawler.CrawlerApplication;
-import me.aerovulpe.crawler.PhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
@@ -44,7 +42,7 @@ import me.aerovulpe.crawler.data.Photo;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PhotoViewerFragment extends Fragment implements PhotoClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
+public class PhotoViewerFragment extends Fragment implements View.OnClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
@@ -93,6 +91,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -114,9 +113,6 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
     @Override
     public void onResume() {
         super.onResume();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-            ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().hide();
 
         mViewPager.setAdapter(mPhotoViewerAdapter);
         if (mInitPhotoIndex != -1) {
@@ -271,82 +267,53 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
         }
     }
 
-    private List<MenuObject> getMenuObjects() {
-        // You can use any [resource, bitmap, drawable, color] as image:
-        // item.setResource(...)
-        // item.setBitmap(...)
-        // item.setDrawable(...)
-        // item.setColor(...)
-        // You can set image ScaleType:
-        // item.setScaleType(ScaleType.FIT_XY)
-        // You can use any [resource, drawable, color] as background:
-        // item.setBgResource(...)
-        // item.setBgDrawable(...)
-        // item.setBgColor(...)
-        // You can use any [color] as text color:
-        // item.setTextColor(...)
-        // You can set any [color] as divider color:
-        // item.setDividerColor(...)
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
 
+        menu.add(0, MENU_ITEM_TOGGLE_SLIDESHOW, 0, "Start SlideShow")
+                .setIcon(android.R.drawable.ic_media_play)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        List<MenuObject> menuObjects = new ArrayList<>();
+        menu.add(0, MENU_ITEM_SHOW_DETAILS, 0, "Toggle photo details")
+                .setIcon(android.R.drawable.ic_menu_info_details)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        MenuObject close = new MenuObject();
-        close.setResource(android.R.drawable.ic_menu_close_clear_cancel);
+        menu.add(0, MENU_ITEM_SAVE, 0, "Save Photo")
+                .setIcon(android.R.drawable.ic_menu_save)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        MenuObject toggleSlideShow;
-        if (!isSlideShowRunning) {
-            toggleSlideShow = new MenuObject("Start SlideShow");
-            toggleSlideShow.setResource(android.R.drawable.ic_media_play);
-        } else {
-            toggleSlideShow = new MenuObject("Pause SlideShow");
-            toggleSlideShow.setResource(android.R.drawable.ic_media_pause);
-        }
+        menu.add(0, MENU_ITEM_SHARE, 0, "Share Photo")
+                .setIcon(android.R.drawable.ic_menu_share)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        MenuObject showDetails;
-        if (mShowText)
-            showDetails = new MenuObject("Hide photo details");
-        else
-            showDetails = new MenuObject("Show photo details");
-        showDetails.setResource(android.R.drawable.ic_menu_info_details);
-
-        MenuObject save = new MenuObject("Save Photo");
-        save.setResource(android.R.drawable.ic_menu_save);
-
-        MenuObject share = new MenuObject("Share Photo");
-        share.setResource(android.R.drawable.ic_menu_share);
-
-        MenuObject makeWallpaper = new MenuObject("Make Wallpaper");
-        makeWallpaper.setResource(android.R.drawable.ic_menu_set_as);
-
-        MenuObject settings = new MenuObject("Settings");
-        settings.setResource(android.R.drawable.ic_menu_preferences);
-
-        menuObjects.add(close);
-        menuObjects.add(toggleSlideShow);
-        menuObjects.add(showDetails);
-        menuObjects.add(save);
-        menuObjects.add(share);
-        menuObjects.add(makeWallpaper);
-        menuObjects.add(settings);
-
-        for (MenuObject menuObject : menuObjects) menuObject.setTag(this);
-
-        return menuObjects;
+        menu.add(0, MENU_ITEM_MAKE_WALLPAPER, 0, "Make Wallpaper")
+                .setIcon(android.R.drawable.ic_menu_set_as)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     }
 
     @Override
-    public boolean onLongClick(View v) {
-        showContextMenu();
-        return true;
-    }
-
-    private void showContextMenu() {
-        FragmentManager fragmentManager = getFragmentManager();
-        DialogFragment menuDialogFragment = ContextMenuDialogFragment.newInstance((int) getResources()
-                .getDimension(R.dimen.tool_bar_height), getMenuObjects());
-        fragmentManager.beginTransaction().add(menuDialogFragment, null).commit();
-
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
+                toggleSlideShow();
+                return true;
+            case PhotoViewerFragment.MENU_ITEM_SHOW_DETAILS:
+                toggleDetailViews();
+                return true;
+            case PhotoViewerFragment.MENU_ITEM_SAVE:
+                if (savePhoto(getPhoto(getCurrentPhotoIndex())) != null)
+                    Toast.makeText(getActivity(), "Photo saved.", Toast.LENGTH_LONG).show();
+                return true;
+            case PhotoViewerFragment.MENU_ITEM_SHARE:
+                sharePhoto(getPhoto(getCurrentPhotoIndex()));
+                return true;
+            case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
+                setAsWallpaper(getPhoto(getCurrentPhotoIndex()));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void toggleSlideShow() {
@@ -371,7 +338,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
             slideShowTimer = new Timer("SlideShow");
         }
 
-        ((PhotoManager) getActivity()).setFullScreen(isSlideShowRunning, false);
+        ((PhotoManager) getActivity()).setFullScreen(isSlideShowRunning, true);
         if (isSlideShowRunning) {
             getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to
@@ -463,7 +430,7 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
 
     @Override
     public void onClick(View v) {
-        toggleDetailViews();
+        ((PhotoManager) getActivity()).toggleFullScreen();
     }
 
     @Override
