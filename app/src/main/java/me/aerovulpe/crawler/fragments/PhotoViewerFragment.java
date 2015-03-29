@@ -208,13 +208,15 @@ public class PhotoViewerFragment extends Fragment implements PhotoClickListener,
 
 
     private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
-
+        //avoid NullPointer exceptions
+        if (switcherDescription == null) {
+            return;
+        }
 
         String description = currentPhoto.getDescription();
 
         TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
 
-        //avoid nullpointer exception
         if (descriptionView == null || descriptionView.getLayout() == null) {
             return;
         }
