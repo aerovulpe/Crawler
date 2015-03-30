@@ -245,6 +245,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         fragmentTransaction.commit();
         mManager.executePendingTransactions();
         if (isSlideShow) fragment.toggleSlideShow();
+        Photo.loadPhotos(photos);
         return fragment;
     }
 

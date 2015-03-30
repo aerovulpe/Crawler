@@ -444,6 +444,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mPhotos = Photo.fromCursor(photoCursor);
         mPhotoViewerAdapter.swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
+        Photo.loadPhotos(mPhotos.subList(currentItem + 1, mPhotos.size()));
     }
 
     @Override

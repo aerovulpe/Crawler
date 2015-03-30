@@ -44,7 +44,7 @@ public class Photo implements Serializable, Parcelable {
     private String description;
 
     public static List<Photo> fromCursor(Cursor cursor) {
-        final List<Photo> photos = new ArrayList<>(cursor.getCount());
+        List<Photo> photos = new ArrayList<>(cursor.getCount());
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
             Photo photo = new Photo();
@@ -54,6 +54,10 @@ public class Photo implements Serializable, Parcelable {
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
             photos.add(photo);
         }
+        return photos;
+    }
+
+    public static void loadPhotos(final List<Photo> photos) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -63,7 +67,6 @@ public class Photo implements Serializable, Parcelable {
                 }
             }
         }).start();
-        return photos;
     }
 
     /**
