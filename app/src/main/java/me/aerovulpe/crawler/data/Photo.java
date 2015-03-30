@@ -4,8 +4,6 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -55,18 +53,6 @@ public class Photo implements Serializable, Parcelable {
             photos.add(photo);
         }
         return photos;
-    }
-
-    public static void loadPhotos(final List<Photo> photos) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (Photo photo : photos) {
-                    // Preemptive loading.
-                    ImageLoader.getInstance().loadImage(photo.getImageUrl(), null);
-                }
-            }
-        }).start();
     }
 
     /**
