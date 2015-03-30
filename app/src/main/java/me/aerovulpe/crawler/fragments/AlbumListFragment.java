@@ -68,9 +68,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
         mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_ALBUMS);
-        if (mAccountID != null) {
-            doAlbumsRequest(mAccountID);
-        }
         setRetainInstance(true);
     }
 
@@ -78,6 +75,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mProgressDialog = new ProgressDialog(getActivity());
+        if (mAccountID != null) {
+            doAlbumsRequest(mAccountID);
+        }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
 
