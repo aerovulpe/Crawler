@@ -16,7 +16,6 @@
 
 package me.aerovulpe.crawler.request;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -41,22 +40,10 @@ public class AsyncRequestTask extends AsyncTask<String, Void, Void> {
     private static final String TAG = AsyncRequestTask.class.getSimpleName();
     private final Context mContext;
     private final int mType;
-    private ProgressDialog progressDialog;
-    private String message;
 
-    public AsyncRequestTask(Context context, int type, String message) {
+    public AsyncRequestTask(Context context, int type) {
         mContext = context;
         mType = type;
-        this.message = message;
-    }
-
-    @Override
-    protected void onPreExecute() {
-        if (message != null && mContext != null) {
-            this.progressDialog = new ProgressDialog(mContext);
-            this.progressDialog.setMessage(message);
-            progressDialog.show();
-        }
     }
 
     @Override
@@ -91,13 +78,5 @@ public class AsyncRequestTask extends AsyncTask<String, Void, Void> {
         }
 
         return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void aVoid) {
-        super.onPostExecute(aVoid);
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
     }
 }

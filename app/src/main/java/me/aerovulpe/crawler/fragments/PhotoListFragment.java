@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -49,10 +50,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private String mPhotoDataUrl;
 
     private RecyclerView mRecyclerView;
-
     private ThumbnailAdapter mPhotosAdapter;
-
     private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
+    private ProgressDialog mProgressDialog;
 
     private int mIndex;
 
@@ -87,6 +87,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mProgressDialog = new ProgressDialog(getActivity());
         getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
         if (mAlbumID != null && mPhotoDataUrl != null) {
             if (mPhotoDataUrl.contains("tumblr") &&
@@ -156,17 +157,22 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private void doPhotosRequest(boolean lazyRequest) {
         if (mPhotoDataUrl.contains("picasaweb")) {
             AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                    AsyncRequestTask.TYPE_FLICKR_PHOTOS, "Loading photos...");
+                    AsyncRequestTask.TYPE_FLICKR_PHOTOS);
             request.execute(mPhotoDataUrl, mAlbumID);
+            mProgressDialog = new ProgressDialog(getActivity());
+            mProgressDialog.setMessage("Loading photos...");
+            mProgressDialog.show();
         } else if (mPhotoDataUrl.contains("tumblr")) {
             if (lazyRequest) {
                 AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_LAZY, null);
+                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_LAZY);
                 request.execute(mPhotoDataUrl, mAlbumID);
             } else {
                 AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_FULL, "Loading photos...");
+                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_FULL);
                 request.execute(mPhotoDataUrl, mAlbumID);
+                mProgressDialog.setMessage("Loading photos...");
+                mProgressDialog.show();
             }
         }
     }
@@ -184,6 +190,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mPhotosAdapter.swapCursor(data);
         if (mOnPhotoCursorChangedListener != null)
             mOnPhotoCursorChangedListener.photoCursorChanged(data);
+        if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 
     @Override

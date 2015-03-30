@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.fragments;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Loader;
@@ -45,6 +46,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private String mAccountID;
     private RecyclerView mRecyclerView;
     private ThumbnailAdapter mAlbumsAdapter;
+    private ProgressDialog mProgressDialog;
     private int mIndex;
 
     public AlbumListFragment() {
@@ -75,6 +77,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        mProgressDialog = new ProgressDialog(getActivity());
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
 
@@ -129,7 +132,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
         AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                AsyncRequestTask.TYPE_FLICKR_ALBUMS, "Loading albums...");
+                AsyncRequestTask.TYPE_FLICKR_ALBUMS);
+        mProgressDialog.setMessage("Loading albums...");
+        mProgressDialog.show();
         request.execute(url.getUrl(), mAccountID);
     }
 
@@ -169,6 +174,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mAlbumsAdapter.swapCursor(data);
+        if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
+            mProgressDialog.dismiss();
     }
 
     @Override
