@@ -191,7 +191,7 @@ public class TumblrRequestTask {
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(mContext, "No pages found. Error downloading images",
+                                Toast.makeText(mContext, "Error downloading images",
                                         Toast.LENGTH_LONG).show();
                             }
                         });

@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v4.view.PagerAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,10 +10,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ProgressBar;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.util.List;
 
@@ -28,6 +35,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
     private static final String LOG_PREFIX = PhotoViewerAdapter.class.getSimpleName();
     private final ImageLoader mImageLoader;
+    DisplayImageOptions mOptions;
     private Context mContext;
     private List<Photo> mPhotos;
     private String mAlbumTitle;
@@ -40,6 +48,15 @@ public class PhotoViewerAdapter extends PagerAdapter {
         mAlbumTitle = albumTitle;
         mOnClickListener = onClickListener;
         mImageLoader = ImageLoader.getInstance();
+        mOptions = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.ghost_loading)
+                .showImageForEmptyUri(R.drawable.ic_empty)
+                .showImageOnFail(R.drawable.load_failed)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .displayer(new FadeInBitmapDisplayer(375))
+                .build();
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
@@ -77,13 +94,54 @@ public class PhotoViewerAdapter extends PagerAdapter {
         TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
         TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
         TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
+        final ProgressBar spinner = (ProgressBar) rootView.findViewById(R.id.loading);
         setVisibilityOfPhotoText(rootView, mShowText);
 
         photoView.setTag(rootView);
         photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
-        mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView);
+        mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView, mOptions,
+                new ImageLoadingListener() {
+                    @Override
+                    public void onLoadingStarted(String imageUri, View view) {
+
+                    }
+
+                    @Override
+                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                        String message = null;
+                        switch (failReason.getType()) {
+                            case IO_ERROR:
+                                message = "Input/Output error";
+                                break;
+                            case DECODING_ERROR:
+                                message = "Image can't be decoded";
+                                break;
+                            case NETWORK_DENIED:
+                                message = "Downloads are denied";
+                                break;
+                            case OUT_OF_MEMORY:
+                                message = "Out Of Memory error";
+                                break;
+                            case UNKNOWN:
+                                message = "Unknown error";
+                                break;
+                        }
+                        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onLoadingCancelled(String imageUri, View view) {
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+                });
         txtPhotoTitle.setText(mPhotos.get(position).getName());
         txtAlbumName.setText(mAlbumTitle);
 
