@@ -110,25 +110,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
                     @Override
                     public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                        String message = null;
-                        switch (failReason.getType()) {
-                            case IO_ERROR:
-                                message = "Input/Output error";
-                                break;
-                            case DECODING_ERROR:
-                                message = "Image can't be decoded";
-                                break;
-                            case NETWORK_DENIED:
-                                message = "Downloads are denied";
-                                break;
-                            case OUT_OF_MEMORY:
-                                message = "Out Of Memory error";
-                                break;
-                            case UNKNOWN:
-                                message = "Unknown error";
-                                break;
-                        }
-                        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
                         spinner.setVisibility(View.INVISIBLE);
                     }
 
