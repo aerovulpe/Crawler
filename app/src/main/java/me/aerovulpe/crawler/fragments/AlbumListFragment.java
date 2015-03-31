@@ -45,8 +45,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
 
     private String mAccountID;
     private RecyclerView mRecyclerView;
-    private ThumbnailAdapter mAlbumsAdapter;
     private ProgressDialog mProgressDialog;
+    private boolean mRequestData;
     private int mIndex;
 
     public AlbumListFragment() {
@@ -67,7 +67,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         if (getArguments() != null) {
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
-        mAlbumsAdapter = new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_ALBUMS);
+        mRequestData = true;
         setRetainInstance(true);
     }
 
@@ -75,7 +75,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mProgressDialog = new ProgressDialog(getActivity());
-        if (mAccountID != null) {
+        if (mAccountID != null && mRequestData) {
             doAlbumsRequest(mAccountID);
         }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
@@ -89,10 +89,10 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.album_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
-        mAlbumsAdapter.setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Cursor cursor = mAlbumsAdapter.getCursor();
+                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
                 if (cursor != null && cursor.moveToPosition(position)) {
                     showPhotos(cursor.getString(COL_ALBUM_NAME),
                             cursor.getString(COL_ALBUM_ID),
@@ -100,7 +100,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                 }
             }
         });
-        mRecyclerView.setAdapter(mAlbumsAdapter);
+        mRecyclerView.setAdapter(new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_ALBUMS));
 
         return rootView;
     }
@@ -108,7 +108,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onPause() {
         super.onPause();
-        if (mAlbumsAdapter == null) return;
+        if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     }
 
@@ -116,7 +116,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(ALBUMS_LOADER, null, this);
-        if (mAlbumsAdapter == null) return;
+        if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
             @Override
             public void run() {
@@ -173,13 +173,13 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAlbumsAdapter.swapCursor(data);
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
             mProgressDialog.dismiss();
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mAlbumsAdapter.swapCursor(null);
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
     }
 }

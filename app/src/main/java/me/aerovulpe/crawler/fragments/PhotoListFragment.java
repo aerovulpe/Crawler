@@ -50,9 +50,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private String mPhotoDataUrl;
 
     private RecyclerView mRecyclerView;
-    private ThumbnailAdapter mPhotosAdapter;
     private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
     private ProgressDialog mProgressDialog;
+    private boolean mRequestData;
 
     private int mIndex;
 
@@ -80,7 +80,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mAlbumID = getArguments().getString(ARG_ALBUM_ID);
             mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
         }
-        mPhotosAdapter = new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_PHOTOS);
+        mRequestData = true;
         setRetainInstance(true);
     }
 
@@ -89,17 +89,20 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         super.onActivityCreated(savedInstanceState);
         mProgressDialog = new ProgressDialog(getActivity());
         getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
-        if (mAlbumID != null && mPhotoDataUrl != null) {
-            if (mPhotoDataUrl.contains("tumblr") &&
-                    getActivity().getContentResolver()
-                            .query(CrawlerContract.AlbumEntry
-                                    .buildAlbumsUriWithAccountID(mAlbumID)
-                                    , null, null, null, null)
-                            .getCount() != 0) {
-                doPhotosRequest(true);
-            } else {
-                doPhotosRequest(false);
+        if (mRequestData) {
+            if (mAlbumID != null && mPhotoDataUrl != null) {
+                if (mPhotoDataUrl.contains("tumblr") &&
+                        getActivity().getContentResolver()
+                                .query(CrawlerContract.AlbumEntry
+                                        .buildAlbumsUriWithAccountID(mAlbumID)
+                                        , null, null, null, null)
+                                .getCount() != 0) {
+                    doPhotosRequest(true);
+                } else {
+                    doPhotosRequest(false);
+                }
             }
+            mRequestData = false;
         }
     }
 
@@ -111,22 +114,22 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
-        mRecyclerView.setAdapter(mPhotosAdapter);
+        mRecyclerView.setAdapter(new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_PHOTOS));
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.attachToRecyclerView(mRecyclerView);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cursor cursor = mPhotosAdapter.getCursor();
+                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
                 displayPhoto(cursor, ((GridLayoutManager)
                         mRecyclerView.getLayoutManager())
                         .findFirstCompletelyVisibleItemPosition(), true);
             }
         });
-        mPhotosAdapter.setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Cursor cursor = mPhotosAdapter.getCursor();
+                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
                 displayPhoto(cursor, position, false);
             }
         });
@@ -137,7 +140,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onPause() {
         super.onPause();
-        if (mPhotosAdapter == null) return;
+        if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     }
 
@@ -145,7 +148,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
-        if (mPhotosAdapter == null) return;
+        if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
             @Override
             public void run() {
@@ -187,7 +190,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mPhotosAdapter.swapCursor(data);
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (mOnPhotoCursorChangedListener != null)
             mOnPhotoCursorChangedListener.photoCursorChanged(data);
         if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
@@ -196,7 +199,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mPhotosAdapter.swapCursor(null);
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
     }
 
     private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {

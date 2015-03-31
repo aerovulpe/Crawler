@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -59,7 +60,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
-    private PhotoViewerAdapter mPhotoViewerAdapter;
+    //private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean mShowText;
     private boolean isSlideShowRunning;
     private boolean mIsFullscreen;
@@ -87,9 +88,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             mPhotos = getArguments().getParcelableArrayList(ARG_ALBUM_ID);
             mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
-        mPhotoViewerAdapter = new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this);
-        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
         setHasOptionsMenu(true);
@@ -102,7 +100,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_viewer, container, false);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
-        mViewPager.setAdapter(mPhotoViewerAdapter);
+        mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
+        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
+                .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         return rootView;
     }
 
@@ -252,13 +252,14 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
         // Prevent following view from fucking up.
         int currentPosition = mViewPager.getCurrentItem();
-        mViewPager.setAdapter(mPhotoViewerAdapter);
+        PagerAdapter adapter = mViewPager.getAdapter();
+        mViewPager.setAdapter(adapter);
         mViewPager.setCurrentItem(currentPosition);
     }
 
     private void setShowText(boolean showText) {
         mShowText = showText;
-        mPhotoViewerAdapter.setShowText(showText);
+        ((PhotoViewerAdapter) mViewPager.getAdapter()).setShowText(showText);
         if (showText) {
             if (getView() != null)
                 getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
@@ -442,7 +443,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             return;
         int currentItem = mViewPager.getCurrentItem();
         mPhotos = Photo.fromCursor(photoCursor);
-        mPhotoViewerAdapter.swapPhotos(mPhotos);
+        ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
     }
 
