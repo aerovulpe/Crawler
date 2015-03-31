@@ -127,6 +127,13 @@ public class PhotoViewerAdapter extends PagerAdapter {
         txtPhotoTitle.setText(mPhotos.get(position).getName());
         txtAlbumName.setText(mAlbumTitle);
 
+        if (mPhotos.size() > (position + 1)) {
+            Photo photo = mPhotos.get(position + 1);
+            if (photo != null) {
+                mImageLoader.loadImage(photo.getImageUrl(), null);
+            }
+        }
+
         Animation inAnim = AnimationUtils.loadAnimation(mContext,
                 R.anim.slide_in_up);
         Animation outAnim = AnimationUtils.loadAnimation(mContext,
