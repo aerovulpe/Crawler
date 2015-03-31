@@ -127,8 +127,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
         txtPhotoTitle.setText(mPhotos.get(position).getName());
         txtAlbumName.setText(mAlbumTitle);
 
-        preloadPhotos(position);
-
         Animation inAnim = AnimationUtils.loadAnimation(mContext,
                 R.anim.slide_in_up);
         Animation outAnim = AnimationUtils.loadAnimation(mContext,
@@ -170,27 +168,5 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
     public void setShowText(boolean showText) {
         mShowText = showText;
-    }
-
-    public void preloadPhotos(final int pos) {
-        if (mPhotos != null && pos % 50 == 0) {
-            if (mPhotos.size() < 50) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Photo photo : mPhotos)
-                            mImageLoader.loadImage(photo.getImageUrl(), null);
-                    }
-                }).start();
-            } else {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Photo photo : mPhotos.subList(pos, mPhotos.size()))
-                            mImageLoader.loadImage(photo.getImageUrl(), null);
-                    }
-                }).start();
-            }
-        }
     }
 }
