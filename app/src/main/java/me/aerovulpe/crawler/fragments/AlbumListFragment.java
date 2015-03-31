@@ -77,6 +77,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mProgressDialog = new ProgressDialog(getActivity());
         if (mAccountID != null && mRequestData) {
             doAlbumsRequest(mAccountID);
+            mRequestData = false;
         }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
