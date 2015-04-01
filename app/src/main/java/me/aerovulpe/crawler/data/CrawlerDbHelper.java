@@ -54,7 +54,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 // per account per data, it's created a UNIQUE constraint with REPLACE strategy
                 "UNIQUE (" + AlbumEntry.COLUMN_ALBUM_NAME + ", " +
                 AlbumEntry.COLUMN_ACCOUNT_KEY + ", " + AlbumEntry.COLUMN_ALBUM_PHOTO_DATA +
-                ") ON CONFLICT IGNORE);";
+                ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_PHOTOS_TABLE = "CREATE TABLE " + PhotoEntry.TABLE_NAME + " (" +
                 PhotoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -73,7 +73,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 // To assure the application has just one photo entry per url
                 // per album, it's created a UNIQUE constraint with REPLACE strategy
                 " UNIQUE (" + PhotoEntry.COLUMN_PHOTO_URL + ", " +
-                PhotoEntry.COLUMN_ALBUM_KEY + ") ON CONFLICT IGNORE);";
+                PhotoEntry.COLUMN_ALBUM_KEY + ") ON CONFLICT REPLACE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);

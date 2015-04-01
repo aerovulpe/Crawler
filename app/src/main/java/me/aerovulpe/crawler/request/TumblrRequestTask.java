@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Handler;
@@ -27,21 +28,18 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 /**
  * Created by Aaron on 24/03/2015.
  */
-public class TumblrRequestTask {
+public class TumblrRequestTask extends Task {
     public static final int CACHE_SIZE = 50;
     private final Context mContext;
     private final Vector<ContentValues> mContentCache;
-    private final String mAlbumID;
-    private final boolean mLazyRequest;
-    private boolean mRun = true;
+    private String mAlbumID;
 
     private int[] sizes = new int[]{1280, 500, 400, 250};
 
-    public TumblrRequestTask(Context context, String albumID, boolean lazyRequest) {
+    public TumblrRequestTask(Context context, int resourceId) {
+        super(context.getResources(), resourceId);
         mContext = context;
-        mAlbumID = albumID;
         mContentCache = new Vector<>(CACHE_SIZE);
-        mLazyRequest = lazyRequest;
     }
 
     private static boolean isImage(String uri) {
@@ -123,34 +121,11 @@ public class TumblrRequestTask {
         return new String(hexChars);
     }
 
-    public void parse(String url) {
-        ContentValues albumStubValues = new ContentValues();
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-        try {
-            mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        download(url);
-        if (!mContentCache.isEmpty()) {
-            try {
-                insertAndClearCache();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void download(String url) {
+    private void download(String url) throws FailedException {
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
         boolean next = false;
-        for (int i = 1; i <= fin && mRun; i++) {
+        for (int i = 1; i <= fin; i++) {
             int attempts = 0;
             while (attempts < 10) {
                 try {
@@ -165,9 +140,13 @@ public class TumblrRequestTask {
                     for (int j = 0; j < elems; j++) {
                         String next_url = link.get(j).attr("href");
                         if (next_url.contains("page/")) {
-                            int lastKnownPage = Integer.parseInt(Uri.parse(next_url)
-                                    .getLastPathSegment());
-                            pages.add(lastKnownPage);
+                            try {
+                                int lastKnownPage = Integer.parseInt(Uri.parse(next_url)
+                                        .getLastPathSegment());
+                                pages.add(lastKnownPage);
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                            }
                             next = pages.contains(i + 1);
                         }
                     }
@@ -196,7 +175,7 @@ public class TumblrRequestTask {
                             }
                         });
                     }
-                    return;
+                    throw new FailedException();
                 }
             }
             if (next) {
@@ -233,15 +212,7 @@ public class TumblrRequestTask {
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
             mContentCache.add(currentPhotoValues);
             if (mContentCache.size() >= CACHE_SIZE) {
-                try {
-                    int numInserted = insertAndClearCache();
-                    if (numInserted == 0 && mLazyRequest) {
-                        mRun = false;
-                        break;
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                insertAndClearCache();
             }
 
             Log.d("IMAGE Data : \n", "URL " + imag_url + "\n"
@@ -295,9 +266,55 @@ public class TumblrRequestTask {
     }
 
     private int insertAndClearCache() {
-        int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                mContentCache.toArray(new ContentValues[mContentCache.size()]));
-        mContentCache.clear();
-        return numInserted;
+        try {
+            int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+            return numInserted;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    @Override
+    protected Boolean doInBackground(String... params) {
+        boolean wasSuccess = true;
+        mAlbumID = params[1];
+
+        Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
+                .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
+                .AlbumEntry.COLUMN_ALBUM_TIME}, null, null, null);
+        if (lastTimeCursor.moveToFirst()) {
+            long lastSync = lastTimeCursor.getLong(0);
+            if (System.currentTimeMillis() - lastSync <= 1800000)
+                return true;
+        }
+
+        ContentValues albumStubValues = new ContentValues();
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
+        try {
+            mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            download(params[0]);
+        } catch (FailedException e) {
+            e.printStackTrace();
+            wasSuccess = false;
+        }
+        if (!mContentCache.isEmpty()) {
+            insertAndClearCache();
+        }
+        return wasSuccess;
+    }
+
+    private class FailedException extends Exception {
     }
 }

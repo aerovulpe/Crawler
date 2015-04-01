@@ -3,7 +3,6 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
-import android.app.ProgressDialog;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -24,7 +23,9 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.AsyncRequestTask;
+import me.aerovulpe.crawler.request.AsyncTaskManager;
+import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
+import me.aerovulpe.crawler.request.TumblrRequestTask;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -51,7 +52,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private RecyclerView mRecyclerView;
     private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
-    private ProgressDialog mProgressDialog;
+    private AsyncTaskManager mAsyncTaskManager;
     private boolean mRequestData;
 
     private int mIndex;
@@ -87,20 +88,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mProgressDialog = new ProgressDialog(getActivity());
+        mAsyncTaskManager = new AsyncTaskManager(getActivity(), null);
         getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
         if (mRequestData) {
             if (mAlbumID != null && mPhotoDataUrl != null) {
-                if (mPhotoDataUrl.contains("tumblr") &&
-                        getActivity().getContentResolver()
-                                .query(CrawlerContract.AlbumEntry
-                                        .buildAlbumsUriWithAccountID(mAlbumID)
-                                        , null, null, null, null)
-                                .getCount() != 0) {
-                    doPhotosRequest(true);
-                } else {
-                    doPhotosRequest(false);
-                }
+                doPhotosRequest();
             }
             mRequestData = false;
         }
@@ -157,26 +149,13 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         });
     }
 
-    private void doPhotosRequest(boolean lazyRequest) {
+    private void doPhotosRequest() {
         if (mPhotoDataUrl.contains("picasaweb")) {
-            AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                    AsyncRequestTask.TYPE_FLICKR_PHOTOS);
-            request.execute(mPhotoDataUrl, mAlbumID);
-            mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Loading photos...");
-            mProgressDialog.show();
+            mAsyncTaskManager.setupTask(new PicasaPhotosRequestTask(getActivity(),
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         } else if (mPhotoDataUrl.contains("tumblr")) {
-            if (lazyRequest) {
-                AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_LAZY);
-                request.execute(mPhotoDataUrl, mAlbumID);
-            } else {
-                AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                        AsyncRequestTask.TYPE_TUMBLR_PHOTOS_FULL);
-                request.execute(mPhotoDataUrl, mAlbumID);
-                mProgressDialog.setMessage("Loading photos...");
-                mProgressDialog.show();
-            }
+            mAsyncTaskManager.setupTask(new TumblrRequestTask(getActivity(),
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         }
     }
 
@@ -193,8 +172,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (mOnPhotoCursorChangedListener != null)
             mOnPhotoCursorChangedListener.photoCursorChanged(data);
-        if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
     }
 
     @Override

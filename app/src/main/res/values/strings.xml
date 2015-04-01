@@ -39,4 +39,8 @@
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="content_authority">me.aerovulpe.crawler</string>
+
+    <string name="loading_photos">Loading photos…</string>
+    <string name="loading_albums">Loading albums…</string>
+    <string name="task_working">(%1$d) percent completed</string>
 </resources>

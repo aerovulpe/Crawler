@@ -3,7 +3,6 @@ package me.aerovulpe.crawler.fragments;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.LoaderManager;
-import android.app.ProgressDialog;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Loader;
@@ -23,7 +22,8 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.AsyncRequestTask;
+import me.aerovulpe.crawler.request.AsyncTaskManager;
+import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -45,7 +45,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
 
     private String mAccountID;
     private RecyclerView mRecyclerView;
-    private ProgressDialog mProgressDialog;
+    private AsyncTaskManager mAsyncTaskManager;
     private boolean mRequestData;
     private int mIndex;
 
@@ -74,7 +74,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mProgressDialog = new ProgressDialog(getActivity());
+        mAsyncTaskManager = new AsyncTaskManager(getActivity(), null);
         if (mAccountID != null && mRequestData) {
             doAlbumsRequest(mAccountID);
             mRequestData = false;
@@ -132,11 +132,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        AsyncRequestTask request = new AsyncRequestTask(getActivity(),
-                AsyncRequestTask.TYPE_FLICKR_ALBUMS);
-        mProgressDialog.setMessage("Loading albums...");
-        mProgressDialog.show();
-        request.execute(url.getUrl(), mAccountID);
+        mAsyncTaskManager.setupTask(new PicasaAlbumsRequestTask(getActivity(),
+                R.string.loading_albums), url.getUrl(), mAccountID);
     }
 
     /**
@@ -175,8 +172,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
-        if (data.getCount() != 0 && mProgressDialog != null && mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
     }
 
     @Override
