@@ -193,6 +193,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
+                                if (mPhotos.size() == 0) return;
                                 Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
                                 TextSwitcher switcherDescription = (TextSwitcher) mViewPager
                                         .findViewWithTag(mViewPager.getCurrentItem());
