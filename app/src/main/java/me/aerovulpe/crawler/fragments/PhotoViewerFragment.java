@@ -434,7 +434,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public void onClick(View v) {
         PhotoManager photoManager = (PhotoManager) getActivity();
-        if (photoManager != null) photoManager.toggleFullScreen();
+        if (photoManager != null && !isSlideShowRunning) photoManager.toggleFullScreen();
+        else toggleSlideShow();
     }
 
     @Override
