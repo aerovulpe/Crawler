@@ -267,15 +267,10 @@ public class TumblrRequestTask extends Task {
     }
 
     private int insertAndClearCache() {
-        try {
-            int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            mContentCache.clear();
-            return numInserted;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
+        int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                mContentCache.toArray(new ContentValues[mContentCache.size()]));
+        mContentCache.clear();
+        return numInserted;
     }
 
     @Override
