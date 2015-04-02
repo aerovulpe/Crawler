@@ -7,23 +7,24 @@
 
     <me.aerovulpe.crawler.ui.view.TouchImageView
         android:id="@+id/photo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical"/>
-
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_vertical"
+        android:elevation="16dp"/>
 
     <ProgressBar
         android:id="@+id/loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
-
+        android:layout_gravity="center"
+        android:elevation="24dp"/>
 
     <LinearLayout
         android:id="@+id/photo_album_name_background"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="#77000000"
+        android:elevation="24dp"
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 
@@ -44,11 +45,10 @@
         android:layout_height="75dip"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/text_background"
+        android:elevation="24dp"
         android:orientation="vertical"
         android:paddingBottom="10dip"
         android:paddingEnd="50dp"
-        android:paddingLeft="20dip"
-        android:paddingRight="50dip"
         android:paddingStart="20dp"
         android:paddingTop="0dip">
 

@@ -18,6 +18,7 @@ package me.aerovulpe.crawler;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.DisplayMetrics;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -36,8 +37,9 @@ public class CrawlerApplication extends Application {
     /**
      * The size of the album thumbnails (in dp).
      */
-    public static final int ALBUM_THUMBNAIL_SIZE = 140;
+    public static final int ALBUM_THUMBNAIL_SIZE = 125;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
+    public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
 
     public static void initImageLoader(Context context, boolean forceInit) {
         // This configuration tuning is custom. You can tune every option, you may tune some of them,
@@ -45,18 +47,16 @@ public class CrawlerApplication extends Application {
         //  ImageLoaderConfiguration.createDefault(this);
         // method.
         ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
-        config.threadPoolSize(15);
-        config.threadPriority(Thread.NORM_PRIORITY);
+        config.threadPoolSize(5);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
-        config.writeDebugLogs(); // Remove for release app
 
         DisplayImageOptions options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.loading)
                 .showImageForEmptyUri(R.drawable.ic_empty)
-                .showImageOnFail(R.drawable.ic_error)
+                .showImageOnFail(R.drawable.load_failed)
                 .cacheInMemory(true)
                 .cacheOnDisk(true)
                 .considerExifParams(true)
@@ -65,8 +65,23 @@ public class CrawlerApplication extends Application {
 
         // Initialize ImageLoader with configuration.
         if (forceInit)
-            ImageLoader.getInstance().destroy();
+            if (ImageLoader.getInstance().isInited())
+                ImageLoader.getInstance().destroy();
         ImageLoader.getInstance().init(config.build());
+    }
+
+    public static void clearImageCache(Context context) {
+        ImageLoader.getInstance().clearDiskCache();
+        ImageLoader.getInstance().destroy();
+        initImageLoader(context, true);
+    }
+
+    public static int getColumnsPerRow(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float thumbnailWithPx = CrawlerApplication.ALBUM_THUMBNAIL_SIZE
+                * displayMetrics.density;
+        return (int) Math
+                .floor(displayMetrics.widthPixels / thumbnailWithPx);
     }
 
     @Override

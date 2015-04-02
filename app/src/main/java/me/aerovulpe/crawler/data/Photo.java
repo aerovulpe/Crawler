@@ -1,11 +1,8 @@
 package me.aerovulpe.crawler.data;
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
-import android.util.Xml;
-
-import org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,12 +13,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
+import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
 /**
- * The Photo data object containing all information about a photo.
- *
- * @author haeberling@google.com (Sascha Haeberling)
+ * Created by Aaron on 26/03/2015.
  */
 public class Photo implements Serializable, Parcelable {
     public static final Creator<Photo> CREATOR = new Creator<Photo>() {
@@ -46,26 +41,18 @@ public class Photo implements Serializable, Parcelable {
     private String imageUrl;
     private String description;
 
-    /**
-     * Parses photos XML (a list of photo; the contents of an album).
-     *
-     * @param xmlStr the photo XML
-     * @return a list of {@link Photo}s
-     */
-    public static List<Photo> parseFromPicasaXml(String xmlStr) {
-        PicasaPhotosSaxHandler handler = new PicasaPhotosSaxHandler();
-        try {
-            // The Parser somehow has some trouble with a plus sign in the
-            // content. This is a hack to fix this.
-            // TODO: Maybe we should replace all these special characters with
-            // XML entities?
-            xmlStr = xmlStr.replace("+", "&#43;");
-            Xml.parse(xmlStr, handler);
-            return handler.getPhotos();
-        } catch (SAXException e) {
-            Log.e("Photo", e.getMessage(), e);
+    public static List<Photo> fromCursor(Cursor cursor) {
+        List<Photo> photos = new ArrayList<>(cursor.getCount());
+        cursor.moveToPosition(-1);
+        while (cursor.moveToNext()) {
+            Photo photo = new Photo();
+            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+            photos.add(photo);
         }
-        return new ArrayList<>();
+        return photos;
     }
 
     /**

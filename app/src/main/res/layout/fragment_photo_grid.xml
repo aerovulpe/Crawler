@@ -2,14 +2,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
-             android:layout_height="match_parent">
+             android:layout_height="match_parent"
+             android:background="@color/crawlerBackgroundColor">
 
-    <ListView
-        android:id="@+id/photolist"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/photo_grid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#000">
-    </ListView>
+        android:layout_margin="5dp"
+        android:drawSelectorOnTop="true"/>
 
     <com.melnykov.fab.FloatingActionButton
         android:id="@+id/fab"
@@ -21,4 +22,5 @@
         app:fab_colorNormal="@color/crawlerPrimaryColor"
         app:fab_colorPressed="@color/crawlerBackgroundAccent"
         app:fab_colorRipple="@color/crawlerRipple"/>
+
 </FrameLayout>

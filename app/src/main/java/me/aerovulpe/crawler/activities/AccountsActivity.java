@@ -17,9 +17,14 @@
 package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
+import android.app.LoaderManager;
+import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -32,28 +37,31 @@ import android.widget.ListView;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
-import me.aerovulpe.crawler.data.Account;
-import me.aerovulpe.crawler.data.AccountsDatabase;
+import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
-import me.aerovulpe.crawler.fragments.AlbumListFragment;
 
 
-/**
- * The starting activity which lets the user manage the photo accounts.
- *
- * @author haeberling@google.com (Sascha Haeberling)
- */
-public class AccountsActivity extends BaseActivity {
+public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ACCOUNTS.account_id";
+    public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.ACCOUNTS.account_type";
+    public static final String ARG_ACCOUNT_NAME = "me.aerovulpe.crawler.ACCOUNTS.account_name";
+    public static final int COL_ACCOUNT_ID = 1;
+    public static final int COL_ACCOUNT_NAME = 2;
+    public static final int COL_ACCOUNT_TYPE = 3;
     private static final int MENU_ADD_ACCOUNT = 0;
     private static final int MENU_PREFERENCES = 1;
     private static final int MENU_ABOUT = 2;
-
     // The order of these must match the array "account_actions" in strings.xml.
     private static final int CONTEXT_MENU_EDIT = 0;
     private static final int CONTEXT_MENU_DELETE = 1;
-
+    private static final int ACCOUNTS_LOADER = 0;
+    private static String[] ACCOUNTS_COLUMNS = {
+            CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE
+    };
     private AccountsAdapter adapter;
-    private AccountsDatabase accountsDb = AccountsDatabase.get();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,27 +69,42 @@ public class AccountsActivity extends BaseActivity {
         setContentView(R.layout.accounts);
 
         ListView mainList = (ListView) findViewById(R.id.accounts_list);
-        adapter = new AccountsAdapter(this, R.layout.account_entry, accountsDb);
+        adapter = new AccountsAdapter(this, null, 0);
         mainList.setAdapter(adapter);
         mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(AccountsActivity.this,
-                        MainActivity.class);
-                intent.putExtra(AlbumListFragment.ARG_ACCOUNT_ID, adapter.getItem(position).id);
-                AccountsActivity.this.startActivity(intent);
+                Cursor cursor = adapter.getCursor();
+                if (cursor != null && cursor.moveToPosition(position)) {
+                    Intent intent = new Intent(AccountsActivity.this,
+                            MainActivity.class);
+                    intent.putExtra(ARG_ACCOUNT_ID, cursor.getString(COL_ACCOUNT_ID));
+                    intent.putExtra(ARG_ACCOUNT_TYPE, cursor.getInt(COL_ACCOUNT_TYPE));
+                    intent.putExtra(ARG_ACCOUNT_NAME, cursor.getString(COL_ACCOUNT_NAME));
+                    AccountsActivity.this.startActivity(intent);
+                }
             }
         });
         registerForContextMenu(mainList);
+
+        getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenuInfo menuInfo) {
         if (v.getId() == R.id.accounts_list) {
+            Cursor cursor = adapter.getCursor();
             AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-            Account account = adapter.getItem(info.position);
-            menu.setHeaderTitle(account.toString());
+            if (cursor != null && cursor.moveToPosition(info.position))
+                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME) + " (" +
+                        cursor.getString(COL_ACCOUNT_ID) + ")");
 
             String[] menuItems = getResources().getStringArray(R.array.account_actions);
             for (int i = 0; i < menuItems.length; i++) {
@@ -92,15 +115,16 @@ public class AccountsActivity extends BaseActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo menuInfo = (AdapterContextMenuInfo) item
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
                 .getMenuInfo();
-        Account account = adapter.getItem(menuInfo.position);
+        Cursor cursor = adapter.getCursor();
 
         switch (item.getItemId()) {
             case CONTEXT_MENU_EDIT:
                 return true;
             case CONTEXT_MENU_DELETE:
-                showAreYouSureDialog(account.position);
+                if (cursor != null && cursor.moveToPosition(info.position))
+                    showAreYouSureDialog(cursor.getString(COL_ACCOUNT_ID));
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -138,8 +162,13 @@ public class AccountsActivity extends BaseActivity {
         AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
             @Override
             public void onAddAccount(int type, String id, String name) {
-                accountsDb.put(-1, type, id, name);
-                adapter.notifyDataSetChanged();
+                if (name == null || name.isEmpty()) name = id;
+                ContentValues values = new ContentValues();
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
+                getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
             }
         };
         AddEditAccountFragment dialog = new AddEditAccountFragment();
@@ -147,17 +176,34 @@ public class AccountsActivity extends BaseActivity {
         dialog.show(getFragmentManager(), "accountAddDialog");
     }
 
-    private void showAreYouSureDialog(final int accountPosition) {
+    private void showAreYouSureDialog(final String accountID) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.are_you_sure_delete);
         builder.setNegativeButton(R.string.no, null);
         builder.setPositiveButton(R.string.yes, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                accountsDb.remove(accountPosition);
-                adapter.notifyDataSetChanged();
+                getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
+                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" + accountID + "'", null);
             }
         });
         builder.create().show();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String sortOrder = CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME + " ASC";
+        return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI, ACCOUNTS_COLUMNS, null,
+                null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.swapCursor(null);
     }
 }

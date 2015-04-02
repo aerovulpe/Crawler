@@ -14,26 +14,20 @@
  * the License.
  */
 
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.ui.view;
 
-import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
-
-import java.util.List;
-
-import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.ui.ThumbnailItem;
+import android.content.Context;
+import android.util.AttributeSet;
+import android.widget.LinearLayout;
 
 /**
- * The controller for the photos list.
+ * A view for showing a thumbnail in e.g. a list view.
  *
  * @author haeberling@google.com (Sascha Haeberling)
  */
-public class PhotosAdapter extends MultiColumnImageAdapter<Photo> {
+public class ThumbnailSlotView extends LinearLayout {
 
-    public PhotosAdapter(List<ThumbnailItem<Photo>> dataItems,
-                         LayoutInflater inflater, ThumbnailClickListener<Photo> listener,
-                         DisplayMetrics displayMetrics) {
-        super(dataItems, inflater, listener, displayMetrics);
+    public ThumbnailSlotView(Context context, AttributeSet attributes) {
+        super(context, attributes);
     }
 }

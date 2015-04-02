@@ -17,70 +17,53 @@
 package me.aerovulpe.crawler.adapter;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
-
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.data.Account;
-import me.aerovulpe.crawler.data.AccountsDatabase;
+import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.data.AccountsUtil;
 
-public class AccountsAdapter extends ArrayAdapter<Account> {
-    private final Context mContext;
-    private int mElementId;
-    private List<Account> mAccounts;
-    private AccountsDatabase mAccountsDatabase;
+public class AccountsAdapter extends CursorAdapter {
 
-    public AccountsAdapter(Context context, int elementId, AccountsDatabase db) {
-        super(context, elementId, db.queryAll().getAllAndClose());
-        mElementId = elementId;
-        mContext = context;
-        mAccountsDatabase = db;
-        refreshData();
+    public AccountsAdapter(Context context, Cursor c, int flags) {
+        super(context, c, flags);
     }
 
     @Override
-    public int getCount() {
-        return mAccounts.size();
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        final View view = LayoutInflater.from(context).inflate(R.layout.account_entry, parent, false);
+        final ViewHolder holder = new ViewHolder(view);
+        view.setTag(holder);
+        return view;
     }
 
     @Override
-    public Account getItem(int position) {
-        return mAccounts.get(position);
+    public void bindView(View view, Context context, Cursor cursor) {
+        final ViewHolder holder = (ViewHolder) view.getTag();
+
+        holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
+                .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+        holder.mAccountID.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_ID));
+        holder.mAccountName.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_NAME));
+
     }
 
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
+    public static class ViewHolder {
+        public final ImageView mServiceLogo;
+        public final TextView mAccountName;
+        public final TextView mAccountID;
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = LayoutInflater.from(mContext).inflate(mElementId, parent, false);
+        public ViewHolder(View view) {
+            mServiceLogo = (ImageView) view.findViewById(R.id.service_logo);
+            mAccountName = (TextView) view.findViewById(R.id.account_name);
+            mAccountID = (TextView) view.findViewById(R.id.account_id);
         }
-        final Account account = mAccounts.get(position);
-        ((ImageView) convertView.findViewById(R.id.service_logo))
-                .setImageResource(AccountsUtil.getAccountLogoResource(account.type));
-        ((TextView) convertView.findViewById(R.id.account_name))
-                .setText(account.name);
-        ((TextView) convertView.findViewById(R.id.account_id)).setText(account.id);
-        return convertView;
     }
 
-    @Override
-    public void notifyDataSetChanged() {
-        refreshData();
-        super.notifyDataSetChanged();
-    }
-
-    private void refreshData() {
-        mAccounts = mAccountsDatabase.queryAll().getAllAndClose();
-    }
 }

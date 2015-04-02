@@ -2,67 +2,74 @@ package me.aerovulpe.crawler.fragments;
 
 
 import android.app.Fragment;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
 
 import com.melnykov.fab.FloatingActionButton;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.MultiColumnImageAdapter;
-import me.aerovulpe.crawler.adapter.PhotosAdapter;
+import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
+import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.ui.ThumbnailItem;
+import me.aerovulpe.crawler.request.AsyncTaskManager;
+import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
+import me.aerovulpe.crawler.request.TumblrRequestTask;
 
-public class PhotoListFragment extends Fragment {
+public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_LIST.album_title";
-    public static final String ARG_PHOTOS = "me.aerovulpe.crawler.PHOTO_LIST.photos";
+    public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_LIST.album_id";
+    public static final String ARG_PHOTO_DATA_URL = "me.aerovulpe.crawler.PHOTO_LIST.photo_data_url";
 
+    public static final int COL_PHOTO_NAME = 1;
+    public static final int COL_PHOTO_TITLE = 2;
+    public static final int COL_PHOTO_URL = 3;
+    public static final int COL_PHOTO_DESCRIPTION = 4;
+    private static final int PHOTOS_LOADER = 2;
     private static final String TAG = PhotoListFragment.class.getSimpleName();
+    private static String[] PHOTOS_COLUMNS = {
+            CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION
+    };
     private String mAlbumTitle;
-    private List<Photo> mPhotos;
+    private String mAlbumID;
+    private String mPhotoDataUrl;
 
-    private ListView mainList;
-    private LayoutInflater inflater;
-
-    private PhotosAdapter mPhotosAdapter;
+    private RecyclerView mRecyclerView;
+    private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
+    private AsyncTaskManager mAsyncTaskManager;
+    private boolean mRequestData;
 
     private int mIndex;
-    private int mTop;
 
     public PhotoListFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Wraps a list of {@link Photo}s into a list of {@link ThumbnailItem}s, so
-     * they can be displayed in the list.
-     */
-    private static List<ThumbnailItem<Photo>> wrap(List<Photo> photos) {
-        List<ThumbnailItem<Photo>> result = new ArrayList<>();
-        for (Photo photo : photos) {
-            result.add(new ThumbnailItem<>(photo.getName(), photo
-                    .getImageUrl(), photo));
-        }
-        return result;
-    }
-
-    public static PhotoListFragment newInstance(String albumTitle, List<Photo> photos) {
+    public static PhotoListFragment newInstance(String albumTitle, String albumID,
+                                                String photoDataUrl) {
         PhotoListFragment fragment = new PhotoListFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
-        args.putParcelableArrayList(ARG_PHOTOS, (ArrayList<Photo>) photos);
+        args.putString(ARG_ALBUM_ID, albumID);
+        args.putString(ARG_PHOTO_DATA_URL, photoDataUrl);
         fragment.setArguments(args);
+        Log.d(TAG, "PhotoListFragment created: " + albumTitle + " " + albumID + " " + photoDataUrl);
         return fragment;
     }
 
@@ -71,91 +78,113 @@ public class PhotoListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
-            mPhotos = getArguments().getParcelableArrayList(ARG_PHOTOS);
+            mAlbumID = getArguments().getString(ARG_ALBUM_ID);
+            mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
         }
+        mRequestData = true;
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mAsyncTaskManager = new AsyncTaskManager(getActivity(), null);
+        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
+        if (mRequestData) {
+            if (mAlbumID != null && mPhotoDataUrl != null) {
+                doPhotosRequest();
+            }
+            mRequestData = false;
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.photo_list, container, false);
-        mainList = (ListView) rootView.findViewById(R.id.photolist);
+        View rootView = inflater.inflate(R.layout.fragment_photo_grid, container, false);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_grid);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
+                CrawlerApplication.getColumnsPerRow(getActivity())));
+        mRecyclerView.setAdapter(new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_PHOTOS));
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
-        fab.attachToListView(mainList);
+        fab.attachToRecyclerView(mRecyclerView);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                displayPhoto(mPhotos.get(mainList.getFirstVisiblePosition() *
-                        mPhotosAdapter.getSlotsPerRow()), true);
+                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
+                displayPhoto(cursor, ((GridLayoutManager)
+                        mRecyclerView.getLayoutManager())
+                        .findFirstCompletelyVisibleItemPosition(), true);
             }
         });
-        this.inflater = inflater;
-        loadPhotos();
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
+                displayPhoto(cursor, position, false);
+            }
+        });
+
         return rootView;
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mPhotosAdapter == null) return;
-        mIndex = mainList.getFirstVisiblePosition() * mPhotosAdapter.getSlotsPerRow();
-        View v = mainList.getChildAt(0);
-        mTop = (v == null) ? 0 : (v.getTop() - mainList.getPaddingTop());
+        if (mRecyclerView.getAdapter() == null) return;
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-            ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().hide();
-        if (mPhotosAdapter == null) return;
-        mainList.post(new Runnable() {
+        getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
+        if (mRecyclerView.getAdapter() == null) return;
+        mRecyclerView.post(new Runnable() {
             @Override
             public void run() {
-                mainList.setSelectionFromTop(mIndex / mPhotosAdapter.getSlotsPerRow(), mTop);
+                mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
     }
 
+    private void doPhotosRequest() {
+        if (mPhotoDataUrl.contains("picasaweb")) {
+            mAsyncTaskManager.setupTask(new PicasaPhotosRequestTask(getActivity(),
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
+        } else if (mPhotoDataUrl.contains("tumblr")) {
+            mAsyncTaskManager.setupTask(new TumblrRequestTask(getActivity(),
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
+        }
+    }
+
     @Override
-    public void onStop() {
-        super.onStop();
-        if (((ActionBarActivity) getActivity()).getSupportActionBar() != null)
-            ((ActionBarActivity) getActivity())
-                    .getSupportActionBar().show();
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
+        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
+        return new CursorLoader(getActivity(), uri, PHOTOS_COLUMNS, null,
+                null, sortOrder);
     }
 
-    private void loadPhotos() {
-        if (mPhotos == null) {
-            Log.d(TAG, "No photos!");
-            return;
-        }
-
-        if (mPhotosAdapter == null) {
-            MultiColumnImageAdapter.ThumbnailClickListener<Photo> clickListener =
-                    new MultiColumnImageAdapter.ThumbnailClickListener<Photo>() {
-                        @Override
-                        public void thumbnailClicked(Photo photo) {
-                            displayPhoto(photo, false);
-                        }
-                    };
-            mPhotosAdapter = new PhotosAdapter(wrap(mPhotos), inflater,
-                    clickListener, getResources()
-                    .getDisplayMetrics());
-        }
-        mPhotosAdapter.setDisplayMetrics(getResources().getDisplayMetrics());
-        mainList.setAdapter(mPhotosAdapter);
-        BaseAdapter adapter = (BaseAdapter) mainList.getAdapter();
-        adapter.notifyDataSetChanged();
-        adapter.notifyDataSetInvalidated();
-        mainList.invalidateViews();
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
+        if (mOnPhotoCursorChangedListener != null)
+            mOnPhotoCursorChangedListener.photoCursorChanged(data);
     }
 
-    private void displayPhoto(Photo photo, boolean isSlideShow) {
-        ((PhotoManager) getActivity())
-                .createPhotoViewInstance(mAlbumTitle, mPhotos, mPhotos.indexOf(photo), isSlideShow);
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
+    }
+
+    private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
+        mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
+                .createPhotoViewerInstance(mAlbumTitle, Photo.fromCursor(cursor), initPos, isSlideShow);
+    }
+
+    public interface OnPhotoCursorChangedListener {
+        public void photoCursorChanged(Cursor photoCursor);
     }
 }

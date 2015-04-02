@@ -26,6 +26,12 @@
             android:parentActivityName=".activities.AccountsActivity">
         </activity>
         <activity android:name=".activities.PreferencesActivity"/>
+
+        <provider
+            android:name=".data.CrawlerProvider"
+            android:authorities="@string/content_authority"
+            android:exported="false"
+            android:syncable="true"/>
     </application>
 
 </manifest>
