@@ -29,7 +29,8 @@ import me.aerovulpe.crawler.data.CrawlerContract;
  * Created by Aaron on 24/03/2015.
  */
 public class TumblrRequestTask extends Task {
-    public static final int CACHE_SIZE = 50;
+    private static final int CACHE_SIZE = 50;
+    private static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private final Context mContext;
     private final Vector<ContentValues> mContentCache;
     private String mAlbumID;
@@ -95,7 +96,7 @@ public class TumblrRequestTask extends Task {
             int length = 32;
             bytes = new byte[length];
             int offset = 0;
-            int numRead = 0;
+            int numRead;
             while (offset < bytes.length
                     && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
                 offset += numRead;
@@ -288,7 +289,9 @@ public class TumblrRequestTask extends Task {
         if (lastTimeCursor.moveToFirst()) {
             long lastSync = lastTimeCursor.getLong(0);
             lastTimeCursor.close();
-            if (System.currentTimeMillis() - lastSync <= 1800000)
+            if ((System.currentTimeMillis() - lastSync <= 1800000) &&
+                    mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                            .getBoolean(mAlbumID, false))
                 return true;
         } else {
             lastTimeCursor.close();
@@ -315,6 +318,8 @@ public class TumblrRequestTask extends Task {
         if (!mContentCache.isEmpty()) {
             insertAndClearCache();
         }
+        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                .edit().putBoolean(mAlbumID, wasSuccess).apply();
         return wasSuccess;
     }
 
