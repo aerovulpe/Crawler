@@ -289,10 +289,17 @@ public class TumblrRequestTask extends Task {
         if (lastTimeCursor.moveToFirst()) {
             long lastSync = lastTimeCursor.getLong(0);
             lastTimeCursor.close();
+            boolean lastDownloadSuccessful = mContext
+                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .getBoolean(mAlbumID, false);
             if ((System.currentTimeMillis() - lastSync <= 1800000) &&
-                    mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                            .getBoolean(mAlbumID, false))
+                    lastDownloadSuccessful)
                 return true;
+            if (!lastDownloadSuccessful)
+                mContext.getContentResolver().delete(CrawlerContract
+                                .PhotoEntry.CONTENT_URI, CrawlerContract.PhotoEntry.TABLE_NAME +
+                                "." + CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY + " = ? ",
+                        new String[]{mAlbumID});
         } else {
             lastTimeCursor.close();
         }
