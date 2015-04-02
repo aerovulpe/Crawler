@@ -287,8 +287,11 @@ public class TumblrRequestTask extends Task {
                 .AlbumEntry.COLUMN_ALBUM_TIME}, null, null, null);
         if (lastTimeCursor.moveToFirst()) {
             long lastSync = lastTimeCursor.getLong(0);
+            lastTimeCursor.close();
             if (System.currentTimeMillis() - lastSync <= 1800000)
                 return true;
+        } else {
+            lastTimeCursor.close();
         }
 
         ContentValues albumStubValues = new ContentValues();
