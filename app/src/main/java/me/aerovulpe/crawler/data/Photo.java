@@ -116,6 +116,29 @@ public class Photo implements Serializable, Parcelable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Photo)) return false;
+
+        Photo photo = (Photo) o;
+
+        return !(description != null ? !description.equals(photo.description) :
+                photo.description != null) && imageUrl.equals(photo.imageUrl) &&
+                name.equals(photo.name) && !(title != null ? !title
+                .equals(photo.title) : photo.title != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + imageUrl.hashCode();
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
