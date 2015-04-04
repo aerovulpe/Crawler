@@ -269,16 +269,16 @@ public class TumblrRequestTask extends Task {
     }
 
     private void insertAndClearCache() {
-        synchronized (mContentCache) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (mContentCache) {
                     mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                             mContentCache.toArray(new ContentValues[mContentCache.size()]));
                     mContentCache.clear();
                 }
-            }).start();
-        }
+            }
+        }).start();
     }
 
     @Override
@@ -298,11 +298,6 @@ public class TumblrRequestTask extends Task {
             if ((System.currentTimeMillis() - lastSync <= 1800000) &&
                     lastDownloadSuccessful)
                 return true;
-            if (!lastDownloadSuccessful)
-                mContext.getContentResolver().delete(CrawlerContract
-                                .PhotoEntry.CONTENT_URI, CrawlerContract.PhotoEntry.TABLE_NAME +
-                                "." + CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY + " = ? ",
-                        new String[]{mAlbumID});
         } else {
             lastTimeCursor.close();
         }
