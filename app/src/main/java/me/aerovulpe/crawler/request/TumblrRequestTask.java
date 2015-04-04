@@ -211,9 +211,11 @@ public class TumblrRequestTask extends Task {
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
-            mContentCache.add(currentPhotoValues);
-            if (mContentCache.size() >= CACHE_SIZE) {
-                insertAndClearCache();
+            synchronized (mContentCache) {
+                mContentCache.add(currentPhotoValues);
+                if (mContentCache.size() >= CACHE_SIZE) {
+                    insertAndClearCache();
+                }
             }
 
             Log.d("IMAGE Data : \n", "URL " + imag_url + "\n"
@@ -266,11 +268,17 @@ public class TumblrRequestTask extends Task {
         return uri;
     }
 
-    private int insertAndClearCache() {
-        int numInserted = mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                mContentCache.toArray(new ContentValues[mContentCache.size()]));
-        mContentCache.clear();
-        return numInserted;
+    private void insertAndClearCache() {
+        synchronized (mContentCache) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                    mContentCache.clear();
+                }
+            }).start();
+        }
     }
 
     @Override
@@ -317,8 +325,10 @@ public class TumblrRequestTask extends Task {
             e.printStackTrace();
             wasSuccess = false;
         }
-        if (!mContentCache.isEmpty()) {
-            insertAndClearCache();
+        synchronized (mContentCache) {
+            if (!mContentCache.isEmpty()) {
+                insertAndClearCache();
+            }
         }
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, wasSuccess).apply();
