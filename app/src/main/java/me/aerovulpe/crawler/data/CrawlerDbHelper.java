@@ -65,14 +65,15 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 PhotoEntry.COLUMN_PHOTO_URL + " TEXT NOT NULL, " +
                 PhotoEntry.COLUMN_PHOTO_DESCRIPTION + " TEXT, " +
                 PhotoEntry.COLUMN_PHOTO_TIME + " INTEGER NOT NULL, " +
+                PhotoEntry.COLUMN_PHOTO_ID + " TEXT NOT NULL, " +
 
                 // Set up the album column as a foreign key to the albums table.
                 " FOREIGN KEY (" + PhotoEntry.COLUMN_ALBUM_KEY + ") REFERENCES " +
                 AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + "), " +
 
-                // To assure the application has just one photo entry per url
+                // To assure the application has just one photo entry per unique id
                 // per album, it's created a UNIQUE constraint with IGNORE strategy
-                " UNIQUE (" + PhotoEntry.COLUMN_PHOTO_URL + ", " +
+                " UNIQUE (" + PhotoEntry.COLUMN_PHOTO_ID + ", " +
                 PhotoEntry.COLUMN_ALBUM_KEY + ") ON CONFLICT IGNORE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);

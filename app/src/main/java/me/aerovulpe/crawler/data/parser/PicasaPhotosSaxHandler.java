@@ -84,6 +84,7 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
                         image = image.substring(0, pos + 1) + 's' + photoSizeLongSide
                                 + image.substring(pos);
                         currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, image);
+                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, image);
                     }
                 }
             }

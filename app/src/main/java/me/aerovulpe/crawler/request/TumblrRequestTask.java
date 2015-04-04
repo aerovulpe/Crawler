@@ -211,16 +211,12 @@ public class TumblrRequestTask extends Task {
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
-            synchronized (mContentCache) {
-                mContentCache.add(currentPhotoValues);
-                if (mContentCache.size() >= CACHE_SIZE) {
-                    insertAndClearCache();
-                }
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, imag_url);
+            Log.d("PHOTO_ID", imag_url);
+            mContentCache.add(currentPhotoValues);
+            if (mContentCache.size() >= CACHE_SIZE) {
+                insertAndClearCache();
             }
-
-            Log.d("IMAGE Data : \n", "URL " + imag_url + "\n"
-                    + "filename : " + filename + "\n"
-                    + "description : " + description + "albumID " + mAlbumID);
         }
     }
 
@@ -269,16 +265,9 @@ public class TumblrRequestTask extends Task {
     }
 
     private void insertAndClearCache() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mContentCache) {
-                    mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                    mContentCache.clear();
-                }
-            }
-        }).start();
+        mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                mContentCache.toArray(new ContentValues[mContentCache.size()]));
+        mContentCache.clear();
     }
 
     @Override
@@ -295,7 +284,7 @@ public class TumblrRequestTask extends Task {
             boolean lastDownloadSuccessful = mContext
                     .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                     .getBoolean(mAlbumID, false);
-            if ((System.currentTimeMillis() - lastSync <= 1800000) &&
+            if ((System.currentTimeMillis() - lastSync <= 300000) &&
                     lastDownloadSuccessful)
                 return true;
         } else {
@@ -320,10 +309,8 @@ public class TumblrRequestTask extends Task {
             e.printStackTrace();
             wasSuccess = false;
         }
-        synchronized (mContentCache) {
-            if (!mContentCache.isEmpty()) {
-                insertAndClearCache();
-            }
+        if (!mContentCache.isEmpty()) {
+            insertAndClearCache();
         }
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, wasSuccess).apply();

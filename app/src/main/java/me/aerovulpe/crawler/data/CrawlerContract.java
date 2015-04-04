@@ -102,6 +102,7 @@ public class CrawlerContract {
         public static final String COLUMN_PHOTO_URL = "photo_url";
         public static final String COLUMN_PHOTO_DESCRIPTION = "photo_description";
         public static final String COLUMN_PHOTO_TIME = "photo_time";
+        public static final String COLUMN_PHOTO_ID = "photo_id";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS).build();
