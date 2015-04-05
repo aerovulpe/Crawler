@@ -439,17 +439,15 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
-    public void photoCursorChanged(Cursor photoCursor) {
+    public void photoCursorChanged(final Cursor photoCursor) {
         if (photoCursor == null)
             return;
         if (mPhotos != null && photoCursor.getCount() == mPhotos.size())
             return;
-
-        Photo currentPhoto = (mPhotos != null) ? mPhotos.get(mViewPager.getCurrentItem()) : null;
+        int currentItem = mViewPager.getCurrentItem();
         mPhotos = Photo.fromCursor(photoCursor);
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
-        if (currentPhoto != null)
-            mViewPager.setCurrentItem(mPhotos.indexOf(currentPhoto));
+        mViewPager.setCurrentItem(currentItem);
     }
 
     @Override

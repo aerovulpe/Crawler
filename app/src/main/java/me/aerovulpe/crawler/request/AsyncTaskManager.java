@@ -43,10 +43,12 @@ public final class AsyncTaskManager implements IProgressTracker, OnCancelListene
 
     @Override
     public void onCancel(DialogInterface dialog) {
-        // Cancel task
-        mAsyncTask.cancel(true);
-        // Notify activity about completion
-        if (mTaskCompleteListener != null) mTaskCompleteListener.onTaskComplete(mAsyncTask);
+        if (mAsyncTask != null) {
+            // Cancel task
+            mAsyncTask.cancel(true);
+            // Notify activity about completion
+            if (mTaskCompleteListener != null) mTaskCompleteListener.onTaskComplete(mAsyncTask);
+        }
         // Reset task
         mAsyncTask = null;
     }
