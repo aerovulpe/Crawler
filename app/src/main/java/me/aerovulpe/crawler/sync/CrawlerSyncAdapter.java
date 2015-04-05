@@ -1,10 +1,18 @@
-package me.aerovulpe.crawler.request;
+package me.aerovulpe.crawler.sync;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.AbstractThreadedSyncAdapter;
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
+import android.content.SyncRequest;
+import android.content.SyncResult;
 import android.database.SQLException;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -23,24 +31,48 @@ import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Vector;
 
+import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 
+
 /**
- * Created by Aaron on 24/03/2015.
+ * Handle the transfer of data between a server and an
+ * app, using the Android sync adapter framework.
  */
-public class TumblrRequestTask extends Task {
+public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
+
+    // Interval at which to sync with the weather, in milliseconds.
+    // 60 seconds (1 minute) * 180 = 3 hours
+    public static final int SYNC_INTERVAL = 60 * 180;
+    public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
+    public static final String SYNC_URL = "me.aerovulpe.crawler.SYNC_URL";
+    public static final String SYNC_ALBUM_ID = "me.aerovulpe.crawler.SYNC_ALBUM_ID";
+    private static final String LOG_TAG = CrawlerSyncAdapter.class.getSimpleName();
     private static final int CACHE_SIZE = 50;
+    private final Vector<ContentValues> mContentCache = new Vector<>(CACHE_SIZE);
     private static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
-    private final Context mContext;
-    private final Vector<ContentValues> mContentCache;
     private String mAlbumID;
 
     private int[] sizes = new int[]{1280, 500, 400, 250};
 
-    public TumblrRequestTask(Context context, int resourceId) {
-        super(context.getResources(), resourceId);
-        mContext = context;
-        mContentCache = new Vector<>(CACHE_SIZE);
+
+    /**
+     * Set up the sync adapter
+     */
+    public CrawlerSyncAdapter(Context context, boolean autoInitialize) {
+        super(context, autoInitialize);
+    }
+
+    /**
+     * Set up the sync adapter. This form of the
+     * constructor maintains compatibility with Android 3.0
+     * and later platform versions
+     */
+    public CrawlerSyncAdapter(
+            Context context,
+            boolean autoInitialize,
+            boolean allowParallelSyncs) {
+        super(context, autoInitialize, allowParallelSyncs);
     }
 
     private static boolean isImage(String uri) {
@@ -122,6 +154,100 @@ public class TumblrRequestTask extends Task {
         return new String(hexChars);
     }
 
+    /**
+     * Helper method to have the sync adapter sync immediately
+     *
+     * @param context The context used to access the account service
+     */
+    public static void syncImmediately(Context context, String... params) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        bundle.putString(SYNC_URL, params[0]);
+        bundle.putString(SYNC_ALBUM_ID, params[1]);
+        ContentResolver.requestSync(getSyncAccount(context),
+                context.getString(R.string.content_authority), bundle);
+    }
+
+    /**
+     * Helper method to get the fake account to be used with SyncAdapter, or make a new one
+     * if the fake account doesn't exist yet.  If we make a new account, we call the
+     * onAccountCreated method so we can initialize things.
+     *
+     * @param context The context used to access the account service
+     * @return a fake account.
+     */
+    public static Account getSyncAccount(Context context) {
+        // Get an instance of the Android account manager
+        AccountManager accountManager =
+                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+
+        // Create the account type and default account
+        Account newAccount = new Account(
+                context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
+
+        // If the password doesn't exist, the account doesn't exist
+        if (null == accountManager.getPassword(newAccount)) {
+
+        /*
+         * Add the account and account type, no password or user data
+         * If successful, return the Account object, otherwise report an error.
+         */
+            if (!accountManager.addAccountExplicitly(newAccount, "", null)) {
+                return null;
+            }
+            /*
+             * If you don't set android:syncable="true" in
+             * in your <provider> element in the manifest,
+             * then call ContentResolver.setIsSyncable(account, AUTHORITY, 1)
+             * here.
+             */
+
+            onAccountCreated(newAccount, context);
+        }
+        return newAccount;
+    }
+
+    /**
+     * Helper method to schedule the sync adapter periodic execution
+     */
+    public static void configurePeriodicSync(Context context, int syncInterval, int flexTime) {
+        Account account = getSyncAccount(context);
+        String authority = context.getString(R.string.content_authority);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // we can enable inexact timers in our periodic sync
+            SyncRequest request = new SyncRequest.Builder().
+                    syncPeriodic(syncInterval, flexTime).
+                    setSyncAdapter(account, authority).
+                    setExtras(new Bundle()).build();
+            ContentResolver.requestSync(request);
+        } else {
+            ContentResolver.addPeriodicSync(account,
+                    authority, new Bundle(), syncInterval);
+        }
+    }
+
+    private static void onAccountCreated(Account newAccount, Context context) {
+        /*
+         * Since we've created an account
+         */
+        CrawlerSyncAdapter.configurePeriodicSync(context, SYNC_INTERVAL, SYNC_FLEXTIME);
+
+        /*
+         * Without calling setSyncAutomatically, our periodic sync will not be enabled.
+         */
+        ContentResolver.setSyncAutomatically(newAccount, context.getString(R.string.content_authority), true);
+
+        /*
+         * Finally, let's do a sync to get things started
+         */
+        syncImmediately(context, null);
+    }
+
+    public static void initializeSyncAdapter(Context context) {
+        getSyncAccount(context);
+    }
+
     private void download(String url) throws FailedException {
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
@@ -158,11 +284,11 @@ public class TumblrRequestTask extends Task {
                 } catch (IOException e) {
                     String msg = e.getMessage();
                     if (msg.contains("404 error")) {
-                        Log.e("TumblrRequestTask", msg, e);
+                        Log.e(LOG_TAG, msg, e);
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(mContext, "No pages found. Please check the Tumblr Id",
+                                Toast.makeText(getContext(), "No pages found. Please check the Tumblr Id",
                                         Toast.LENGTH_LONG).show();
                             }
                         });
@@ -171,7 +297,7 @@ public class TumblrRequestTask extends Task {
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(mContext, "Error downloading images",
+                                Toast.makeText(getContext(), "Error downloading images",
                                         Toast.LENGTH_LONG).show();
                             }
                         });
@@ -265,31 +391,15 @@ public class TumblrRequestTask extends Task {
     }
 
     private void insertAndClearCache() {
-        mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+        getContext().getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                 mContentCache.toArray(new ContentValues[mContentCache.size()]));
         mContentCache.clear();
     }
 
     @Override
-    protected Boolean doInBackground(String... params) {
-        boolean wasSuccess = true;
-        mAlbumID = params[1];
-
-        Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
-                .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
-                .AlbumEntry.COLUMN_ALBUM_TIME}, null, null, null);
-        if (lastTimeCursor.moveToFirst()) {
-            long lastSync = lastTimeCursor.getLong(0);
-            lastTimeCursor.close();
-            boolean lastDownloadSuccessful = mContext
-                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getBoolean(mAlbumID, false);
-            if ((System.currentTimeMillis() - lastSync <= 300000) &&
-                    lastDownloadSuccessful)
-                return true;
-        } else {
-            lastTimeCursor.close();
-        }
+    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+        String url = extras.getString(SYNC_URL);
+        mAlbumID = extras.getString(SYNC_ALBUM_ID);
 
         ContentValues albumStubValues = new ContentValues();
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
@@ -299,22 +409,18 @@ public class TumblrRequestTask extends Task {
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
         albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
         try {
-            mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+            getContext().getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         try {
-            download(params[0]);
+            download(url);
         } catch (FailedException e) {
             e.printStackTrace();
-            wasSuccess = false;
         }
         if (!mContentCache.isEmpty()) {
             insertAndClearCache();
         }
-        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .edit().putBoolean(mAlbumID, wasSuccess).apply();
-        return wasSuccess;
     }
 
     private class FailedException extends Exception {

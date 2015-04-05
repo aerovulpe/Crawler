@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.os.AsyncTask;
 
 public final class AsyncTaskManager implements IProgressTracker, OnCancelListener {
 
@@ -28,7 +29,7 @@ public final class AsyncTaskManager implements IProgressTracker, OnCancelListene
         // Wire task to tracker (this)
         mAsyncTask.setProgressTracker(this);
         // Start task
-        mAsyncTask.execute(params);
+        mAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
     }
 
     @Override
