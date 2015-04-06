@@ -1,5 +1,6 @@
 package me.aerovulpe.crawler.request;
 
+import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -7,6 +8,7 @@ import android.database.SQLException;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -32,17 +34,19 @@ public class TumblrRequest {
     public static final String LAST_FIRST_IMAGE_URL_SUFFIX = ".last_first_image_url";
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
     public static final String DOWNLOAD_STATUS_SUFFIX = ".download_status";
+    public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
-    private static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private final Context mContext;
     private final Vector<ContentValues> mContentCache;
+    private final ContentProviderClient mProvider;
     private String mAlbumID;
-
     private int[] sizes = new int[]{1280, 500, 400, 250};
 
     public TumblrRequest(Context context) {
         mContext = context;
         mContentCache = new Vector<>(CACHE_SIZE);
+        mProvider = context.getContentResolver()
+                .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
     }
 
     private static boolean isImage(String uri) {
@@ -267,9 +271,13 @@ public class TumblrRequest {
     }
 
     private void insertAndClearCache() {
-        mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                mContentCache.toArray(new ContentValues[mContentCache.size()]));
-        mContentCache.clear();
+        try {
+            mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean getFrom(String... params) {
@@ -327,6 +335,7 @@ public class TumblrRequest {
                 insertAndClearCache();
             }
         }
+        mProvider.release();
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, wasSuccess)
                 .putBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, false).commit();
