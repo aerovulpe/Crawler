@@ -18,18 +18,14 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
 import android.app.LoaderManager;
-import android.content.ContentProviderClient;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.Loader;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -43,7 +39,6 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
-import me.aerovulpe.crawler.request.TumblrRequest;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -93,9 +88,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         registerForContextMenu(mainList);
 
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
-
-        if (savedInstanceState == null)
-            tumblrAccountsCleanUp();
     }
 
     @Override
@@ -196,27 +188,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             }
         });
         builder.create().show();
-    }
-
-    private void tumblrAccountsCleanUp() {
-        SharedPreferences.Editor editor = getSharedPreferences
-                (TumblrRequest.TUMBLR_PREF, Context.MODE_PRIVATE).edit();
-        ContentProviderClient provider = getContentResolver()
-                .acquireContentProviderClient(CrawlerContract.BASE_CONTENT_URI);
-        try {
-            Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
-                    new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
-                    CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
-            accountsCursor.moveToPosition(-1);
-            while (accountsCursor.moveToNext()) {
-                editor.putBoolean(accountsCursor.getString(0) + TumblrRequest.DOWNLOAD_STATUS_SUFFIX, false);
-            }
-            editor.apply();
-            accountsCursor.close();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-        provider.release();
     }
 
     @Override

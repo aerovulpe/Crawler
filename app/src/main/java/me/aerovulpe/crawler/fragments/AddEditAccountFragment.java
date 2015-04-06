@@ -29,6 +29,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.data.AccountsUtil;
+import me.aerovulpe.crawler.request.TumblrPhotosUrl;
+import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 
 
 /**
@@ -89,6 +92,10 @@ public class AddEditAccountFragment extends DialogFragment {
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
                 mAccountCallback.onAddAccount(type, id, name);
+                if (type == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                    CrawlerSyncAdapter.syncImmediately(getActivity(),
+                            new TumblrPhotosUrl(id).getUrl(), id);
+                }
                 dismiss();
             }
         });

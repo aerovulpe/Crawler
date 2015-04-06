@@ -58,10 +58,12 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
      *
      * @param context The context used to access the account service
      */
-    public static void syncImmediately(Context context) {
+    public static void syncImmediately(Context context, String url, String accountId) {
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        bundle.putString(SYNC_URL, url);
+        bundle.putString(SYNC_ALBUM_ID, accountId);
         ContentResolver.requestSync(getSyncAccount(context),
                 context.getString(R.string.content_authority), bundle);
     }
@@ -138,7 +140,7 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
         /*
          * Finally, let's do a sync to get things started
          */
-        syncImmediately(context);
+        syncImmediately(context, null, null);
     }
 
     public static void initializeSyncAdapter(Context context) {
@@ -148,18 +150,25 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        try {
-            Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
-                    new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
-                    CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
-            accountsCursor.moveToPosition(-1);
-            while (accountsCursor.moveToNext()) {
-                new TumblrRequest(getContext()).getFrom(new TumblrPhotosUrl(accountsCursor
-                        .getString(0)).getUrl(), accountsCursor.getString(0));
+        String url = extras.getString(SYNC_URL);
+        String albumId = extras.getString(SYNC_ALBUM_ID);
+
+        if (url == null || albumId == null) {
+            try {
+                Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
+                        new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
+                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
+                accountsCursor.moveToPosition(-1);
+                while (accountsCursor.moveToNext()) {
+                    new TumblrRequest(getContext()).getFrom(new TumblrPhotosUrl(accountsCursor
+                            .getString(0)).getUrl(), accountsCursor.getString(0));
+                }
+                accountsCursor.close();
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
-            accountsCursor.close();
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        } else {
+            new TumblrRequest(getContext()).getFrom(url, albumId);
         }
     }
 }

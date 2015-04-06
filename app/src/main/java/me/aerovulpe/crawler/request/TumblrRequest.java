@@ -33,7 +33,6 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 public class TumblrRequest {
     public static final String LAST_FIRST_IMAGE_URL_SUFFIX = ".last_first_image_url";
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
-    public static final String DOWNLOAD_STATUS_SUFFIX = ".download_status";
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
     private final Context mContext;
@@ -285,13 +284,6 @@ public class TumblrRequest {
         boolean shouldDownload = true;
         mAlbumID = params[1];
 
-        if (mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .getBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, false))
-            return true;
-
-        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
-                .putBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, true).commit();
-
         Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
                 .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
                 .AlbumEntry.COLUMN_ALBUM_TIME}, null, null, null);
@@ -337,8 +329,7 @@ public class TumblrRequest {
         }
         mProvider.release();
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .edit().putBoolean(mAlbumID, wasSuccess)
-                .putBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, false).commit();
+                .edit().putBoolean(mAlbumID, wasSuccess).commit();
         return wasSuccess;
     }
 
