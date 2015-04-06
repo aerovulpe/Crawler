@@ -31,6 +31,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 public class TumblrRequest {
     public static final String LAST_FIRST_IMAGE_URL_SUFFIX = ".last_first_image_url";
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
+    public static final String DOWNLOAD_STATUS_SUFFIX = ".download_status";
     private static final int CACHE_SIZE = 50;
     private static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private final Context mContext;
@@ -273,7 +274,15 @@ public class TumblrRequest {
 
     public boolean getFrom(String... params) {
         boolean wasSuccess = true;
+        boolean shouldDownload = true;
         mAlbumID = params[1];
+
+        if (mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                .getBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, false))
+            return true;
+
+        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
+                .putBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, true).commit();
 
         Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
                 .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
@@ -285,37 +294,42 @@ public class TumblrRequest {
                     .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                     .getBoolean(mAlbumID, false);
             if ((System.currentTimeMillis() - lastSync <= 300000) &&
-                    lastDownloadSuccessful)
-                return true;
-            if (!wasUpdated(params[0], lastDownloadSuccessful))
-                return true;
+                    lastDownloadSuccessful) {
+                shouldDownload = false;
+            }
+            if (!wasUpdated(params[0], lastDownloadSuccessful)) {
+                shouldDownload = false;
+            }
         } else {
             lastTimeCursor.close();
         }
 
-        ContentValues albumStubValues = new ContentValues();
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-        try {
-            mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            download(params[0]);
-        } catch (FailedException e) {
-            e.printStackTrace();
-            wasSuccess = false;
-        }
-        if (!mContentCache.isEmpty()) {
-            insertAndClearCache();
+        if (shouldDownload) {
+            ContentValues albumStubValues = new ContentValues();
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
+            try {
+                mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                download(params[0]);
+            } catch (FailedException e) {
+                e.printStackTrace();
+                wasSuccess = false;
+            }
+            if (!mContentCache.isEmpty()) {
+                insertAndClearCache();
+            }
         }
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .edit().putBoolean(mAlbumID, wasSuccess).apply();
+                .edit().putBoolean(mAlbumID, wasSuccess)
+                .putBoolean(mAlbumID + DOWNLOAD_STATUS_SUFFIX, false).commit();
         return wasSuccess;
     }
 
