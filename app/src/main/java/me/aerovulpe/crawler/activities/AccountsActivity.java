@@ -38,7 +38,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
@@ -211,7 +210,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             accountsCursor.moveToPosition(-1);
             while (accountsCursor.moveToNext()) {
                 editor.putBoolean(accountsCursor.getString(0) + TumblrRequest.DOWNLOAD_STATUS_SUFFIX, false);
-                Toast.makeText(this, accountsCursor.getString(0), Toast.LENGTH_SHORT).show();
             }
             editor.apply();
             accountsCursor.close();
