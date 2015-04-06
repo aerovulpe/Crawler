@@ -25,7 +25,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
-import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
+import me.aerovulpe.crawler.request.TumblrRequestTask;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -154,7 +154,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mAsyncTaskManager.setupTask(new PicasaPhotosRequestTask(getActivity(),
                     R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         } else if (mPhotoDataUrl.contains("tumblr")) {
-            CrawlerSyncAdapter.syncImmediately(getActivity(), mPhotoDataUrl, mAlbumID);
+            mAsyncTaskManager.setupTask(new TumblrRequestTask(getActivity(),
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         }
     }
 
