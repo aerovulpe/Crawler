@@ -316,6 +316,8 @@ public class TumblrRequest {
                 mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
             } catch (SQLException e) {
                 e.printStackTrace();
+                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                        null, null, new String[]{"2147483647", mAlbumID});
             }
             try {
                 download(params[0]);

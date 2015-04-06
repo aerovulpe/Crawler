@@ -24,6 +24,7 @@ public class CrawlerContract {
     // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
     // At least, let's hope not.  Don't be that dev, reader.  Don't be that dev.
     public static final String PATH_PHOTOS = "photos";
+    public static final String PATH_PHOTOS_INCREMENT_TIME = "photos_increment_time";
     public static final String PATH_ALBUMS = "albums";
     public static final String PATH_ACCOUNTS = "accounts";
     public static final String TAG = CrawlerContract.class.getSimpleName();
@@ -106,6 +107,9 @@ public class CrawlerContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS).build();
+
+        public static final Uri INCREMENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS_INCREMENT_TIME).build();
 
         public static Uri buildPhotosUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
