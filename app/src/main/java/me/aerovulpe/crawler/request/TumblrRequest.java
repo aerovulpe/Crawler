@@ -40,6 +40,8 @@ public class TumblrRequest {
     private final ContentProviderClient mProvider;
     private String mAlbumID;
     private int[] sizes = new int[]{1280, 500, 400, 250};
+    private boolean mRunning = true;
+    private boolean mLastDownloadSuccessful;
 
     public TumblrRequest(Context context) {
         mContext = context;
@@ -133,7 +135,7 @@ public class TumblrRequest {
         boolean next = false;
         for (int i = 1; i <= fin; i++) {
             int attempts = 0;
-            while (attempts < 10) {
+            while (attempts < 10 && mRunning) {
                 try {
                     Document doc = Jsoup.connect(url + i).get();
                     Log.d("DOCUMENT", doc.baseUri());
@@ -143,7 +145,7 @@ public class TumblrRequest {
 
                     Elements link = doc.select("a");
                     int elems = link.size();
-                    for (int j = 0; j < elems; j++) {
+                    for (int j = 0; j < elems && mRunning; j++) {
                         String next_url = link.get(j).attr("href");
                         if (next_url.contains("page/")) {
                             try {
@@ -196,7 +198,7 @@ public class TumblrRequest {
     private void getPhotos(Document doc) {
         Elements imag = doc.select("img");
         int elems = imag.size();
-        for (int j = 0; j < elems; j++) {
+        for (int j = 0; j < elems && mRunning; j++) {
             String imag_url = imag.get(j).attr("src");
             String[] aux = imag_url.split("/");
             if (!aux[0].equals("http:")) {
@@ -228,7 +230,7 @@ public class TumblrRequest {
     private void getPhotosFromIFrameDoc(Document doc) throws IOException {
         Elements link = doc.select("iframe");
         int elems = link.size();
-        for (int j = 0; j < elems; j++) {
+        for (int j = 0; j < elems && mRunning; j++) {
             String id = link.get(j).attr("id");
             if (id.contains("photoset_iframe")) {
                 int attempts = 0;
@@ -270,12 +272,19 @@ public class TumblrRequest {
     }
 
     private void insertAndClearCache() {
+        int rowsInserted = 0;
         try {
-            mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
             mContentCache.clear();
         } catch (RemoteException e) {
             e.printStackTrace();
+        }
+
+        if (rowsInserted == 0 && mLastDownloadSuccessful) {
+            // Stop we're up to date!
+            mRunning = false;
+            Log.d("HALT", "DONE");
         }
     }
 
@@ -290,14 +299,14 @@ public class TumblrRequest {
         if (lastTimeCursor.moveToFirst()) {
             long lastSync = lastTimeCursor.getLong(0);
             lastTimeCursor.close();
-            boolean lastDownloadSuccessful = mContext
+            mLastDownloadSuccessful = mContext
                     .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                     .getBoolean(mAlbumID, false);
             if ((System.currentTimeMillis() - lastSync <= 300000) &&
-                    lastDownloadSuccessful) {
-                shouldDownload = false;
+                    mLastDownloadSuccessful) {
+                shouldDownload = true;
             }
-            if (!wasUpdated(params[0], lastDownloadSuccessful)) {
+            if (!wasUpdated(params[0], mLastDownloadSuccessful)) {
                 shouldDownload = false;
             }
         } else {
@@ -323,6 +332,7 @@ public class TumblrRequest {
                 download(params[0]);
             } catch (FailedException e) {
                 e.printStackTrace();
+                mRunning = false;
                 wasSuccess = false;
             }
             if (!mContentCache.isEmpty()) {
@@ -337,77 +347,75 @@ public class TumblrRequest {
 
     public boolean wasUpdated(String url, boolean lastDownloadSuccessful) {
         boolean wasUpdated = true;
-        if (lastDownloadSuccessful) {
-            try {
-                Document doc = Jsoup.connect(url + 1).get();
+        try {
+            Document doc = Jsoup.connect(url + 1).get();
 
-                String firstImageUrl = null;
-                Elements imag = doc.select("img");
-                for (int j = 0; j < imag.size(); j++) {
-                    firstImageUrl = imag.get(j).attr("src");
-                    String[] aux = firstImageUrl.split("/");
-                    if (!aux[0].equals("http:")) {
-                        continue;
-                    }
-                    if (aux[aux.length - 1].split("\\.").length <= 1) {
-                        continue;
-                    }
-
-                    if (Uri.parse(firstImageUrl).getLastPathSegment().contains("avatar"))
-                        continue;
-
-                    break;
+            String firstImageUrl = null;
+            Elements imag = doc.select("img");
+            for (int j = 0; j < imag.size(); j++) {
+                firstImageUrl = imag.get(j).attr("src");
+                String[] aux = firstImageUrl.split("/");
+                if (!aux[0].equals("http:")) {
+                    continue;
+                }
+                if (aux[aux.length - 1].split("\\.").length <= 1) {
+                    continue;
                 }
 
-                String firstImageFrameUrl = null;
-                Elements link = doc.select("iframe");
-                String id = link.get(0).attr("id");
-                if (id.contains("photoset_iframe")) {
-                    int attempts = 0;
-                    while (attempts < 5) {
-                        try {
-                            Document iFrameDoc = Jsoup.connect(
-                                    link.get(0).attr("src")).get();
-                            Elements iFrame_imag = iFrameDoc.select("img");
-                            for (int k = 0; k < imag.size(); k++) {
-                                firstImageFrameUrl = iFrame_imag.get(k).attr("src");
-                                String[] aux = firstImageFrameUrl.split("/");
-                                if (!aux[0].equals("http:")) {
-                                    continue;
-                                }
-                                if (aux[aux.length - 1].split("\\.").length <= 1) {
-                                    continue;
-                                }
+                if (Uri.parse(firstImageUrl).getLastPathSegment().contains("avatar"))
+                    continue;
 
-                                if (Uri.parse(firstImageFrameUrl).getLastPathSegment().contains("avatar"))
-                                    continue;
-
-                                break;
-                            }
-                            attempts = 5;
-                        } catch (SocketTimeoutException e) {
-                            attempts++;
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                String lastFirstImageUrl = mContext.getSharedPreferences(TUMBLR_PREF,
-                        Context.MODE_PRIVATE).getString(mAlbumID +
-                        LAST_FIRST_IMAGE_URL_SUFFIX, "42");
-                String lastFirstImageFrameUrl = mContext.getSharedPreferences(TUMBLR_PREF,
-                        Context.MODE_PRIVATE).getString(mAlbumID +
-                        LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, "42");
-                if (lastFirstImageUrl.equals(firstImageUrl) &&
-                        lastFirstImageFrameUrl.equals(firstImageFrameUrl))
-                    wasUpdated = false;
-                mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
-                        .putString(mAlbumID + LAST_FIRST_IMAGE_URL_SUFFIX, firstImageUrl)
-                        .putString(mAlbumID + LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, firstImageFrameUrl)
-                        .apply();
-            } catch (IOException e) {
-                e.printStackTrace();
+                break;
             }
+
+            String firstImageFrameUrl = null;
+            Elements link = doc.select("iframe");
+            String id = link.get(0).attr("id");
+            if (id.contains("photoset_iframe")) {
+                int attempts = 0;
+                while (attempts < 5) {
+                    try {
+                        Document iFrameDoc = Jsoup.connect(
+                                link.get(0).attr("src")).get();
+                        Elements iFrame_imag = iFrameDoc.select("img");
+                        for (int k = 0; k < imag.size(); k++) {
+                            firstImageFrameUrl = iFrame_imag.get(k).attr("src");
+                            String[] aux = firstImageFrameUrl.split("/");
+                            if (!aux[0].equals("http:")) {
+                                continue;
+                            }
+                            if (aux[aux.length - 1].split("\\.").length <= 1) {
+                                continue;
+                            }
+
+                            if (Uri.parse(firstImageFrameUrl).getLastPathSegment().contains("avatar"))
+                                continue;
+
+                            break;
+                        }
+                        attempts = 5;
+                    } catch (SocketTimeoutException e) {
+                        attempts++;
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            String lastFirstImageUrl = mContext.getSharedPreferences(TUMBLR_PREF,
+                    Context.MODE_PRIVATE).getString(mAlbumID +
+                    LAST_FIRST_IMAGE_URL_SUFFIX, "42");
+            String lastFirstImageFrameUrl = mContext.getSharedPreferences(TUMBLR_PREF,
+                    Context.MODE_PRIVATE).getString(mAlbumID +
+                    LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, "42");
+            if (lastDownloadSuccessful && lastFirstImageUrl.equals(firstImageUrl) &&
+                    lastFirstImageFrameUrl.equals(firstImageFrameUrl))
+                wasUpdated = false;
+            mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
+                    .putString(mAlbumID + LAST_FIRST_IMAGE_URL_SUFFIX, firstImageUrl)
+                    .putString(mAlbumID + LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, firstImageFrameUrl)
+                    .apply();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return wasUpdated;
     }
