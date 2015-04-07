@@ -14,7 +14,7 @@
  * the License.
  */
 
-package me.aerovulpe.crawler.data;
+package me.aerovulpe.crawler.util;
 
 import android.content.res.Resources;
 
@@ -56,7 +56,7 @@ public class AccountsUtil {
                 return R.drawable.picasa;
             default:
                 // We shouldn't ever get here!
-                return R.drawable.icon;
+                return R.mipmap.ic_launcher;
         }
     }
 

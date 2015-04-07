@@ -23,10 +23,11 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.util.List;
 
+import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.ui.view.TouchImageView;
-import me.aerovulpe.crawler.util.OnPhotoClickListener;
+import me.aerovulpe.crawler.ui.TouchImageView;
+
 
 /**
  * Created by Aaron on 09/03/2015.

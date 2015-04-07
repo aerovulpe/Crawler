@@ -10,7 +10,7 @@
  * Extends Android ImageView to include pinch zooming, panning, fling and double tap zoom.
  */
 
-package me.aerovulpe.crawler.ui.view;
+package me.aerovulpe.crawler.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;

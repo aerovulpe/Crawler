@@ -27,7 +27,7 @@ import android.widget.TextView;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
-import me.aerovulpe.crawler.data.AccountsUtil;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class AccountsAdapter extends CursorAdapter {
 

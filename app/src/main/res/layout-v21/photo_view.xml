@@ -5,7 +5,7 @@
              android:background="@color/crawlerBackgroundColor"
              android:orientation="vertical">
 
-    <me.aerovulpe.crawler.ui.view.TouchImageView
+    <me.aerovulpe.crawler.ui.TouchImageView
         android:id="@+id/photo"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"

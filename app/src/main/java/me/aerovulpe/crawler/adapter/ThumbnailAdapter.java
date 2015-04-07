@@ -16,7 +16,6 @@
 
 package me.aerovulpe.crawler.adapter;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
@@ -34,9 +33,6 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
-/**
- * The controller for the albums list.
- */
 public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter.ViewHolder> {
 
     public static final int TYPE_ALBUMS = 0;
@@ -45,8 +41,8 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
     private final int mType;
     private OnItemClickListener mItemClickListener;
 
-    public ThumbnailAdapter(Context context, Cursor cursor, int type) {
-        super(context, cursor);
+    public ThumbnailAdapter(Cursor cursor, int type) {
+        super(cursor);
         mImageLoader = ImageLoader.getInstance();
         mType = type;
     }

@@ -29,9 +29,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.data.AccountsUtil;
 import me.aerovulpe.crawler.request.TumblrPhotosUrl;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 
 /**

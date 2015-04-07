@@ -105,7 +105,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.photo_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
-        mRecyclerView.setAdapter(new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_PHOTOS));
+        mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_PHOTOS));
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.attachToRecyclerView(mRecyclerView);
         fab.setOnClickListener(new View.OnClickListener() {

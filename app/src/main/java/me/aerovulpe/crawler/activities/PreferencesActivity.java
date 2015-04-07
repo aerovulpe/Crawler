@@ -30,13 +30,6 @@ import android.widget.LinearLayout;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 
-
-/**
- * The preferences activity shows common preferences that can be configured by
- * the user.
- *
- * @author haeberling@google.com (Sascha Haeberling)
- */
 public class PreferencesActivity extends PreferenceActivity {
     int oldCacheValue;
     private Toolbar mActionBar;

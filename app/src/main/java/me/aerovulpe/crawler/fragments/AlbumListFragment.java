@@ -90,7 +90,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.album_grid);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
-        mRecyclerView.setAdapter(new ThumbnailAdapter(getActivity(), null, ThumbnailAdapter.TYPE_ALBUMS));
+        mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_ALBUMS));
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {

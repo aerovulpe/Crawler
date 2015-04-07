@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.util;
+package me.aerovulpe.crawler;
 
 import android.view.View;
 

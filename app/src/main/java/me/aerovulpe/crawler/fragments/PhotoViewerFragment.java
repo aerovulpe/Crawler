@@ -34,15 +34,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import me.aerovulpe.crawler.CrawlerApplication;
+import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.util.OnPhotoClickListener;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();

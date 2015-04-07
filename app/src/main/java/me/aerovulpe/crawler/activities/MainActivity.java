@@ -30,7 +30,6 @@ import java.util.List;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
-import me.aerovulpe.crawler.data.AccountsUtil;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
@@ -38,6 +37,7 @@ import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.request.TumblrPhotosUrl;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
