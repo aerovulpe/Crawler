@@ -185,8 +185,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
-        mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
-                .createPhotoViewerInstance(mAlbumTitle, Photo.fromCursor(cursor), initPos, isSlideShow);
+        if (getActivity() != null)
+            mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
+                    .createPhotoViewerInstance(mAlbumTitle, Photo
+                            .fromCursor(cursor), initPos, isSlideShow);
     }
 
     public interface OnPhotoCursorChangedListener {
