@@ -18,8 +18,8 @@ import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
 public class PicasaPhotosRequestTask extends Task {
     private final Context mContext;
 
-    public PicasaPhotosRequestTask(Context context, int resourceId) {
-        super(context.getResources(), resourceId);
+    public PicasaPhotosRequestTask(Context context, String id, int resourceId) {
+        super(id, context.getResources(), resourceId);
         mContext = context;
     }
 

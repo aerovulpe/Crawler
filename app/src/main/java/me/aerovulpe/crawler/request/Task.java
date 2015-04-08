@@ -5,14 +5,14 @@ import android.os.AsyncTask;
 
 public abstract class Task extends AsyncTask<String, String, Boolean> {
 
+    public final String ID;
     protected final Resources mResources;
-
-    private Boolean mResult;
     private String mProgressMessage;
     private IProgressTracker mProgressTracker;
 
     /* UI Thread */
-    public Task(Resources resources, int resourceId) {
+    public Task(String id, Resources resources, int resourceId) {
+        ID = id;
         // Keep reference to resources
         mResources = resources;
         // Initialise initial pre-execute message
@@ -26,15 +26,13 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
         // Initialise progress tracker with current task state
         if (mProgressTracker != null) {
             mProgressTracker.onProgress(mProgressMessage);
-            if (mResult != null) {
-                mProgressTracker.onComplete();
-            }
         }
     }
 
     /* UI Thread */
     @Override
     protected void onCancelled() {
+        mProgressTracker.onCompleted();
         // Detach from progress tracker
         mProgressTracker = null;
     }
@@ -53,13 +51,25 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
     /* UI Thread */
     @Override
     protected void onPostExecute(Boolean result) {
-        // Update result
-        mResult = result;
-        // And send it to progress tracker
-        if (mProgressTracker != null) {
-            mProgressTracker.onComplete();
-        }
+        if (mProgressTracker != null)
+            mProgressTracker.onCompleted();
         // Detach from progress tracker
         mProgressTracker = null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+
+        Task task = (Task) o;
+
+        return ID.equals(task.ID);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return ID.hashCode();
     }
 }

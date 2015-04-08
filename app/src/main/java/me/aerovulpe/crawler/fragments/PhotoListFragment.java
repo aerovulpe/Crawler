@@ -25,6 +25,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
+import me.aerovulpe.crawler.request.TumblrRequestTask;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -51,7 +52,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private RecyclerView mRecyclerView;
     private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
-    private AsyncTaskManager mAsyncTaskManager;
     private boolean mRequestData;
 
     private int mIndex;
@@ -87,14 +87,14 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mAsyncTaskManager = new AsyncTaskManager(getActivity(), null);
-        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
+        AsyncTaskManager.get().setContext(getActivity());
         if (mRequestData) {
             if (mAlbumID != null && mPhotoDataUrl != null) {
                 doPhotosRequest();
             }
             mRequestData = false;
         }
+        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
     }
 
     @Override
@@ -148,9 +148,18 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        AsyncTaskManager.get().onCompleted();
+    }
+
     private void doPhotosRequest() {
         if (mPhotoDataUrl.contains("picasaweb")) {
-            mAsyncTaskManager.setupTask(new PicasaPhotosRequestTask(getActivity(),
+            AsyncTaskManager.get().setupTask(new PicasaPhotosRequestTask(getActivity(), mAlbumID,
+                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
+        } else if (mPhotoDataUrl.contains("tumblr")) {
+            AsyncTaskManager.get().setupTask(new TumblrRequestTask(getActivity(), mAlbumID,
                     R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         }
     }

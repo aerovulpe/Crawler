@@ -45,7 +45,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
 
     private String mAccountID;
     private RecyclerView mRecyclerView;
-    private AsyncTaskManager mAsyncTaskManager;
     private boolean mRequestData;
     private int mIndex;
 
@@ -74,7 +73,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mAsyncTaskManager = new AsyncTaskManager(getActivity(), null);
+        AsyncTaskManager.get().setContext(getActivity());
         if (mAccountID != null && mRequestData) {
             doAlbumsRequest(mAccountID);
             mRequestData = false;
@@ -126,13 +125,19 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        AsyncTaskManager.get().onCompleted();
+    }
+
     /**
      * Loads the albums for the given user.
      */
     private void doAlbumsRequest(String userName) {
         // Use text field value.
         PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        mAsyncTaskManager.setupTask(new PicasaAlbumsRequestTask(getActivity(),
+        AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
                 R.string.loading_albums), url.getUrl(), mAccountID);
     }
 

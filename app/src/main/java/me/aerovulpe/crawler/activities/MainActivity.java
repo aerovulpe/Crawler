@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
@@ -37,6 +38,7 @@ import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.request.TumblrPhotosUrl;
+import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 import me.aerovulpe.crawler.util.AccountsUtil;
 
 
@@ -46,6 +48,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;
     private static final int ACCOUNTS_LOADER = 0;
+    private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
@@ -59,7 +62,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
-    private Toolbar mToolbar;
     private boolean mIsFullScreen;
 
     @Override
@@ -105,9 +107,9 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         });
         mTitle = mDrawerTitle = getTitle();
-        mToolbar = (Toolbar) findViewById(R.id.app_bar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-                mToolbar, R.string.drawer_open, R.string.drawer_close) {
+                toolbar, R.string.drawer_open, R.string.drawer_close) {
 
             /**
              * Called when a drawer has settled in a completely closed state.
@@ -153,6 +155,14 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         }
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+
+        if (savedInstanceState == null &&
+                getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
+                        .getBoolean(FIRST_TIME, true)) {
+            CrawlerSyncAdapter.initializeSyncAdapter(this);
+            getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
+                    .edit().putBoolean(FIRST_TIME, false);
+        }
     }
 
     @Override

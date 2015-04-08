@@ -304,7 +304,7 @@ public class TumblrRequest {
                     .getBoolean(mAlbumID, false);
             if ((System.currentTimeMillis() - lastSync <= 300000) &&
                     mLastDownloadSuccessful) {
-                shouldDownload = true;
+                shouldDownload = false;
             }
             if (!wasUpdated(params[0], mLastDownloadSuccessful)) {
                 shouldDownload = false;
