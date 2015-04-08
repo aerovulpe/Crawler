@@ -18,6 +18,7 @@ package me.aerovulpe.crawler.fragments;
 
 
 import android.app.DialogFragment;
+import android.content.ContentValues;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,15 +30,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.data.CrawlerContract;
 
 
-/**
- * A dialog for adding or editing account information.
- *
- * @author haeberling@google.com (Sascha Haeberling)
- */
 public class AddEditAccountFragment extends DialogFragment {
-    private AccountCallback mAccountCallback;
 
     public AddEditAccountFragment() {
         // Required empty public constructor
@@ -88,11 +84,13 @@ public class AddEditAccountFragment extends DialogFragment {
                 int type = accountType.getSelectedItemPosition();
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
-                mAccountCallback.onAddAccount(type, id, name);
-//                if (type == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-//                    CrawlerSyncAdapter.syncImmediately(getActivity(),
-//                            new TumblrPhotosUrl(id).getUrl(), id);
-//                }
+                if (name == null || name.isEmpty()) name = id;
+                ContentValues values = new ContentValues();
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
+                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
+                getActivity().getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
                 dismiss();
             }
         });
@@ -104,21 +102,5 @@ public class AddEditAccountFragment extends DialogFragment {
                 AddEditAccountFragment.this.dismiss();
             }
         });
-    }
-
-    public void setAccountCallback(AccountCallback accountCallback) {
-        if (mAccountCallback != null) return;
-        mAccountCallback = accountCallback;
-    }
-
-    public static interface AccountCallback {
-        /**
-         * A new account is to be created.
-         *
-         * @param type The account type.
-         * @param id   The user ID for that account.
-         * @param name The name for the account.
-         */
-        public void onAddAccount(int type, String id, String name);
     }
 }

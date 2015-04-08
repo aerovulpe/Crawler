@@ -18,7 +18,6 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
 import android.app.LoaderManager;
-import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -159,20 +158,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
      * Shows the dialog for adding a new account.
      */
     private void showAddAccountDialog() {
-        AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
-            @Override
-            public void onAddAccount(int type, String id, String name) {
-                if (name == null || name.isEmpty()) name = id;
-                ContentValues values = new ContentValues();
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
-                getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
-            }
-        };
         AddEditAccountFragment dialog = new AddEditAccountFragment();
-        dialog.setAccountCallback(accountCallback);
         dialog.show(getFragmentManager(), "accountAddDialog");
     }
 

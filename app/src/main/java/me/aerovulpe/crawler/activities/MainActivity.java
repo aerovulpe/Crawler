@@ -4,7 +4,6 @@ package me.aerovulpe.crawler.activities;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
-import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -161,7 +160,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                         .getBoolean(FIRST_TIME, true)) {
             CrawlerSyncAdapter.initializeSyncAdapter(this);
             getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
-                    .edit().putBoolean(FIRST_TIME, false);
+                    .edit().putBoolean(FIRST_TIME, false).apply();
         }
     }
 
@@ -300,20 +299,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
      * Shows the dialog for adding a new account.
      */
     private void showAddAccountDialog() {
-        AddEditAccountFragment.AccountCallback accountCallback = new AddEditAccountFragment.AccountCallback() {
-            @Override
-            public void onAddAccount(int type, String id, String name) {
-                if (name == null || name.isEmpty()) name = id;
-                ContentValues values = new ContentValues();
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
-                getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
-            }
-        };
         AddEditAccountFragment dialog = new AddEditAccountFragment();
-        dialog.setAccountCallback(accountCallback);
         dialog.show(getFragmentManager(), "accountAddDialog");
     }
 
