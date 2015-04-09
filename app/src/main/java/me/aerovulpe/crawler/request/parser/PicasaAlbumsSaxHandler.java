@@ -19,7 +19,6 @@ package me.aerovulpe.crawler.request.parser;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -88,7 +87,6 @@ public class PicasaAlbumsSaxHandler extends DefaultHandler {
                         currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, gdataUrl);
                         currentAlbumValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, gdataUrl
                                 .substring(gdataUrl.lastIndexOf('/') + 1));
-                        Log.d("DEBUG", "album id: " + gdataUrl.substring(gdataUrl.lastIndexOf('/') + 1));
                     }
                 }
             }

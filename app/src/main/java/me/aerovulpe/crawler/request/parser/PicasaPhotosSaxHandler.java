@@ -19,7 +19,6 @@ package me.aerovulpe.crawler.request.parser;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -71,7 +70,6 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
                              Attributes attributes) throws SAXException {
         if (localName.equals("entry")) {
             currentPhotoValues = new ContentValues();
-            Log.d("PHOTOPARSER", "parsing photo");
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
         } else {
