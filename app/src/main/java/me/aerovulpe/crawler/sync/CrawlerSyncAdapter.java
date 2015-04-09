@@ -30,7 +30,6 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
     public static final String SYNC_URL = "me.aerovulpe.crawler.SYNC_URL";
-    public static final String SYNC_ALBUM_ID = "me.aerovulpe.crawler.SYNC_ALBUM_ID";
     private static final String LOG_TAG = CrawlerSyncAdapter.class.getSimpleName();
 
 
@@ -58,12 +57,11 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
      *
      * @param context The context used to access the account service
      */
-    public static void syncImmediately(Context context, String url, String accountId) {
+    public static void syncImmediately(Context context, String url) {
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
         bundle.putString(SYNC_URL, url);
-        bundle.putString(SYNC_ALBUM_ID, accountId);
         ContentResolver.requestSync(getSyncAccount(context),
                 context.getString(R.string.content_authority), bundle);
     }
@@ -151,11 +149,10 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         String url = extras.getString(SYNC_URL);
-        String albumId = extras.getString(SYNC_ALBUM_ID);
 
         AsyncTaskManager.get().setContext(null);
 
-        if (url == null || albumId == null) {
+        if (url == null) {
             try {
                 Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
                         new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
@@ -165,15 +162,15 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                     AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(),
                             accountsCursor.getString(0),
                             R.string.loading_photos), accountsCursor
-                            .getString(0), accountsCursor.getString(0));
+                            .getString(0));
                 }
                 accountsCursor.close();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         } else {
-            AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(), albumId,
-                    R.string.loading_photos), url, albumId);
+            AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(), url,
+                    R.string.loading_photos), url);
         }
     }
 }
