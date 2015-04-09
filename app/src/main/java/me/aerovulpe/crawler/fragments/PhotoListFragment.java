@@ -133,6 +133,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         super.onPause();
         if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        AsyncTaskManager.get().onPause();
     }
 
     @Override
@@ -146,6 +147,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
+        AsyncTaskManager.get().onResume(getActivity());
     }
 
     @Override
