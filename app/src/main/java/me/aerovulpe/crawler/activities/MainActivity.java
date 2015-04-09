@@ -148,7 +148,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_PICASA:
-                        createAlbumListInstance(intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID));
+                        createAlbumListInstance(AccountsUtil.ACCOUNT_TYPE_PICASA,
+                                intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID));
                         break;
                 }
             }
@@ -230,9 +231,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         }
     }
 
-    public void createAlbumListInstance(String accountID) {
+    @Override
+    public void createAlbumListInstance(int accountType, String accountID) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        fragmentTransaction.add(R.id.content_frame, AlbumListFragment.newInstance(accountID), null);
+        fragmentTransaction.add(R.id.content_frame, AlbumListFragment
+                .newInstance(accountType, accountID), null);
         fragmentTransaction.commit();
     }
 

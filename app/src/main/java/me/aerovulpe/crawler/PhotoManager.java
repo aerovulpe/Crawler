@@ -9,6 +9,7 @@ import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
  * Created by Aaron on 03/03/2015.
  */
 public interface PhotoManager {
+    public void createAlbumListInstance(int accountType, String accountID);
 
     public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl, boolean addToBackstack);
 

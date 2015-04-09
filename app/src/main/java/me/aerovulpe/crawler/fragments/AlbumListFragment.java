@@ -25,6 +25,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
 import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -43,6 +44,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA
     };
 
+    private int mAccountType;
     private String mAccountID;
     private RecyclerView mRecyclerView;
     private boolean mRequestData;
@@ -52,9 +54,10 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         // Required empty public constructor
     }
 
-    public static AlbumListFragment newInstance(String accountID) {
+    public static AlbumListFragment newInstance(int accountType, String accountID) {
         AlbumListFragment fragment = new AlbumListFragment();
         Bundle args = new Bundle();
+        args.putInt(AccountsActivity.ARG_ACCOUNT_TYPE, accountType);
         args.putString(AccountsActivity.ARG_ACCOUNT_ID, accountID);
         fragment.setArguments(args);
         return fragment;
@@ -64,6 +67,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+            mAccountType = getArguments().getInt(AccountsActivity.ARG_ACCOUNT_TYPE);
             mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
         mRequestData = true;
@@ -75,7 +79,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         super.onActivityCreated(savedInstanceState);
         AsyncTaskManager.get().setContext(getActivity());
         if (mAccountID != null && mRequestData) {
-            doAlbumsRequest(mAccountID);
+            doAlbumsRequest(mAccountType, mAccountID);
             mRequestData = false;
         }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
@@ -134,11 +138,12 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     /**
      * Loads the albums for the given user.
      */
-    private void doAlbumsRequest(String userName) {
-        // Use text field value.
-        PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-        AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
-                R.string.loading_albums), url.getUrl(), mAccountID);
+    private void doAlbumsRequest(int accountType, String userName) {
+        if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+            PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
+            AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
+                    R.string.loading_albums), url.getUrl(), mAccountID);
+        }
     }
 
     /**
