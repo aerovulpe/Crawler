@@ -1,10 +1,13 @@
 package me.aerovulpe.crawler.activities;
 
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.res.Configuration;
@@ -36,9 +39,9 @@ import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
-import me.aerovulpe.crawler.request.TumblrPhotosUrl;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.NetworkUtil;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
@@ -135,15 +138,36 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         if (getSupportActionBar() != null) getSupportActionBar().setHomeButtonEnabled(true);
 
         if (savedInstanceState == null) {
+            if (getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
+                    .getBoolean(FIRST_TIME, true)) {
+                CrawlerSyncAdapter.initializeSyncAdapter(this);
+                getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
+                        .edit().putBoolean(FIRST_TIME, false).apply();
+            }
+
             final Intent intent = getIntent();
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
-                        createPhotoListInstance(intent.getExtras()
-                                        .getString(AccountsActivity.ARG_ACCOUNT_NAME),
-                                intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
-                                new TumblrPhotosUrl(intent.getExtras()
-                                        .getString(AccountsActivity.ARG_ACCOUNT_ID)).getUrl(), false);
+                        final String tumblrUrl = intent.getExtras()
+                                .getString(AccountsActivity.ARG_ACCOUNT_ID);
+                        NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
+                            @Override
+                            public Context getContext() {
+                                return MainActivity.this;
+                            }
+
+                            @Override
+                            public void onNetworkStatusReceived(boolean doesExist) {
+                                if (doesExist)
+                                    createPhotoListInstance(intent.getExtras()
+                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME),
+                                            intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
+                                            tumblrUrl, false);
+                                else
+                                    showInvalidAccountError();
+                            }
+                        }, tumblrUrl);
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;
@@ -155,14 +179,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         }
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+    }
 
-        if (savedInstanceState == null &&
-                getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
-                        .getBoolean(FIRST_TIME, true)) {
-            CrawlerSyncAdapter.initializeSyncAdapter(this);
-            getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
-                    .edit().putBoolean(FIRST_TIME, false).apply();
-        }
+    @Override
+    public void showInvalidAccountError() {
+        showError("Account Error",
+                "The account you created is either invalid or you do not have an internet connection.", true);
     }
 
     @Override
@@ -304,6 +326,22 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private void showAddAccountDialog() {
         AddEditAccountFragment dialog = new AddEditAccountFragment();
         dialog.show(getFragmentManager(), "accountAddDialog");
+    }
+
+    private void showError(String title, String message, final boolean killActivity) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                if (killActivity)
+                    finish();
+            }
+        });
+        builder.setMessage(message);
+        builder.show();
     }
 
     @Override

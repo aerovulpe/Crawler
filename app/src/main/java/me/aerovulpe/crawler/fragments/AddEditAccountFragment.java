@@ -31,6 +31,7 @@ import android.widget.Spinner;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 
 public class AddEditAccountFragment extends DialogFragment {
@@ -85,6 +86,8 @@ public class AddEditAccountFragment extends DialogFragment {
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
                 if (name == null || name.isEmpty()) name = id;
+                id = AccountsUtil.urlFromUser(id, type);
+
                 ContentValues values = new ContentValues();
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);

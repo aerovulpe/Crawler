@@ -160,7 +160,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     R.string.loading_photos), mPhotoDataUrl, mAlbumID);
         } else if (mPhotoDataUrl.contains("tumblr")) {
             AsyncTaskManager.get().setupTask(new TumblrRequestTask(getActivity(), mAlbumID,
-                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
+                    R.string.loading_photos), mPhotoDataUrl);
         }
     }
 

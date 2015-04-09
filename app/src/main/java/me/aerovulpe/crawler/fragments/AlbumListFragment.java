@@ -1,10 +1,9 @@
 package me.aerovulpe.crawler.fragments;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
@@ -24,8 +23,8 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
-import me.aerovulpe.crawler.request.PicasaAlbumsUrl;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.NetworkUtil;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -79,7 +78,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         super.onActivityCreated(savedInstanceState);
         AsyncTaskManager.get().setContext(getActivity());
         if (mAccountID != null && mRequestData) {
-            doAlbumsRequest(mAccountType, mAccountID);
+            doAlbumsRequest();
             mRequestData = false;
         }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
@@ -138,31 +137,24 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     /**
      * Loads the albums for the given user.
      */
-    private void doAlbumsRequest(int accountType, String userName) {
-        if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-            PicasaAlbumsUrl url = new PicasaAlbumsUrl(userName);
-            AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
-                    R.string.loading_albums), url.getUrl(), mAccountID);
-        }
-    }
+    private void doAlbumsRequest() {
+        if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+            NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
+                @Override
+                public Context getContext() {
+                    return getActivity();
+                }
 
-    /**
-     * Show a visual error message to the user.
-     *
-     * @param message the message to show
-     */
-    private void showError(String message) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(message);
-        builder.setIcon(android.R.drawable.ic_dialog_alert);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        builder.setMessage(message);
-        builder.show();
+                @Override
+                public void onNetworkStatusReceived(boolean doesExist) {
+                    if (doesExist)
+                        AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
+                                R.string.loading_albums), mAccountID);
+                    else
+                        ((PhotoManager) getActivity()).showInvalidAccountError();
+                }
+            }, mAccountID);
+        }
     }
 
     private void showPhotos(String albumTitle, String albumID, String photoDataUrl) {

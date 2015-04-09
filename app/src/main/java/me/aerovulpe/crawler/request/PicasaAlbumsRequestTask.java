@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import me.aerovulpe.crawler.data.parser.PicasaAlbumsSaxHandler;
+import me.aerovulpe.crawler.request.parser.PicasaAlbumsSaxHandler;
 
 /**
  * Created by Aaron on 31/03/2015.
@@ -33,7 +33,7 @@ public class PicasaAlbumsRequestTask extends Task {
             conn.setDoInput(true);
             conn.connect();
             InputStream is = conn.getInputStream();
-            Xml.parse(is, Xml.Encoding.UTF_8, new PicasaAlbumsSaxHandler(mContext, params[1]));
+            Xml.parse(is, Xml.Encoding.UTF_8, new PicasaAlbumsSaxHandler(mContext, params[0]));
             return true;
         } catch (IOException | SAXException e) {
             e.printStackTrace();

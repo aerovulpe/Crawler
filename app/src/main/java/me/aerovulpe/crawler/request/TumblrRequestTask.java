@@ -17,15 +17,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.util.NetworkUtil;
 
 /**
  * Created by Aaron on 07/04/2015.
@@ -49,85 +46,6 @@ public class TumblrRequestTask extends Task {
         mContentCache = new Vector<>(CACHE_SIZE);
         mProvider = context.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
-    }
-
-    private static boolean isImage(String uri) {
-        boolean isImage = false;
-        if (existsFileInServer(uri)) { //Before trying to read the file, ask if resource exists
-            try {
-                byte[] bytes = getBytesFromFile(uri); //Array of bytes
-                String hex = bytesToHex(bytes);
-                if (hex.substring(0, 32).equals("89504E470D0A1A0A0000000D49484452")) {
-                    isImage = true;
-                } else if (hex.startsWith("89504E470D0A1A0A0000000D49484452") || // PNG Image
-                        hex.startsWith("47494638") || // GIF8
-                        hex.startsWith("474946383761") || // GIF87a
-                        hex.startsWith("474946383961") || // GIF89a
-                        hex.startsWith("FFD8FF") // JPG
-                        ) {
-                    isImage = true;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return isImage;
-    }
-
-    private static boolean existsFileInServer(String uri) {
-        boolean exists = false;
-
-        try {
-            URL url = new URL(uri);
-            URLConnection connection = url.openConnection();
-
-            connection.connect();
-
-            // Cast to a HttpURLConnection
-            if (connection instanceof HttpURLConnection) {
-                HttpURLConnection httpConnection = (HttpURLConnection) connection;
-                if (httpConnection.getResponseCode() == 200) {
-                    exists = true;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return exists;
-    }
-
-    private static byte[] getBytesFromFile(String uri) throws IOException {
-        byte[] bytes;
-        InputStream is = null;
-        try {
-            is = new URL(uri).openStream();
-            int length = 32;
-            bytes = new byte[length];
-            int offset = 0;
-            int numRead;
-            while (offset < bytes.length
-                    && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
-                offset += numRead;
-            }
-            if (offset < bytes.length) {
-                throw new IOException("Could not completely read the file");
-            }
-        } finally {
-            if (is != null) is.close();
-        }
-        return bytes;
-    }
-
-    private static String bytesToHex(byte[] bytes) {
-        final char[] hexArray = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-        char[] hexChars = new char[bytes.length * 2];
-        int v;
-        for (int j = 0; j < bytes.length; j++) {
-            v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 
     private void download(String url) throws FailedException {
@@ -262,7 +180,7 @@ public class TumblrRequestTask extends Task {
             for (int size : sizes) {
                 // Make a URI for each tag and check if exists in server
                 String auxUri = folder + fileName + "_" + size + "." + extension;
-                if (isImage(auxUri)) {
+                if (NetworkUtil.isImage(auxUri)) {
                     return auxUri;
                 }
             }
@@ -372,7 +290,8 @@ public class TumblrRequestTask extends Task {
     protected Boolean doInBackground(String... params) {
         boolean wasSuccess = true;
         boolean shouldDownload = true;
-        mAlbumID = params[1];
+        mAlbumID = params[0];
+        String url = params[0] + "/page/";
 
         Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
                 .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
@@ -387,7 +306,7 @@ public class TumblrRequestTask extends Task {
                     mLastDownloadSuccessful) {
                 shouldDownload = false;
             }
-            if (!wasUpdated(params[0], mLastDownloadSuccessful)) {
+            if (!wasUpdated(url, mLastDownloadSuccessful)) {
                 shouldDownload = false;
             }
         } else {
@@ -410,7 +329,7 @@ public class TumblrRequestTask extends Task {
                         null, null, new String[]{"604800000", mAlbumID});
             }
             try {
-                download(params[0]);
+                download(url);
             } catch (FailedException e) {
                 e.printStackTrace();
                 mRunning = false;

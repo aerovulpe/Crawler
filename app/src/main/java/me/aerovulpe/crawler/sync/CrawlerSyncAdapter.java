@@ -16,7 +16,6 @@ import android.os.RemoteException;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.AsyncTaskManager;
-import me.aerovulpe.crawler.request.TumblrPhotosUrl;
 import me.aerovulpe.crawler.request.TumblrRequestTask;
 
 
@@ -165,8 +164,8 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                 while (accountsCursor.moveToNext()) {
                     AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(),
                             accountsCursor.getString(0),
-                            R.string.loading_photos), new TumblrPhotosUrl(accountsCursor
-                            .getString(0)).getUrl(), accountsCursor.getString(0));
+                            R.string.loading_photos), accountsCursor
+                            .getString(0), accountsCursor.getString(0));
                 }
                 accountsCursor.close();
             } catch (RemoteException e) {

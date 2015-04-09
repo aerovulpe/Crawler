@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import me.aerovulpe.crawler.data.parser.PicasaPhotosSaxHandler;
+import me.aerovulpe.crawler.request.parser.PicasaPhotosSaxHandler;
 
 /**
  * Created by Aaron on 31/03/2015.
