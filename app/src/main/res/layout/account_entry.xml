@@ -27,7 +27,8 @@
             android:id="@+id/account_id"
             style="@style/account_id"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:maxLines="1"/>
     </LinearLayout>
 
 </LinearLayout>

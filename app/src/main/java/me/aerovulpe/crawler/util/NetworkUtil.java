@@ -47,7 +47,6 @@ public final class NetworkUtil {
             // Cast to a HttpURLConnection
             if (connection instanceof HttpURLConnection) {
                 HttpURLConnection httpConnection = (HttpURLConnection) connection;
-                httpConnection.setRequestMethod("HEAD");
                 if (httpConnection.getResponseCode() == 200) {
                     exists = true;
                 }
