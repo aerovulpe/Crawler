@@ -116,7 +116,7 @@ public class CrawlerProvider extends ContentProvider {
     }
 
     @Override
-    public synchronized Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         // Here's the switch statement that, given a URI, will determine what kind of request it is,
         // and query the database accordingly.
         Cursor retCursor;
@@ -171,7 +171,7 @@ public class CrawlerProvider extends ContentProvider {
     }
 
     @Override
-    public synchronized String getType(Uri uri) {
+    public String getType(Uri uri) {
         // Use the Uri Matcher to determine what kind of URI this is.
         final int match = sUriMatcher.match(uri);
 
