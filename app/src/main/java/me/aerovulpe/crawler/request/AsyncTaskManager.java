@@ -10,6 +10,7 @@ import com.google.common.collect.MapMaker;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -31,7 +32,9 @@ public final class AsyncTaskManager implements IProgressTracker {
     };
     private static final BlockingQueue<Runnable> sPoolWorkQueue =
             new LinkedBlockingQueue<>(128);
-
+    private static final Executor THREAD_POOL_EXECUTOR
+            = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
+            TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory);
     ConcurrentMap<String, Task> mTasks = new MapMaker()
             .initialCapacity(5)
             .weakValues()
@@ -62,8 +65,7 @@ public final class AsyncTaskManager implements IProgressTracker {
             asyncTask.setProgressTracker(this);
             mCurrentVisibleTask = new WeakReference<>(asyncTask);
             // Start task
-            asyncTask.executeOnExecutor(new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
-                    TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory), params);
+            asyncTask.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
             // Put into tasks
             mTasks.put(asyncTask.ID, asyncTask);
         } else {
