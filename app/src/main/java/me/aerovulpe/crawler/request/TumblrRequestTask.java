@@ -306,11 +306,12 @@ public class TumblrRequestTask extends Task {
                     mLastDownloadSuccessful) {
                 shouldDownload = false;
             }
-            if (!wasUpdated(url, mLastDownloadSuccessful)) {
-                shouldDownload = false;
-            }
         } else {
             lastTimeCursor.close();
+        }
+
+        if (!wasUpdated(url, mLastDownloadSuccessful)) {
+            shouldDownload = false;
         }
 
         if (shouldDownload) {
