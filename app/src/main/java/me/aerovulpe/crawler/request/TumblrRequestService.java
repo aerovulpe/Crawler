@@ -57,6 +57,9 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
 
     @Override
     public void onFinished(TumblrRequest result) {
+        if (result == null)
+            return;
+
         mTumblrRequestIds.remove(result.getAlbumID());
         if (result.getAlbumID().equals(mLastTumblrRequest.getAlbumID())) {
             Intent intent = new Intent(ACTION_NOTIFY_TUMBLR_PROGRESS);
