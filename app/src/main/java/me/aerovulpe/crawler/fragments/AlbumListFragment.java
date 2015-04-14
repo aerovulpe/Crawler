@@ -21,7 +21,6 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
 import me.aerovulpe.crawler.util.AccountsUtil;
 import me.aerovulpe.crawler.util.NetworkUtil;
@@ -76,7 +75,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        AsyncTaskManager.get().setContext(getActivity());
         if (mAccountID != null && mRequestData) {
             doAlbumsRequest();
             mRequestData = false;
@@ -113,7 +111,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         super.onPause();
         if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-        AsyncTaskManager.get().onPause();
     }
 
     @Override
@@ -127,13 +124,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
-        AsyncTaskManager.get().onResume(getActivity());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        AsyncTaskManager.get().onCompleted();
     }
 
     /**
@@ -150,8 +140,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                 @Override
                 public void onNetworkStatusReceived(boolean doesExist) {
                     if (doesExist)
-                        AsyncTaskManager.get().setupTask(new PicasaAlbumsRequestTask(getActivity(), mAccountID,
-                                R.string.loading_albums), mAccountID);
+                        new PicasaAlbumsRequestTask(getActivity(), mAccountID,
+                                R.string.loading_albums).execute(mAccountID);
                     else
                         ((PhotoManager) getActivity()).showInvalidAccountError();
                 }

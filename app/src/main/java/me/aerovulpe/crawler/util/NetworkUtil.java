@@ -1,6 +1,8 @@
 package me.aerovulpe.crawler.util;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 
 import java.io.IOException;
@@ -61,18 +63,18 @@ public final class NetworkUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (existsFileInServer(url))
+                if (!existsFileInServer(url) && isNetworkAvailable(observer.getContext()))
                     new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            observer.onNetworkStatusReceived(true);
+                            observer.onNetworkStatusReceived(false);
                         }
                     });
                 else
                     new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            observer.onNetworkStatusReceived(false);
+                            observer.onNetworkStatusReceived(true);
                         }
                     });
             }
@@ -111,6 +113,13 @@ public final class NetworkUtil {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    private static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     /**

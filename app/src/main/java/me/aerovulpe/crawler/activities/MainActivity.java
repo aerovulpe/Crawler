@@ -184,7 +184,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     public void showInvalidAccountError() {
         showError("Account Error",
-                "The account you created is either invalid or you do not have an internet connection.", true);
+                "The account you created is invalid. Please check it.", true);
     }
 
     @Override

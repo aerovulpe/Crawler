@@ -1,14 +1,18 @@
 package me.aerovulpe.crawler.request;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,36 +23,65 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
+import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.AccountsActivity;
+import me.aerovulpe.crawler.activities.MainActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.util.AccountsUtil;
 import me.aerovulpe.crawler.util.NetworkUtil;
 
 /**
  * Created by Aaron on 07/04/2015.
  */
-public class TumblrRequestTask extends Task {
+public class TumblrRequest implements Runnable {
     public static final String LAST_FIRST_IMAGE_URL_SUFFIX = ".last_first_image_url";
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
+    private static final Document SHUTDOWN_REQ = new Document("SHUTDOWN");
+    final int id = new Random().nextInt();
     private final Context mContext;
-    private final Vector<ContentValues> mContentCache;
     private final ContentProviderClient mProvider;
-    private String mAlbumID;
+    private final TumblrRequestObserver mRequestObserver;
+    private final String mAlbumID;
+    private BlockingQueue<Document> mPages = new ArrayBlockingQueue<>(10);
     private int[] sizes = new int[]{1280, 500, 400, 250};
-    private boolean mRunning = true;
+    private volatile boolean mRunning = true;
     private boolean mLastDownloadSuccessful;
+    private int mMaxPage;
+    private NotificationManager mNotifyManager;
+    private NotificationCompat.Builder mBuilder;
+    private Thread mParser = new Thread(new MyParser());
+    private PendingIntent mPendingIntent;
+    private boolean mShouldDownload;
+    private String mUrl;
+    private boolean mWasCancelled;
 
-    public TumblrRequestTask(Context context, String id, int resourceId) {
-        super(id, context.getResources(), resourceId);
+    public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
-        mContentCache = new Vector<>(CACHE_SIZE);
+        mRequestObserver = requestObserver;
+        mAlbumID = rawUrl;
+        mUrl = rawUrl + "/page/";
         mProvider = context.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
     }
 
     private void download(String url) throws FailedException {
+        mNotifyManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        mBuilder = new NotificationCompat.Builder(mContext)
+                .setContentTitle("Downloading from " +
+                        mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com")))
+                .setSmallIcon(R.drawable.ic_download)
+                .setAutoCancel(true)
+                .setContentIntent(mPendingIntent);
+
+        mNotifyManager.notify(id, mBuilder.build());
+
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
         boolean next = false;
@@ -56,11 +89,16 @@ public class TumblrRequestTask extends Task {
             int attempts = 0;
             while (attempts < 10 && mRunning) {
                 try {
-                    Document doc = Jsoup.connect(url + i).get();
+                    final Document doc = Jsoup.connect(url + i).get();
                     Log.d("DOCUMENT", doc.baseUri());
                     attempts = 10;
-                    getPhotos(doc);
-                    getPhotosFromIFrameDoc(doc);
+
+                    try {
+                        mPages.put(doc);
+                    } catch (InterruptedException iex) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Unexpected interruption");
+                    }
 
                     Elements link = doc.select("a");
                     int elems = link.size();
@@ -109,60 +147,13 @@ public class TumblrRequestTask extends Task {
                 fin++;
             } else {
                 Log.d("PAGES", pages.toString());
-                return;
-            }
-        }
-    }
-
-    private void getPhotos(Document doc) {
-        Elements imag = doc.select("img");
-        int elems = imag.size();
-        for (int j = 0; j < elems && mRunning; j++) {
-            String imag_url = imag.get(j).attr("src");
-            String[] aux = imag_url.split("/");
-            if (!aux[0].equals("http:")) {
-                continue;
-            }
-            if (aux[aux.length - 1].split("\\.").length <= 1) {
-                continue;
-            }
-
-            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
-            String imageUrl = bestUrl(imag_url);
-            String filename = Uri.parse(imageUrl).getLastPathSegment();
-            String description = Jsoup.parse(imag.get(j).attr("alt")).text();
-            ContentValues currentPhotoValues = new ContentValues();
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, imag_url);
-            mContentCache.add(currentPhotoValues);
-            if (mContentCache.size() >= CACHE_SIZE) {
-                insertAndClearCache();
-            }
-        }
-    }
-
-    private void getPhotosFromIFrameDoc(Document doc) throws IOException {
-        Elements link = doc.select("iframe");
-        int elems = link.size();
-        for (int j = 0; j < elems && mRunning; j++) {
-            String id = link.get(j).attr("id");
-            if (id.contains("photoset_iframe")) {
-                int attempts = 0;
-                while (attempts < 5) {
-                    try {
-                        Document iFrameDoc = Jsoup.connect(
-                                link.get(j).attr("src")).get();
-                        getPhotos(iFrameDoc);
-                        attempts = 5;
-                    } catch (SocketTimeoutException e) {
-                        attempts++;
-                        e.printStackTrace();
-                    }
+                mMaxPage = fin;
+                try {
+                    mPages.put(SHUTDOWN_REQ);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+                return;
             }
         }
     }
@@ -186,23 +177,6 @@ public class TumblrRequestTask extends Task {
             }
         }
         return uri;
-    }
-
-    private void insertAndClearCache() {
-        int rowsInserted = 0;
-        try {
-            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            mContentCache.clear();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        if (rowsInserted == 0 && mLastDownloadSuccessful) {
-            // Stop we're up to date!
-            mRunning = false;
-            Log.d("HALT", "DONE");
-        }
     }
 
     public boolean wasUpdated(String url, boolean lastDownloadSuccessful) {
@@ -280,18 +254,10 @@ public class TumblrRequestTask extends Task {
         return wasUpdated;
     }
 
-    private void cleanUp(Boolean result) {
-        mProvider.release();
-        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .edit().putBoolean(mAlbumID, result).apply();
-    }
-
     @Override
-    protected Boolean doInBackground(String... params) {
+    public void run() {
         boolean wasSuccess = true;
-        boolean shouldDownload = true;
-        mAlbumID = params[0];
-        String url = params[0] + "/page/";
+        mShouldDownload = true;
 
         Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
                 .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
@@ -304,17 +270,17 @@ public class TumblrRequestTask extends Task {
                     .getBoolean(mAlbumID, false);
             if ((System.currentTimeMillis() - lastSync <= 300000) &&
                     mLastDownloadSuccessful) {
-                shouldDownload = false;
+                mShouldDownload = false;
             }
         } else {
             lastTimeCursor.close();
         }
 
-        if (!wasUpdated(url, mLastDownloadSuccessful)) {
-            shouldDownload = false;
+        if (!wasUpdated(mUrl, mLastDownloadSuccessful)) {
+            mShouldDownload = false;
         }
 
-        if (shouldDownload) {
+        if (mShouldDownload) {
             ContentValues albumStubValues = new ContentValues();
             albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
             albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
@@ -329,32 +295,199 @@ public class TumblrRequestTask extends Task {
                 mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
                         null, null, new String[]{"604800000", mAlbumID});
             }
+            mParser.start();
+            Intent intent = new Intent(mContext, MainActivity.class);
+            intent.setAction(mAlbumID);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, mAlbumID);
+            intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, AccountsUtil.ACCOUNT_TYPE_TUMBLR);
             try {
-                download(url);
+                Cursor nameCursor = mProvider
+                        .query(CrawlerContract.AccountEntry.CONTENT_URI,
+                                new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
+                                CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                                new String[]{mAlbumID}, null, null);
+                nameCursor.moveToFirst();
+                intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, nameCursor.getString(0));
+                nameCursor.close();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            mPendingIntent = PendingIntent.getActivity(
+                    mContext,
+                    0,
+                    intent,
+                    0);
+            try {
+                download(mUrl);
             } catch (FailedException e) {
                 e.printStackTrace();
                 mRunning = false;
                 wasSuccess = false;
-            }
-            if (!mContentCache.isEmpty()) {
-                insertAndClearCache();
+            } finally {
+                try {
+                    mParser.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        return wasSuccess;
+        if (!mWasCancelled)
+            onFinished(wasSuccess);
     }
 
-    @Override
-    protected void onPostExecute(Boolean result) {
-        super.onPostExecute(result);
-        cleanUp(result);
+    public String getAlbumID() {
+        return mAlbumID;
     }
 
-    @Override
-    protected void onCancelled(Boolean result) {
-        cleanUp(result);
-        onCancelled();
+    private void onFinished(boolean result) {
+        mProvider.release();
+        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                .edit().putBoolean(mAlbumID, result).apply();
+        notifyFinished(result);
+        mRequestObserver.onFinished(this);
+    }
+
+    public void cancel() {
+        mWasCancelled = true;
+        mRunning = false;
+        mProvider.release();
+        mBuilder.setContentText("Download cancelled")
+                .setProgress(0, 0, false)
+                .setContentIntent(mPendingIntent)
+                .setAutoCancel(true)
+                .build();
+        mNotifyManager.notify(id, mBuilder.build());
+        mRequestObserver.onFinished(this);
+    }
+
+    private void notifyFinished(boolean wasSuccess) {
+        if (mShouldDownload) {
+            if (wasSuccess) {
+                mBuilder.setContentText("Download completed");
+            } else {
+                mBuilder.setContentText("Download failed");
+            }
+            mBuilder
+                    // Removes the progress bar
+                    .setProgress(0, 0, false)
+                    .setContentIntent(mPendingIntent)
+                    .setAutoCancel(true)
+                    .build();
+            mNotifyManager.notify(id, mBuilder.build());
+        }
+    }
+
+    public interface TumblrRequestObserver {
+        public void onFinished(TumblrRequest result);
     }
 
     private class FailedException extends Exception {
+    }
+
+    private class MyParser implements Runnable {
+        @Override
+        public void run() {
+            try {
+                Document doc;
+                int currentPage = 1;
+                while (!(doc = mPages.take()).baseUri().equals("SHUTDOWN") && mRunning) {
+                    if (mMaxPage != 0) {
+                        // Update progress
+                        mBuilder.setContentText("Downloading page " + currentPage + " of " + mMaxPage)
+                                .setProgress(mMaxPage, currentPage, false);
+                    } else {
+                        mBuilder.setContentText("Downloading page " + currentPage);
+                    }
+                    mBuilder.setAutoCancel(true);
+                    mNotifyManager.notify(id, mBuilder.build());
+                    getPhotos(doc);
+                    getPhotosFromIFrameDoc(doc);
+                    currentPage++;
+                    Log.d("GETTING FROM PAGE: ", doc.baseUri());
+                }
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (!mContentCache.isEmpty()) {
+                    insertAndClearCache();
+                }
+                Log.d("PARSER", "DONE");
+            }
+        }
+
+        private final Vector<ContentValues> mContentCache = new Vector<>(CACHE_SIZE);
+
+        private void getPhotos(Document doc) {
+            Elements imag = doc.select("img");
+            int elems = imag.size();
+            for (int j = 0; j < elems && mRunning; j++) {
+                String imag_url = imag.get(j).attr("src");
+                String[] aux = imag_url.split("/");
+                if (!aux[0].equals("http:")) {
+                    continue;
+                }
+                if (aux[aux.length - 1].split("\\.").length <= 1) {
+                    continue;
+                }
+
+                if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
+                String imageUrl = bestUrl(imag_url);
+                String filename = Uri.parse(imageUrl).getLastPathSegment();
+                String description = Jsoup.parse(imag.get(j).attr("alt")).text();
+                ContentValues currentPhotoValues = new ContentValues();
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
+                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, imag_url);
+                mContentCache.add(currentPhotoValues);
+                if (mContentCache.size() >= CACHE_SIZE) {
+                    insertAndClearCache();
+                }
+            }
+        }
+
+        private void getPhotosFromIFrameDoc(Document doc) throws IOException {
+            Elements link = doc.select("iframe");
+            int elems = link.size();
+            for (int j = 0; j < elems && mRunning; j++) {
+                String id = link.get(j).attr("id");
+                if (id.contains("photoset_iframe")) {
+                    int attempts = 0;
+                    while (attempts < 5) {
+                        try {
+                            Document iFrameDoc = Jsoup.connect(
+                                    link.get(j).attr("src")).get();
+                            getPhotos(iFrameDoc);
+                            attempts = 5;
+                        } catch (SocketTimeoutException e) {
+                            attempts++;
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void insertAndClearCache() {
+            int rowsInserted = 0;
+            try {
+                rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                mContentCache.clear();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+
+            if (rowsInserted == 0 && mLastDownloadSuccessful) {
+                // Stop we're up to date!
+                mRunning = false;
+                Log.d("HALT", "DONE");
+            }
+        }
+
+
     }
 }

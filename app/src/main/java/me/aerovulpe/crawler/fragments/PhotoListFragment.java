@@ -3,11 +3,19 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,9 +31,8 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.request.AsyncTaskManager;
 import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
-import me.aerovulpe.crawler.request.TumblrRequestTask;
+import me.aerovulpe.crawler.request.TumblrRequestService;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -39,6 +46,16 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_PHOTO_DESCRIPTION = 4;
     private static final int PHOTOS_LOADER = 2;
     private static final String TAG = PhotoListFragment.class.getSimpleName();
+    // For getting confirmation from the service
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "receiver onReceive...");
+            if (mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        }
+    };
     private static String[] PHOTOS_COLUMNS = {
             CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
             CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
@@ -49,11 +66,34 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private String mAlbumTitle;
     private String mAlbumID;
     private String mPhotoDataUrl;
-
     private RecyclerView mRecyclerView;
     private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
     private boolean mRequestData;
+    private TumblrRequestService mBoundService;
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((TumblrRequestService.LocalBinder) service).getService();
 
+            // Tell the user about this for our demo.
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+            if (mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        }
+    };
+    private ProgressDialog mProgressDialog;
+    private boolean mIsBound;
     private int mIndex;
 
     public PhotoListFragment() {
@@ -82,13 +122,17 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         }
         mRequestData = true;
         setRetainInstance(true);
+
+        final IntentFilter myFilter = new
+                IntentFilter(TumblrRequestService.ACTION_NOTIFY_TUMBLR_PROGRESS);
+        getActivity().registerReceiver(mReceiver, myFilter);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        AsyncTaskManager.get().setContext(getActivity());
         if (mRequestData) {
+            mProgressDialog = new ProgressDialog(getActivity());
             if (mAlbumID != null && mPhotoDataUrl != null) {
                 doPhotosRequest();
             }
@@ -133,7 +177,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         super.onPause();
         if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-        AsyncTaskManager.get().onPause();
     }
 
     @Override
@@ -147,22 +190,24 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
-        AsyncTaskManager.get().onResume(getActivity());
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        AsyncTaskManager.get().onCompleted();
+    public void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
+        getActivity().unregisterReceiver(mReceiver);
     }
 
     private void doPhotosRequest() {
         if (mPhotoDataUrl.contains("picasaweb")) {
-            AsyncTaskManager.get().setupTask(new PicasaPhotosRequestTask(getActivity(), mAlbumID,
-                    R.string.loading_photos), mPhotoDataUrl, mAlbumID);
+            new PicasaPhotosRequestTask(getActivity(), mAlbumID,
+                    R.string.loading_photos).execute(mPhotoDataUrl, mAlbumID);
         } else if (mPhotoDataUrl.contains("tumblr")) {
-            AsyncTaskManager.get().setupTask(new TumblrRequestTask(getActivity(), mAlbumID,
-                    R.string.loading_photos), mPhotoDataUrl);
+            Intent intent = new Intent(getActivity(), TumblrRequestService.class);
+            intent.putExtra(TumblrRequestService.ARG_RAW_URL, mPhotoDataUrl);
+            getActivity().startService(intent);
+            doBindService();
         }
     }
 
@@ -191,6 +236,28 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, Photo
                             .fromCursor(cursor), initPos, isSlideShow);
+    }
+
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        getActivity().bindService(new Intent(getActivity(),
+                TumblrRequestService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+        mProgressDialog.setMessage(getResources().getString(R.string.loading_photos));
+        mProgressDialog.show();
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            getActivity().unbindService(mConnection);
+            mIsBound = false;
+            if (mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        }
     }
 
     public interface OnPhotoCursorChangedListener {

@@ -57,7 +57,6 @@ public class CrawlerApplication extends Application {
                 .showImageOnLoading(R.drawable.loading)
                 .showImageForEmptyUri(R.drawable.ic_empty)
                 .showImageOnFail(R.drawable.load_failed)
-                .cacheInMemory(true)
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();

@@ -19,7 +19,7 @@ public class PicasaAlbumsRequestTask extends Task {
     private final Context mContext;
 
     public PicasaAlbumsRequestTask(Context context, String id, int resourceId) {
-        super(id, context.getResources(), resourceId);
+        super(context, id, resourceId);
         mContext = context;
     }
 

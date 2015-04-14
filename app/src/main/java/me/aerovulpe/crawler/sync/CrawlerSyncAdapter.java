@@ -6,6 +6,7 @@ import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.database.Cursor;
@@ -15,8 +16,7 @@ import android.os.RemoteException;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.AsyncTaskManager;
-import me.aerovulpe.crawler.request.TumblrRequestTask;
+import me.aerovulpe.crawler.request.TumblrRequestService;
 
 
 /**
@@ -149,9 +149,6 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         String url = extras.getString(SYNC_URL);
-
-        AsyncTaskManager.get().setContext(null);
-
         if (url == null) {
             try {
                 Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
@@ -159,18 +156,18 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                         CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
                 accountsCursor.moveToPosition(-1);
                 while (accountsCursor.moveToNext()) {
-                    AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(),
-                            accountsCursor.getString(0),
-                            R.string.loading_photos), accountsCursor
-                            .getString(0));
+                    Intent intent = new Intent(getContext(), TumblrRequestService.class);
+                    intent.putExtra(TumblrRequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                    getContext().startService(intent);
                 }
                 accountsCursor.close();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         } else {
-            AsyncTaskManager.get().setupTask(new TumblrRequestTask(getContext(), url,
-                    R.string.loading_photos), url);
+            Intent intent = new Intent(getContext(), TumblrRequestService.class);
+            intent.putExtra(TumblrRequestService.ARG_RAW_URL, url);
+            getContext().startService(intent);
         }
     }
 }
