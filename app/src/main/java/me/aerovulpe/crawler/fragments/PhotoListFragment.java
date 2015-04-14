@@ -122,15 +122,14 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         }
         mRequestData = true;
         setRetainInstance(true);
-
-        final IntentFilter myFilter = new
-                IntentFilter(TumblrRequestService.ACTION_NOTIFY_TUMBLR_PROGRESS);
-        getActivity().registerReceiver(mReceiver, myFilter);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        final IntentFilter myFilter = new
+                IntentFilter(TumblrRequestService.ACTION_NOTIFY_TUMBLR_PROGRESS);
+        getActivity().registerReceiver(mReceiver, myFilter);
         if (mRequestData) {
             mProgressDialog = new ProgressDialog(getActivity());
             if (mAlbumID != null && mPhotoDataUrl != null) {
@@ -168,7 +167,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 displayPhoto(cursor, position, false);
             }
         });
-
         return rootView;
     }
 
@@ -193,8 +191,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDetach() {
+        super.onDetach();
         doUnbindService();
         getActivity().unregisterReceiver(mReceiver);
     }
