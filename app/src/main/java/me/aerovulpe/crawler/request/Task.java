@@ -16,6 +16,13 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
         mProgressDialog.setMessage(context.getResources().getString(resourceId));
     }
 
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        if (!mProgressDialog.isShowing())
+            mProgressDialog.show();
+    }
+
     /* UI Thread */
     @Override
     protected void onCancelled(Boolean result) {
