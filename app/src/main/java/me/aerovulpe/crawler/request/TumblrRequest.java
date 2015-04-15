@@ -184,7 +184,7 @@ public class TumblrRequest implements Runnable {
         try {
             Document doc = Jsoup.connect(url + 1).get();
 
-            String firstImageUrl = null;
+            String firstImageUrl = "";
             Elements imag = doc.select("img");
             for (int j = 0; j < imag.size(); j++) {
                 firstImageUrl = imag.get(j).attr("src");
@@ -202,7 +202,7 @@ public class TumblrRequest implements Runnable {
                 break;
             }
 
-            String firstImageFrameUrl = null;
+            String firstImageFrameUrl = "";
             Elements link = doc.select("iframe");
             String id = link.get(0).attr("id");
             if (id.contains("photoset_iframe")) {
@@ -237,10 +237,10 @@ public class TumblrRequest implements Runnable {
 
             String lastFirstImageUrl = mContext.getSharedPreferences(TUMBLR_PREF,
                     Context.MODE_PRIVATE).getString(mAlbumID +
-                    LAST_FIRST_IMAGE_URL_SUFFIX, "42");
+                    LAST_FIRST_IMAGE_URL_SUFFIX, "");
             String lastFirstImageFrameUrl = mContext.getSharedPreferences(TUMBLR_PREF,
                     Context.MODE_PRIVATE).getString(mAlbumID +
-                    LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, "42");
+                    LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, "");
             if (lastDownloadSuccessful && lastFirstImageUrl.equals(firstImageUrl) &&
                     lastFirstImageFrameUrl.equals(firstImageFrameUrl))
                 wasUpdated = false;
@@ -416,8 +416,6 @@ public class TumblrRequest implements Runnable {
             }
         }
 
-        private final Vector<ContentValues> mContentCache = new Vector<>(CACHE_SIZE);
-
         private void getPhotos(Document doc) {
             Elements imag = doc.select("img");
             int elems = imag.size();
@@ -448,6 +446,8 @@ public class TumblrRequest implements Runnable {
                 }
             }
         }
+
+        private final Vector<ContentValues> mContentCache = new Vector<>(CACHE_SIZE);
 
         private void getPhotosFromIFrameDoc(Document doc) throws IOException {
             Elements link = doc.select("iframe");
@@ -487,6 +487,8 @@ public class TumblrRequest implements Runnable {
                 Log.d("HALT", "DONE");
             }
         }
+
+
 
 
     }
