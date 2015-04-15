@@ -8,7 +8,7 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
 
     public final String ID;
     final int mResourceId;
-    private Context mContext;
+    protected Context mContext;
     private ProgressDialog mProgressDialog;
 
     /* UI Thread */
@@ -39,9 +39,14 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
     }
 
     private void dismissDialog() {
-        if (mProgressDialog.isShowing())
-            mProgressDialog.dismiss();
-        mProgressDialog = null;
-        mContext = null;
+        try {
+            if (mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } finally {
+            mProgressDialog = null;
+            mContext = null;
+        }
     }
 }

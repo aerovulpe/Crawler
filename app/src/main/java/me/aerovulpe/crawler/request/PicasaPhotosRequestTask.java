@@ -16,11 +16,9 @@ import me.aerovulpe.crawler.request.parser.PicasaPhotosSaxHandler;
  * Created by Aaron on 31/03/2015.
  */
 public class PicasaPhotosRequestTask extends Task {
-    private final Context mContext;
 
     public PicasaPhotosRequestTask(Context context, String id, int resourceId) {
         super(context, id, resourceId);
-        mContext = context;
     }
 
     @Override
