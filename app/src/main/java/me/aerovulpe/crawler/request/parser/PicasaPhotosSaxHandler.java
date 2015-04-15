@@ -29,7 +29,7 @@ import java.util.Vector;
 import me.aerovulpe.crawler.data.CrawlerContract;
 
 public class PicasaPhotosSaxHandler extends DefaultHandler {
-    public static final int CACHE_SIZE = 50;
+    public static final int CACHE_SIZE = 1000;
     private final Context mContext;
     private final Vector<ContentValues> mContentCache;
     private final String mAlbumID;

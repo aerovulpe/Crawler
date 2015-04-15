@@ -4,8 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import java.lang.ref.WeakReference;
-
 public abstract class Task extends AsyncTask<String, String, Boolean> {
 
     public final String ID;
@@ -16,18 +14,16 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
     /* UI Thread */
     public Task(Context context, String id, int resourceId) {
         ID = id;
-        mContext = new WeakReference<>(context).get();
+        mContext = context;
         mResourceId = resourceId;
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        if (mContext != null) {
-            mProgressDialog = new ProgressDialog(mContext);
-            mProgressDialog.setMessage(mContext.getResources().getString(mResourceId));
-            mProgressDialog.show();
-        }
+        mProgressDialog = new ProgressDialog(mContext);
+        mProgressDialog.setMessage(mContext.getResources().getString(mResourceId));
+        mProgressDialog.show();
     }
 
     /* UI Thread */
@@ -43,7 +39,7 @@ public abstract class Task extends AsyncTask<String, String, Boolean> {
     }
 
     private void dismissDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing())
+        if (mProgressDialog.isShowing())
             mProgressDialog.dismiss();
         mProgressDialog = null;
         mContext = null;
