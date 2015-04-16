@@ -437,7 +437,11 @@ public class TumblrRequest implements Runnable {
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, result).apply();
         notifyFinished(result);
-        mContext.unregisterReceiver(mReceiver);
+        try {
+            mContext.unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
         mRequestObserver.onFinished(this);
     }
 
@@ -449,7 +453,11 @@ public class TumblrRequest implements Runnable {
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
-        mContext.unregisterReceiver(mReceiver);
+        try {
+            mContext.unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
         mRequestObserver.onFinished(this);
         mNotifyManager.cancel(mAlbumID.hashCode());
     }

@@ -39,7 +39,14 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
                 NUMBER_OF_CORES,       // Max pool size
                 KEEP_ALIVE_TIME,
                 KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<Runnable>());
+                new LinkedBlockingQueue<Runnable>()) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                super.afterExecute(r, t);
+                if (getActiveCount() == 1 && getQueue().isEmpty())
+                    stopForeground(true);
+            }
+        };
     }
 
     @Override
@@ -62,10 +69,6 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
 
     @Override
     public void onFinished(TumblrRequest result) {
-        if (mRequestThreadPool.getActiveCount() == 1 &&
-                mRequestThreadPool.getQueue().isEmpty())
-            stopForeground(true);
-
         if (result == null)
             return;
 
