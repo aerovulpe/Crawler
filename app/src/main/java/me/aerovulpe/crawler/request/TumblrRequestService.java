@@ -62,20 +62,18 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
 
     @Override
     public void onFinished(TumblrRequest result) {
-        if (mRequestThreadPool.getActiveCount() == 1 &&
-                mRequestThreadPool.getQueue().isEmpty())
-            stopForeground(true);
-
-        if (result == null)
-            return;
-
-        mTumblrRequestIds.remove(result.getAlbumID());
-        if (mLastTumblrRequest != null &&
-                result.getAlbumID().equals(mLastTumblrRequest.getAlbumID())) {
-            Intent intent = new Intent(ACTION_NOTIFY_TUMBLR_PROGRESS);
-            sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_TUMBLR_PROGRESS");
-            mLastTumblrRequest = null;
+        if (result != null) {
+            mTumblrRequestIds.remove(result.getAlbumID());
+            if (mLastTumblrRequest != null &&
+                    result.getAlbumID().equals(mLastTumblrRequest.getAlbumID())) {
+                Intent intent = new Intent(ACTION_NOTIFY_TUMBLR_PROGRESS);
+                sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_TUMBLR_PROGRESS");
+                mLastTumblrRequest = null;
+            }
         }
+
+        if (mTumblrRequestIds.isEmpty())
+            stopForeground(true);
     }
 
     @Override
