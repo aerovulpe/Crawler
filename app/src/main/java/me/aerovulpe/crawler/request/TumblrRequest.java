@@ -57,6 +57,7 @@ public class TumblrRequest implements Runnable {
     private String mUrl;
     private boolean mWasCancelled;
     private RemoteViews mViews;
+    private BroadcastReceiver mReceiver;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
@@ -98,7 +99,7 @@ public class TumblrRequest implements Runnable {
         mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
         mViews.setTextViewText(R.id.title, "Downloading from " +
                 mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com")));
-        mContext.registerReceiver(new BroadcastReceiver() {
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 cancel();
@@ -110,9 +111,10 @@ public class TumblrRequest implements Runnable {
                     }
                 });
             }
-        }, new IntentFilter("MyRemoteViewsBroadcast"));
+        };
+        mContext.registerReceiver(mReceiver, new IntentFilter(mAlbumID + ".CANCEL"));
         PendingIntent pi = PendingIntent.getBroadcast(mContext, 0,
-                new Intent("MyRemoteViewsBroadcast"), 0);
+                new Intent(mAlbumID + ".CANCEL"), 0);
         mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
         mBuilder = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_download)
@@ -435,6 +437,7 @@ public class TumblrRequest implements Runnable {
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, result).apply();
         notifyFinished(result);
+        mContext.unregisterReceiver(mReceiver);
         mRequestObserver.onFinished(this);
     }
 
@@ -446,6 +449,7 @@ public class TumblrRequest implements Runnable {
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
+        mContext.unregisterReceiver(mReceiver);
         mRequestObserver.onFinished(this);
         mNotifyManager.cancel(mAlbumID.hashCode());
     }
