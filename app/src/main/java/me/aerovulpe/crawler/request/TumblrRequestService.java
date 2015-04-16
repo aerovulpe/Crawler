@@ -1,5 +1,7 @@
 package me.aerovulpe.crawler.request;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -9,6 +11,9 @@ import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.AccountsActivity;
 
 /**
  * Created by Aaron on 14/04/2015.
@@ -47,7 +52,7 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
                 mTumblrRequestIds.add(rawUrl);
             }
         }
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     @Override
@@ -57,6 +62,10 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
 
     @Override
     public void onFinished(TumblrRequest result) {
+        if (mRequestThreadPool.getActiveCount() == 1 &&
+                mRequestThreadPool.getQueue().isEmpty())
+            stopForeground(true);
+
         if (result == null)
             return;
 
@@ -67,6 +76,21 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
             sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_TUMBLR_PROGRESS");
             mLastTumblrRequest = null;
         }
+    }
+
+    @Override
+    public void startForeground() {
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("Loading tumblr blogs")
+                .setContentText("tumblr download in progress")
+                .setContentIntent(PendingIntent.getActivity(
+                        this,
+                        0,
+                        new Intent(this, AccountsActivity.class),
+                        0))
+                .setPriority(Notification.PRIORITY_HIGH);
+        startForeground(123742, builder.build());
     }
 
     /**

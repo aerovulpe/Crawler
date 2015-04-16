@@ -2,10 +2,12 @@ package me.aerovulpe.crawler.request;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
@@ -14,6 +16,7 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import org.jsoup.Jsoup;
@@ -23,10 +26,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
@@ -43,27 +43,24 @@ public class TumblrRequest implements Runnable {
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
-    private static final Document SHUTDOWN_REQ = new Document("SHUTDOWN");
-    final int id = new Random().nextInt();
     private final Context mContext;
     private final ContentProviderClient mProvider;
     private final TumblrRequestObserver mRequestObserver;
     private final String mAlbumID;
-    private BlockingQueue<Document> mPages = new ArrayBlockingQueue<>(10);
+    private final Vector<ContentValues> mContentCache;
     private int[] sizes = new int[]{1280, 500, 400, 250};
-    private volatile boolean mRunning = true;
-    private boolean mLastDownloadSuccessful;
-    private int mMaxPage;
     private NotificationManager mNotifyManager;
     private NotificationCompat.Builder mBuilder;
-    private Thread mParser = new Thread(new MyParser());
-    private PendingIntent mPendingIntent;
+    private boolean mRunning = true;
+    private boolean mLastDownloadSuccessful;
     private boolean mShouldDownload;
     private String mUrl;
     private boolean mWasCancelled;
+    private RemoteViews mViews;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
+        mContentCache = new Vector<>(CACHE_SIZE);
         mRequestObserver = requestObserver;
         mAlbumID = rawUrl;
         mUrl = rawUrl + "/page/";
@@ -72,15 +69,58 @@ public class TumblrRequest implements Runnable {
     }
 
     private void download(String url) throws FailedException {
-        mNotifyManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        mBuilder = new NotificationCompat.Builder(mContext)
-                .setContentTitle("Downloading from " +
-                        mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com")))
-                .setSmallIcon(R.drawable.ic_download)
-                .setAutoCancel(true)
-                .setContentIntent(mPendingIntent);
+        mRequestObserver.startForeground();
+        Intent intent = new Intent(mContext, MainActivity.class);
+        intent.setAction(mAlbumID);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, mAlbumID);
+        intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+        try {
+            Cursor nameCursor = mProvider
+                    .query(CrawlerContract.AccountEntry.CONTENT_URI,
+                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
+                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                            new String[]{mAlbumID}, null, null);
+            nameCursor.moveToFirst();
+            intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, nameCursor.getString(0));
+            nameCursor.close();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                mContext,
+                0,
+                intent,
+                0);
 
-        mNotifyManager.notify(id, mBuilder.build());
+        mNotifyManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        mViews = new RemoteViews(mContext.getPackageName(), R.layout.notification);
+        mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
+        mViews.setTextViewText(R.id.title, "Downloading from " +
+                mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com")));
+        mContext.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                cancel();
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(mContext, mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com"))
+                                + " download cancelled", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }, new IntentFilter("MyRemoteViewsBroadcast"));
+        PendingIntent pi = PendingIntent.getBroadcast(mContext, 0,
+                new Intent("MyRemoteViewsBroadcast"), 0);
+        mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
+        mBuilder = new NotificationCompat.Builder(mContext)
+                .setSmallIcon(R.drawable.ic_download)
+                .setContent(mViews)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
 
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
@@ -89,16 +129,14 @@ public class TumblrRequest implements Runnable {
             int attempts = 0;
             while (attempts < 10 && mRunning) {
                 try {
-                    final Document doc = Jsoup.connect(url + i).get();
+                    Document doc = Jsoup.connect(url + i).get();
                     Log.d("DOCUMENT", doc.baseUri());
                     attempts = 10;
-
-                    try {
-                        mPages.put(doc);
-                    } catch (InterruptedException iex) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException("Unexpected interruption");
-                    }
+                    mViews.setTextViewText(R.id.detail, "Downloading page " + i);
+                    mBuilder.setAutoCancel(true);
+                    mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
+                    getPhotos(doc);
+                    getPhotosFromIFrameDoc(doc);
 
                     Elements link = doc.select("a");
                     int elems = link.size();
@@ -147,12 +185,6 @@ public class TumblrRequest implements Runnable {
                 fin++;
             } else {
                 Log.d("PAGES", pages.toString());
-                mMaxPage = fin;
-                try {
-                    mPages.put(SHUTDOWN_REQ);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 return;
             }
         }
@@ -254,6 +286,76 @@ public class TumblrRequest implements Runnable {
         return wasUpdated;
     }
 
+    private void getPhotos(Document doc) {
+        Elements imag = doc.select("img");
+        int elems = imag.size();
+        for (int j = 0; j < elems && mRunning; j++) {
+            String imag_url = imag.get(j).attr("src");
+            String[] aux = imag_url.split("/");
+            if (!aux[0].equals("http:")) {
+                continue;
+            }
+            if (aux[aux.length - 1].split("\\.").length <= 1) {
+                continue;
+            }
+
+            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
+            String imageUrl = bestUrl(imag_url);
+            String filename = Uri.parse(imageUrl).getLastPathSegment();
+            String description = Jsoup.parse(imag.get(j).attr("alt")).text();
+            ContentValues currentPhotoValues = new ContentValues();
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, imag_url);
+            mContentCache.add(currentPhotoValues);
+            if (mContentCache.size() >= CACHE_SIZE) {
+                insertAndClearCache();
+            }
+        }
+    }
+
+    private void getPhotosFromIFrameDoc(Document doc) throws IOException {
+        Elements link = doc.select("iframe");
+        int elems = link.size();
+        for (int j = 0; j < elems && mRunning; j++) {
+            String id = link.get(j).attr("id");
+            if (id.contains("photoset_iframe")) {
+                int attempts = 0;
+                while (attempts < 5) {
+                    try {
+                        Document iFrameDoc = Jsoup.connect(
+                                link.get(j).attr("src")).get();
+                        getPhotos(iFrameDoc);
+                        attempts = 5;
+                    } catch (SocketTimeoutException e) {
+                        attempts++;
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    private void insertAndClearCache() {
+        int rowsInserted = 0;
+        try {
+            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        if (rowsInserted == 0 && mLastDownloadSuccessful) {
+            // Stop we're up to date!
+            Log.d("HALT", "DONE");
+            finish();
+        }
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
@@ -295,12 +397,6 @@ public class TumblrRequest implements Runnable {
                 mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
                         null, null, new String[]{"604800000", mAlbumID});
             }
-            mParser.start();
-            Intent intent = new Intent(mContext, MainActivity.class);
-            intent.setAction(mAlbumID);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, mAlbumID);
-            intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, AccountsUtil.ACCOUNT_TYPE_TUMBLR);
             try {
                 Cursor nameCursor = mProvider
                         .query(CrawlerContract.AccountEntry.CONTENT_URI,
@@ -308,16 +404,10 @@ public class TumblrRequest implements Runnable {
                                 CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
                                 new String[]{mAlbumID}, null, null);
                 nameCursor.moveToFirst();
-                intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, nameCursor.getString(0));
                 nameCursor.close();
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-            mPendingIntent = PendingIntent.getActivity(
-                    mContext,
-                    0,
-                    intent,
-                    0);
             try {
                 download(mUrl);
             } catch (FailedException e) {
@@ -325,11 +415,7 @@ public class TumblrRequest implements Runnable {
                 mRunning = false;
                 wasSuccess = false;
             } finally {
-                try {
-                    mParser.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                insertAndClearCache();
             }
         }
         if (!mWasCancelled)
@@ -341,7 +427,11 @@ public class TumblrRequest implements Runnable {
     }
 
     private void onFinished(boolean result) {
-        mProvider.release();
+        try {
+            mProvider.release();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
         mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .edit().putBoolean(mAlbumID, result).apply();
         notifyFinished(result);
@@ -351,145 +441,40 @@ public class TumblrRequest implements Runnable {
     public void cancel() {
         mWasCancelled = true;
         mRunning = false;
-        mProvider.release();
-        mBuilder.setContentText("Download cancelled")
-                .setProgress(0, 0, false)
-                .setContentIntent(mPendingIntent)
-                .setAutoCancel(true)
-                .build();
-        mNotifyManager.notify(id, mBuilder.build());
+        try {
+            mProvider.release();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
         mRequestObserver.onFinished(this);
+        mNotifyManager.cancel(mAlbumID.hashCode());
+    }
+
+    public void finish() {
+        mRunning = false;
+        onFinished(true);
     }
 
     private void notifyFinished(boolean wasSuccess) {
         if (mShouldDownload) {
             if (wasSuccess) {
-                mBuilder.setContentText("Download completed");
+                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
+                mViews.setTextViewText(R.id.detail, "Downloading finished");
             } else {
-                mBuilder.setContentText("Download failed");
+                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
+                mViews.setTextViewText(R.id.detail, "Downloading failed");
             }
-            mBuilder
-                    // Removes the progress bar
-                    .setProgress(0, 0, false)
-                    .setContentIntent(mPendingIntent)
-                    .setAutoCancel(true)
-                    .build();
-            mNotifyManager.notify(id, mBuilder.build());
+            mBuilder.setContent(mViews);
+            mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
         }
     }
 
     public interface TumblrRequestObserver {
         public void onFinished(TumblrRequest result);
+
+        public void startForeground();
     }
 
     private class FailedException extends Exception {
-    }
-
-    private class MyParser implements Runnable {
-        @Override
-        public void run() {
-            try {
-                Document doc;
-                int currentPage = 1;
-                while (!(doc = mPages.take()).baseUri().equals("SHUTDOWN") && mRunning) {
-                    if (mMaxPage != 0) {
-                        // Update progress
-                        mBuilder.setContentText("Downloading page " + currentPage + " of " + mMaxPage)
-                                .setProgress(mMaxPage, currentPage, false);
-                    } else {
-                        mBuilder.setContentText("Downloading page " + currentPage);
-                    }
-                    mBuilder.setAutoCancel(true);
-                    mNotifyManager.notify(id, mBuilder.build());
-                    getPhotos(doc);
-                    getPhotosFromIFrameDoc(doc);
-                    currentPage++;
-                    Log.d("GETTING FROM PAGE: ", doc.baseUri());
-                }
-            } catch (InterruptedException | IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (!mContentCache.isEmpty()) {
-                    insertAndClearCache();
-                }
-                Log.d("PARSER", "DONE");
-            }
-        }
-
-        private void getPhotos(Document doc) {
-            Elements imag = doc.select("img");
-            int elems = imag.size();
-            for (int j = 0; j < elems && mRunning; j++) {
-                String imag_url = imag.get(j).attr("src");
-                String[] aux = imag_url.split("/");
-                if (!aux[0].equals("http:")) {
-                    continue;
-                }
-                if (aux[aux.length - 1].split("\\.").length <= 1) {
-                    continue;
-                }
-
-                if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
-                String imageUrl = bestUrl(imag_url);
-                String filename = Uri.parse(imageUrl).getLastPathSegment();
-                String description = Jsoup.parse(imag.get(j).attr("alt")).text();
-                ContentValues currentPhotoValues = new ContentValues();
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
-                currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, imag_url);
-                mContentCache.add(currentPhotoValues);
-                if (mContentCache.size() >= CACHE_SIZE) {
-                    insertAndClearCache();
-                }
-            }
-        }
-
-        private final Vector<ContentValues> mContentCache = new Vector<>(CACHE_SIZE);
-
-        private void getPhotosFromIFrameDoc(Document doc) throws IOException {
-            Elements link = doc.select("iframe");
-            int elems = link.size();
-            for (int j = 0; j < elems && mRunning; j++) {
-                String id = link.get(j).attr("id");
-                if (id.contains("photoset_iframe")) {
-                    int attempts = 0;
-                    while (attempts < 5) {
-                        try {
-                            Document iFrameDoc = Jsoup.connect(
-                                    link.get(j).attr("src")).get();
-                            getPhotos(iFrameDoc);
-                            attempts = 5;
-                        } catch (SocketTimeoutException e) {
-                            attempts++;
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }
-
-        private void insertAndClearCache() {
-            int rowsInserted = 0;
-            try {
-                rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                mContentCache.clear();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-
-            if (rowsInserted == 0 && mLastDownloadSuccessful) {
-                // Stop we're up to date!
-                mRunning = false;
-                Log.d("HALT", "DONE");
-            }
-        }
-
-
-
-
     }
 }
