@@ -382,26 +382,10 @@ public class TumblrRequest implements Runnable {
     @Override
     public void run() {
         boolean wasSuccess = true;
-        long updateTimeDifference = 0;
         mShouldDownload = true;
-
-        Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
-                .AlbumEntry.buildAlbumsUriWithAccountID(mAlbumID), new String[]{CrawlerContract
-                .AlbumEntry.COLUMN_ALBUM_TIME}, null, null, null);
-        if (lastTimeCursor.moveToFirst()) {
-            long lastSync = lastTimeCursor.getLong(0);
-            lastTimeCursor.close();
-            mLastDownloadSuccessful = mContext
-                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getBoolean(mAlbumID, false);
-            updateTimeDifference = System.currentTimeMillis() - lastSync;
-            if ((updateTimeDifference <= 300000) &&
-                    mLastDownloadSuccessful) {
-                mShouldDownload = false;
-            }
-        } else {
-            lastTimeCursor.close();
-        }
+        mLastDownloadSuccessful = mContext
+                .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                .getBoolean(mAlbumID, false);
 
         if (!wasUpdated() && mLastDownloadSuccessful) {
             mShouldDownload = false;
@@ -419,8 +403,6 @@ public class TumblrRequest implements Runnable {
                 mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
             } catch (SQLException e) {
                 e.printStackTrace();
-                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
-                        null, null, new String[]{Long.toString(-updateTimeDifference), mAlbumID});
             }
             try {
                 Cursor nameCursor = mProvider
