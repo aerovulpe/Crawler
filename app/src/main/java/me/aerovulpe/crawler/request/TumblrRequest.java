@@ -43,6 +43,7 @@ public class TumblrRequest implements Runnable {
     public static final String LAST_FIRST_IMAGE_FRAME_URL_SUFFIX = ".last_first_image_frame_url";
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
+    private static final String LAST_PAGE_SUFFIX = ".last_page";
     private final Context mContext;
     private final ContentProviderClient mProvider;
     private final TumblrRequestObserver mRequestObserver;
@@ -128,9 +129,10 @@ public class TumblrRequest implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
 
         HashSet<Integer> pages = new HashSet<>();
-        int fin = 1;
+        int initPage = getInitialPage();
+        int fin = initPage;
         boolean next = false;
-        for (int i = 1; i <= fin && mRunning; i++) {
+        for (int i = initPage; i <= fin && mRunning; i++) {
             int attempts = 0;
             while (attempts < 10 && mRunning) {
                 try {
@@ -188,7 +190,7 @@ public class TumblrRequest implements Runnable {
                 }
             }
             if (next) {
-                fin++;
+                updateInitialPage(fin++);
             } else {
                 Log.d("PAGES", pages.toString());
                 return;
@@ -217,10 +219,25 @@ public class TumblrRequest implements Runnable {
         return uri;
     }
 
-    public boolean wasUpdated(String url, boolean lastDownloadSuccessful) {
+    private int getInitialPage() {
+        int initPage = 1;
+
+        if (!wasUpdated())
+            initPage = mContext
+                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .getInt(mAlbumID + LAST_PAGE_SUFFIX, 1);
+        return initPage;
+    }
+
+    private void updateInitialPage(int initPage) {
+        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
+                .putInt(mAlbumID + LAST_PAGE_SUFFIX, initPage).apply();
+    }
+
+    public boolean wasUpdated() {
         boolean wasUpdated = true;
         try {
-            Document doc = Jsoup.connect(url + 1).get();
+            Document doc = Jsoup.connect(mUrl + 1).get();
 
             String firstImageUrl = "";
             Elements imag = doc.select("img");
@@ -279,7 +296,7 @@ public class TumblrRequest implements Runnable {
             String lastFirstImageFrameUrl = mContext.getSharedPreferences(TUMBLR_PREF,
                     Context.MODE_PRIVATE).getString(mAlbumID +
                     LAST_FIRST_IMAGE_FRAME_URL_SUFFIX, "");
-            if (lastDownloadSuccessful && lastFirstImageUrl.equals(firstImageUrl) &&
+            if (lastFirstImageUrl.equals(firstImageUrl) &&
                     lastFirstImageFrameUrl.equals(firstImageFrameUrl))
                 wasUpdated = false;
             mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE).edit()
@@ -365,6 +382,7 @@ public class TumblrRequest implements Runnable {
     @Override
     public void run() {
         boolean wasSuccess = true;
+        long updateTimeDifference = 0;
         mShouldDownload = true;
 
         Cursor lastTimeCursor = mContext.getContentResolver().query(CrawlerContract
@@ -376,7 +394,8 @@ public class TumblrRequest implements Runnable {
             mLastDownloadSuccessful = mContext
                     .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                     .getBoolean(mAlbumID, false);
-            if ((System.currentTimeMillis() - lastSync <= 300000) &&
+            updateTimeDifference = System.currentTimeMillis() - lastSync;
+            if ((updateTimeDifference <= 300000) &&
                     mLastDownloadSuccessful) {
                 mShouldDownload = false;
             }
@@ -384,7 +403,7 @@ public class TumblrRequest implements Runnable {
             lastTimeCursor.close();
         }
 
-        if (!wasUpdated(mUrl, mLastDownloadSuccessful)) {
+        if (!wasUpdated() && mLastDownloadSuccessful) {
             mShouldDownload = false;
         }
 
@@ -401,7 +420,7 @@ public class TumblrRequest implements Runnable {
             } catch (SQLException e) {
                 e.printStackTrace();
                 mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
-                        null, null, new String[]{"604800000", mAlbumID});
+                        null, null, new String[]{Long.toString(-updateTimeDifference), mAlbumID});
             }
             try {
                 Cursor nameCursor = mProvider
