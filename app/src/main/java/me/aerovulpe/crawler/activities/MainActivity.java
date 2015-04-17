@@ -1,13 +1,10 @@
 package me.aerovulpe.crawler.activities;
 
 
-import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.res.Configuration;
@@ -35,13 +32,11 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.NetworkUtil;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
@@ -149,25 +144,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
-                        final String tumblrUrl = intent.getExtras()
-                                .getString(AccountsActivity.ARG_ACCOUNT_ID);
-                        NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
-                            @Override
-                            public Context getContext() {
-                                return MainActivity.this;
-                            }
-
-                            @Override
-                            public void onNetworkStatusReceived(boolean doesExist) {
-                                if (doesExist)
-                                    createPhotoListInstance(intent.getExtras()
-                                                    .getString(AccountsActivity.ARG_ACCOUNT_NAME),
-                                            intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
-                                            tumblrUrl, false);
-                                else
-                                    showInvalidAccountError();
-                            }
-                        }, tumblrUrl);
+                        createPhotoListInstance(intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_NAME),
+                                intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
+                                intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_ID), false);
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;
@@ -179,12 +160,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         }
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
-    }
-
-    @Override
-    public void showInvalidAccountError() {
-        showError("Account Error",
-                "The account you created is invalid. Please check it.", true);
     }
 
     @Override
@@ -318,30 +293,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     public void toggleFullScreen() {
         setFullScreen(!mIsFullScreen, true);
-    }
-
-    /**
-     * Shows the dialog for adding a new account.
-     */
-    private void showAddAccountDialog() {
-        AddEditAccountFragment dialog = new AddEditAccountFragment();
-        dialog.show(getFragmentManager(), "accountAddDialog");
-    }
-
-    private void showError(String title, String message, final boolean killActivity) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title);
-        builder.setIcon(android.R.drawable.ic_dialog_alert);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                if (killActivity)
-                    finish();
-            }
-        });
-        builder.setMessage(message);
-        builder.show();
     }
 
     @Override

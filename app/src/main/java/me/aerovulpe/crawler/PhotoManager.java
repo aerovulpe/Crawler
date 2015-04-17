@@ -15,8 +15,6 @@ public interface PhotoManager {
 
     public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow);
 
-    public void showInvalidAccountError();
-
     public void setFullScreen(boolean fullScreen, boolean restoreActionBar);
 
     public void toggleFullScreen();

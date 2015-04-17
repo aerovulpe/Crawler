@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Fragment;
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
@@ -23,7 +22,6 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
 import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.NetworkUtil;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -131,21 +129,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
      */
     private void doAlbumsRequest() {
         if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-            NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
-                @Override
-                public Context getContext() {
-                    return getActivity();
-                }
-
-                @Override
-                public void onNetworkStatusReceived(boolean doesExist) {
-                    if (doesExist)
-                        new PicasaAlbumsRequestTask(getActivity(), mAccountID,
-                                R.string.loading_albums).execute(mAccountID);
-                    else
-                        ((PhotoManager) getActivity()).showInvalidAccountError();
-                }
-            }, mAccountID);
+            new PicasaAlbumsRequestTask(getActivity(), mAccountID,
+                    R.string.loading_albums).execute(mAccountID);
         }
     }
 

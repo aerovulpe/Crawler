@@ -1,10 +1,13 @@
 package me.aerovulpe.crawler.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 
 /**
  * Created by Aaron on 28/02/2015.
@@ -38,4 +41,29 @@ public class BaseActivity extends ActionBarActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(isOn);
         return mToolbar;
     }
+
+    public void showError(String title, String message, final boolean killActivity) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                if (killActivity)
+                    finish();
+            }
+        });
+        builder.setMessage(message);
+        builder.show();
+    }
+
+    /**
+     * Shows the dialog for adding a new account.
+     */
+    protected void showAddAccountDialog() {
+        AddEditAccountFragment dialog = new AddEditAccountFragment();
+        dialog.show(getFragmentManager(), "accountAddDialog");
+    }
+
 }

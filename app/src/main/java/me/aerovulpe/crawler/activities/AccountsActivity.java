@@ -154,10 +154,8 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         return true;
     }
 
-    /**
-     * Shows the dialog for adding a new account.
-     */
-    private void showAddAccountDialog() {
+    @Override
+    protected void showAddAccountDialog() {
         AddEditAccountFragment dialog = new AddEditAccountFragment();
         dialog.show(getFragmentManager(), "accountAddDialog");
     }

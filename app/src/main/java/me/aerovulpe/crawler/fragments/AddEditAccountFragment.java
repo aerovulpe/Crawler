@@ -19,6 +19,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.DialogFragment;
 import android.content.ContentValues;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,8 +31,10 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.NetworkUtil;
 
 
 public class AddEditAccountFragment extends DialogFragment {
@@ -82,19 +85,35 @@ public class AddEditAccountFragment extends DialogFragment {
         okButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                int type = accountType.getSelectedItemPosition();
+                final int type = accountType.getSelectedItemPosition();
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
                 if (name == null || name.isEmpty()) name = id;
                 id = AccountsUtil.urlFromUser(id, type);
 
-                ContentValues values = new ContentValues();
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, id);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, name);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
-                values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
-                getActivity().getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
-                dismiss();
+                final String finalId = id;
+                final String finalName = name;
+                NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
+                    @Override
+                    public Context getContext() {
+                        return getActivity();
+                    }
+
+                    @Override
+                    public void onNetworkStatusReceived(boolean doesExist) {
+                        if (doesExist) {
+                            ContentValues values = new ContentValues();
+                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, finalId);
+                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, finalName);
+                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
+                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
+                            getActivity().getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
+                            dismiss();
+                        } else {
+                            showInvalidAccountError();
+                        }
+                    }
+                }, id);
             }
         });
 
@@ -105,5 +124,10 @@ public class AddEditAccountFragment extends DialogFragment {
                 AddEditAccountFragment.this.dismiss();
             }
         });
+    }
+
+    private void showInvalidAccountError() {
+        ((BaseActivity) getActivity()).showError("Account Error",
+                "The account you created is invalid. Please check it again.", false);
     }
 }
