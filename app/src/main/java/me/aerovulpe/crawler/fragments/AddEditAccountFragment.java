@@ -101,7 +101,7 @@ public class AddEditAccountFragment extends DialogFragment {
 
                     @Override
                     public void onNetworkStatusReceived(boolean doesExist) {
-                        if (doesExist) {
+                        if (doesExist || !NetworkUtil.isNetworkAvailable(getActivity())) {
                             ContentValues values = new ContentValues();
                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, finalId);
                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, finalName);
