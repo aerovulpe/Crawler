@@ -139,7 +139,8 @@ public class TumblrRequest implements Runnable {
                     attempts = 10;
                     mViews.setTextViewText(R.id.detail, "Downloading page " + i);
                     mBuilder.setAutoCancel(true);
-                    mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
+                    if (mRunning)
+                        mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
                     getPhotos(doc);
                     getPhotosFromIFrameDoc(doc);
 

@@ -12,8 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:background="@drawable/round_button"
-        android:padding="5dp"
-        android:src="@drawable/ic_download"/>
+        android:padding="5dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,7 +32,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:gravity="center_vertical"
-                android:text="Title"
                 android:textAppearance="?android:attr/textAppearanceLarge"/>
 
             <TextView
@@ -41,8 +39,7 @@
                 style="@style/NotificationText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/title"
-                android:text="details"/>
+                android:layout_below="@id/title"/>
 
             <ImageButton
                 android:id="@+id/button_cancel"
