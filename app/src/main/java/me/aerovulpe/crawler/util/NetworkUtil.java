@@ -63,12 +63,10 @@ public final class NetworkUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final Context context = observer.getContext();
-                final boolean doesExist = isNetworkAvailable(context) && existsFileInServer(url);
-                new Handler(context.getMainLooper()).post(new Runnable() {
+                new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        observer.onNetworkStatusReceived(doesExist);
+                        observer.onNetworkStatusReceived(existsFileInServer(url));
                     }
                 });
             }
