@@ -61,7 +61,7 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
     }
 
     @Override
-    public void onFinished(TumblrRequest result) {
+    public synchronized void onFinished(TumblrRequest result) {
         if (result != null) {
             mTumblrRequestIds.remove(result.getAlbumID());
             if (mLastTumblrRequest != null &&
@@ -77,7 +77,7 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
     }
 
     @Override
-    public void startForeground() {
+    public synchronized void startForeground() {
         Notification.Builder builder = new Notification.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("Loading tumblr blogs")

@@ -51,7 +51,7 @@ public class TumblrRequest implements Runnable {
     private int[] sizes = new int[]{1280, 500, 400, 250};
     private NotificationManager mNotifyManager;
     private NotificationCompat.Builder mBuilder;
-    private boolean mRunning = true;
+    private volatile boolean mRunning = true;
     private boolean mLastDownloadSuccessful;
     private boolean mShouldDownload;
     private String mUrl;
@@ -82,8 +82,11 @@ public class TumblrRequest implements Runnable {
                             new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
                             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
                             new String[]{mAlbumID}, null, null);
-            nameCursor.moveToFirst();
-            intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, nameCursor.getString(0));
+            if (nameCursor.moveToFirst())
+                intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, nameCursor.getString(0));
+            else
+                intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME,
+                        mAlbumID.substring(7, mAlbumID.indexOf(".tumblr.com")));
             nameCursor.close();
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -127,7 +130,7 @@ public class TumblrRequest implements Runnable {
         HashSet<Integer> pages = new HashSet<>();
         int fin = 1;
         boolean next = false;
-        for (int i = 1; i <= fin; i++) {
+        for (int i = 1; i <= fin && mRunning; i++) {
             int attempts = 0;
             while (attempts < 10 && mRunning) {
                 try {
@@ -458,8 +461,8 @@ public class TumblrRequest implements Runnable {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
-        mRequestObserver.onFinished(this);
         mNotifyManager.cancel(mAlbumID.hashCode());
+        mRequestObserver.onFinished(this);
     }
 
     public void finish() {
