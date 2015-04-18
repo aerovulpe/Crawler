@@ -60,6 +60,7 @@ public class TumblrRequest implements Runnable {
     private boolean mWasCancelled;
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
+    private long mLastTime;
     private int mInitPage = 1;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
@@ -317,9 +318,10 @@ public class TumblrRequest implements Runnable {
             String imageUrl = bestUrl(imag_url);
             String filename = Uri.parse(imageUrl).getLastPathSegment();
             String description = Jsoup.parse(imag.get(j).attr("alt")).text();
+            mLastTime = System.currentTimeMillis();
             ContentValues currentPhotoValues = new ContentValues();
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, mLastTime);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
@@ -370,6 +372,10 @@ public class TumblrRequest implements Runnable {
         }
     }
 
+    public String getAlbumID() {
+        return mAlbumID;
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
@@ -389,8 +395,14 @@ public class TumblrRequest implements Runnable {
             long lastShutDownTime = mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                     .getLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, 0);
             long updateTimeDifference = System.currentTimeMillis() - lastShutDownTime;
-            mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
-                    null, null, new String[]{Long.toString(updateTimeDifference), mAlbumID});
+//            mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+//                    null, null, new String[]{"604800000", mAlbumID});
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(mContext, "time updated, starting from first", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         if (mShouldDownload) {
@@ -431,11 +443,38 @@ public class TumblrRequest implements Runnable {
             onFinished(true, wasSuccess);
     }
 
-    public String getAlbumID() {
-        return mAlbumID;
+    private void normalizeRecords(long time) {
+        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
+        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
+        Cursor recordsCursor = null;
+        long newTime = time + 1;
+        try {
+            recordsCursor = mProvider.query(uri, new String[]
+                            {CrawlerContract.PhotoEntry.TABLE_NAME + "." +
+                                    CrawlerContract.PhotoEntry._ID},
+                    CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " >= ?",
+                    new String[]{Long.toString(time)}, sortOrder);
+            ContentValues values = new ContentValues();
+            recordsCursor.moveToPosition(-1);
+            while (recordsCursor.moveToNext()) {
+                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, newTime++);
+
+                mProvider.update(CrawlerContract.PhotoEntry.CONTENT_URI, values, CrawlerContract.PhotoEntry.TABLE_NAME + "." +
+                        CrawlerContract.PhotoEntry._ID + " == ?", new String[]{recordsCursor.getString(0)});
+
+                values.clear();
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } finally {
+            if (recordsCursor != null) {
+                recordsCursor.close();
+            }
+        }
     }
 
     private void onFinished(Boolean... result) {
+        normalizeRecords(mLastTime);
         try {
             mProvider.release();
         } catch (IllegalStateException e) {
@@ -490,4 +529,6 @@ public class TumblrRequest implements Runnable {
 
     private class FailedException extends Exception {
     }
+
+
 }
