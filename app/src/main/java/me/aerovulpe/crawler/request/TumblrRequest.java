@@ -44,6 +44,7 @@ public class TumblrRequest implements Runnable {
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
     private static final String LAST_PAGE_SUFFIX = ".last_page";
+    private static final String SHUTDOWN_TIME_SUFFIX = ".shutdown_time";
     private final Context mContext;
     private final ContentProviderClient mProvider;
     private final TumblrRequestObserver mRequestObserver;
@@ -59,6 +60,7 @@ public class TumblrRequest implements Runnable {
     private boolean mWasCancelled;
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
+    private int mInitPage = 1;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
@@ -106,7 +108,7 @@ public class TumblrRequest implements Runnable {
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                cancel();
+                onFinished(false);
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
@@ -129,10 +131,9 @@ public class TumblrRequest implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
 
         HashSet<Integer> pages = new HashSet<>();
-        int initPage = getInitialPage();
-        int fin = initPage;
+        int fin = mInitPage;
         boolean next = false;
-        for (int i = initPage; i <= fin && mRunning; i++) {
+        for (int i = mInitPage; i <= fin && mRunning; i++) {
             int attempts = 0;
             while (attempts < 10 && mRunning) {
                 try {
@@ -217,16 +218,6 @@ public class TumblrRequest implements Runnable {
             }
         }
         return uri;
-    }
-
-    private int getInitialPage() {
-        int initPage = 1;
-
-        if (!wasUpdated())
-            initPage = mContext
-                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getInt(mAlbumID + LAST_PAGE_SUFFIX, 1);
-        return initPage;
     }
 
     private void updateInitialPage(int initPage) {
@@ -387,8 +378,19 @@ public class TumblrRequest implements Runnable {
                 .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
                 .getBoolean(mAlbumID, false);
 
-        if (!wasUpdated() && mLastDownloadSuccessful) {
-            mShouldDownload = false;
+        if (!wasUpdated()) {
+            mInitPage = mContext
+                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .getInt(mAlbumID + LAST_PAGE_SUFFIX, 1);
+
+            if (mLastDownloadSuccessful)
+                mShouldDownload = false;
+        } else {
+            long lastShutDownTime = mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .getLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, 0);
+            long updateTimeDifference = System.currentTimeMillis() - lastShutDownTime;
+            mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                    null, null, new String[]{Long.toString(updateTimeDifference), mAlbumID});
         }
 
         if (mShouldDownload) {
@@ -426,33 +428,14 @@ public class TumblrRequest implements Runnable {
             }
         }
         if (!mWasCancelled)
-            onFinished(wasSuccess);
+            onFinished(true, wasSuccess);
     }
 
     public String getAlbumID() {
         return mAlbumID;
     }
 
-    private void onFinished(boolean result) {
-        try {
-            mProvider.release();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-        mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .edit().putBoolean(mAlbumID, result).apply();
-        notifyFinished(result);
-        try {
-            mContext.unregisterReceiver(mReceiver);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-        mRequestObserver.onFinished(this);
-    }
-
-    public void cancel() {
-        mWasCancelled = true;
-        mRunning = false;
+    private void onFinished(Boolean... result) {
         try {
             mProvider.release();
         } catch (IllegalStateException e) {
@@ -463,13 +446,22 @@ public class TumblrRequest implements Runnable {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
-        mNotifyManager.cancel(mAlbumID.hashCode());
+        if (result[0]) {
+            mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .edit().putBoolean(mAlbumID, result[1])
+                    .putLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, System.currentTimeMillis()).apply();
+            notifyFinished(result[1]);
+        } else {
+            mWasCancelled = true;
+            mRunning = false;
+            mNotifyManager.cancel(mAlbumID.hashCode());
+        }
         mRequestObserver.onFinished(this);
     }
 
     public void finish() {
         mRunning = false;
-        onFinished(true);
+        onFinished(true, true);
     }
 
     private void notifyFinished(boolean wasSuccess) {
@@ -484,6 +476,10 @@ public class TumblrRequest implements Runnable {
             mBuilder.setContent(mViews);
             mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
         }
+    }
+
+    private enum Result {
+        SUCCESS, FAILED, CANCELLED
     }
 
     public interface TumblrRequestObserver {

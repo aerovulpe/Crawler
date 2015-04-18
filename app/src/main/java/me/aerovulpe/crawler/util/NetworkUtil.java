@@ -64,6 +64,8 @@ public final class NetworkUtil {
             @Override
             public void run() {
                 final boolean doesExist = existsFileInServer(url);
+                if (observer.getContext() == null)
+                    return;
                 new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
