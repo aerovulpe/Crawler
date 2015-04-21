@@ -25,7 +25,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.R;
@@ -44,7 +46,6 @@ public class TumblrRequest implements Runnable {
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
     private static final String LAST_PAGE_SUFFIX = ".last_page";
-    private static final String SHUTDOWN_TIME_SUFFIX = ".shutdown_time";
     private final Context mContext;
     private final ContentProviderClient mProvider;
     private final TumblrRequestObserver mRequestObserver;
@@ -60,8 +61,8 @@ public class TumblrRequest implements Runnable {
     private boolean mWasCancelled;
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
-    private long mLastTime;
     private int mInitPage = 1;
+    private List<String> mDownloadedPhotoIds;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
@@ -314,14 +315,15 @@ public class TumblrRequest implements Runnable {
                 continue;
             }
 
-            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
+            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar") ||
+                    (hasDownloadedPhoto(imag_url))) continue;
             String imageUrl = bestUrl(imag_url);
             String filename = Uri.parse(imageUrl).getLastPathSegment();
             String description = Jsoup.parse(imag.get(j).attr("alt")).text();
-            mLastTime = System.currentTimeMillis();
             ContentValues currentPhotoValues = new ContentValues();
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, mLastTime);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME,
+                    System.currentTimeMillis());
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
@@ -331,6 +333,10 @@ public class TumblrRequest implements Runnable {
                 insertAndClearCache();
             }
         }
+    }
+
+    private boolean hasDownloadedPhoto(String photoId) {
+        return mDownloadedPhotoIds != null && mDownloadedPhotoIds.contains(photoId);
     }
 
     private void getPhotosFromIFrameDoc(Document doc) throws IOException {
@@ -376,6 +382,30 @@ public class TumblrRequest implements Runnable {
         return mAlbumID;
     }
 
+    private List<String> getDownloadedPhotoIds() {
+        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
+        Cursor recordsCursor = null;
+        try {
+            recordsCursor = mProvider.query(uri, new String[]
+                            {CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID},
+                    null,
+                    null, null);
+            List<String> photoIds = new ArrayList<>(recordsCursor.getCount());
+            recordsCursor.moveToPosition(-1);
+            while (recordsCursor.moveToNext()) {
+                photoIds.add(recordsCursor.getString(0));
+            }
+            return photoIds;
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (recordsCursor != null) {
+                recordsCursor.close();
+            }
+        }
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
@@ -391,18 +421,6 @@ public class TumblrRequest implements Runnable {
 
             if (mLastDownloadSuccessful)
                 mShouldDownload = false;
-        } else {
-            long lastShutDownTime = mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, 0);
-            long updateTimeDifference = System.currentTimeMillis() - lastShutDownTime;
-//            mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
-//                    null, null, new String[]{"604800000", mAlbumID});
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(mContext, "time updated, starting from first", Toast.LENGTH_SHORT).show();
-                }
-            });
         }
 
         if (mShouldDownload) {
@@ -416,19 +434,10 @@ public class TumblrRequest implements Runnable {
             try {
                 mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
             } catch (SQLException e) {
+                mDownloadedPhotoIds = getDownloadedPhotoIds();
                 e.printStackTrace();
             }
-            try {
-                Cursor nameCursor = mProvider
-                        .query(CrawlerContract.AccountEntry.CONTENT_URI,
-                                new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
-                                CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                                new String[]{mAlbumID}, null, null);
-                nameCursor.moveToFirst();
-                nameCursor.close();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+
             try {
                 download(mUrl);
             } catch (FailedException e) {
@@ -443,38 +452,7 @@ public class TumblrRequest implements Runnable {
             onFinished(true, wasSuccess);
     }
 
-    private void normalizeRecords(long time) {
-        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
-        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
-        Cursor recordsCursor = null;
-        long newTime = time + 1;
-        try {
-            recordsCursor = mProvider.query(uri, new String[]
-                            {CrawlerContract.PhotoEntry.TABLE_NAME + "." +
-                                    CrawlerContract.PhotoEntry._ID},
-                    CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " >= ?",
-                    new String[]{Long.toString(time)}, sortOrder);
-            ContentValues values = new ContentValues();
-            recordsCursor.moveToPosition(-1);
-            while (recordsCursor.moveToNext()) {
-                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, newTime++);
-
-                mProvider.update(CrawlerContract.PhotoEntry.CONTENT_URI, values, CrawlerContract.PhotoEntry.TABLE_NAME + "." +
-                        CrawlerContract.PhotoEntry._ID + " == ?", new String[]{recordsCursor.getString(0)});
-
-                values.clear();
-            }
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } finally {
-            if (recordsCursor != null) {
-                recordsCursor.close();
-            }
-        }
-    }
-
     private void onFinished(Boolean... result) {
-        normalizeRecords(mLastTime);
         try {
             mProvider.release();
         } catch (IllegalStateException e) {
@@ -487,8 +465,7 @@ public class TumblrRequest implements Runnable {
         }
         if (result[0]) {
             mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .edit().putBoolean(mAlbumID, result[1])
-                    .putLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, System.currentTimeMillis()).apply();
+                    .edit().putBoolean(mAlbumID, result[1]).apply();
             notifyFinished(result[1]);
         } else {
             mWasCancelled = true;
