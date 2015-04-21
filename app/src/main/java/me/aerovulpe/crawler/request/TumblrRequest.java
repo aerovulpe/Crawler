@@ -62,7 +62,7 @@ public class TumblrRequest implements Runnable {
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
     private int mInitPage = 1;
-    private List<String> mDownloadedPhotoIds;
+    private List<String> mIncompletedownloadPhotoIds;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
@@ -316,7 +316,7 @@ public class TumblrRequest implements Runnable {
             }
 
             if (Uri.parse(imag_url).getLastPathSegment().contains("avatar") ||
-                    (hasDownloadedPhoto(imag_url))) continue;
+                    (hasIncompleteDownloadPhoto(imag_url))) continue;
             String imageUrl = bestUrl(imag_url);
             String filename = Uri.parse(imageUrl).getLastPathSegment();
             String description = Jsoup.parse(imag.get(j).attr("alt")).text();
@@ -335,8 +335,8 @@ public class TumblrRequest implements Runnable {
         }
     }
 
-    private boolean hasDownloadedPhoto(String photoId) {
-        return mDownloadedPhotoIds != null && mDownloadedPhotoIds.contains(photoId);
+    private boolean hasIncompleteDownloadPhoto(String photoId) {
+        return mIncompletedownloadPhotoIds != null && mIncompletedownloadPhotoIds.contains(photoId);
     }
 
     private void getPhotosFromIFrameDoc(Document doc) throws IOException {
@@ -382,7 +382,7 @@ public class TumblrRequest implements Runnable {
         return mAlbumID;
     }
 
-    private List<String> getDownloadedPhotoIds() {
+    private List<String> getIncompleteDownloadPhotoIds() {
         Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
         Cursor recordsCursor = null;
         try {
@@ -404,6 +404,29 @@ public class TumblrRequest implements Runnable {
                 recordsCursor.close();
             }
         }
+    }
+
+    private void onFinished(Boolean... result) {
+        try {
+            mProvider.release();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
+        try {
+            mContext.unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        if (result[0]) {
+            mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .edit().putBoolean(mAlbumID, result[1]).apply();
+            notifyFinished(result[1]);
+        } else {
+            mWasCancelled = true;
+            mRunning = false;
+            mNotifyManager.cancel(mAlbumID.hashCode());
+        }
+        mRequestObserver.onFinished(this);
     }
 
     @Override
@@ -434,7 +457,8 @@ public class TumblrRequest implements Runnable {
             try {
                 mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
             } catch (SQLException e) {
-                mDownloadedPhotoIds = getDownloadedPhotoIds();
+                if (!mLastDownloadSuccessful)
+                    mIncompletedownloadPhotoIds = getIncompleteDownloadPhotoIds();
                 e.printStackTrace();
             }
 
@@ -450,29 +474,6 @@ public class TumblrRequest implements Runnable {
         }
         if (!mWasCancelled)
             onFinished(true, wasSuccess);
-    }
-
-    private void onFinished(Boolean... result) {
-        try {
-            mProvider.release();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-        try {
-            mContext.unregisterReceiver(mReceiver);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-        if (result[0]) {
-            mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .edit().putBoolean(mAlbumID, result[1]).apply();
-            notifyFinished(result[1]);
-        } else {
-            mWasCancelled = true;
-            mRunning = false;
-            mNotifyManager.cancel(mAlbumID.hashCode());
-        }
-        mRequestObserver.onFinished(this);
     }
 
     public void finish() {
