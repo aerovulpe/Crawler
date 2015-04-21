@@ -25,7 +25,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.R;
@@ -44,7 +46,6 @@ public class TumblrRequest implements Runnable {
     public static final String TUMBLR_PREF = "me.aerovulpe.crawler.TUMBLR_PREF";
     private static final int CACHE_SIZE = 50;
     private static final String LAST_PAGE_SUFFIX = ".last_page";
-    private static final String SHUTDOWN_TIME_SUFFIX = ".shutdown_time";
     private final Context mContext;
     private final ContentProviderClient mProvider;
     private final TumblrRequestObserver mRequestObserver;
@@ -61,6 +62,7 @@ public class TumblrRequest implements Runnable {
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
     private int mInitPage = 1;
+    private List<String> mIncompletedownloadPhotoIds;
 
     public TumblrRequest(Context context, TumblrRequestObserver requestObserver, String rawUrl) {
         mContext = context;
@@ -313,13 +315,15 @@ public class TumblrRequest implements Runnable {
                 continue;
             }
 
-            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar")) continue;
+            if (Uri.parse(imag_url).getLastPathSegment().contains("avatar") ||
+                    (hasIncompleteDownloadPhoto(imag_url))) continue;
             String imageUrl = bestUrl(imag_url);
             String filename = Uri.parse(imageUrl).getLastPathSegment();
             String description = Jsoup.parse(imag.get(j).attr("alt")).text();
             ContentValues currentPhotoValues = new ContentValues();
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME,
+                    System.currentTimeMillis());
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, imageUrl);
             currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
@@ -329,6 +333,10 @@ public class TumblrRequest implements Runnable {
                 insertAndClearCache();
             }
         }
+    }
+
+    private boolean hasIncompleteDownloadPhoto(String photoId) {
+        return mIncompletedownloadPhotoIds != null && mIncompletedownloadPhotoIds.contains(photoId);
     }
 
     private void getPhotosFromIFrameDoc(Document doc) throws IOException {
@@ -370,69 +378,32 @@ public class TumblrRequest implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        boolean wasSuccess = true;
-        mShouldDownload = true;
-        mLastDownloadSuccessful = mContext
-                .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                .getBoolean(mAlbumID, false);
-
-        if (!wasUpdated()) {
-            mInitPage = mContext
-                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getInt(mAlbumID + LAST_PAGE_SUFFIX, 1);
-
-            if (mLastDownloadSuccessful)
-                mShouldDownload = false;
-        } else {
-            long lastShutDownTime = mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .getLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, 0);
-            long updateTimeDifference = System.currentTimeMillis() - lastShutDownTime;
-            mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
-                    null, null, new String[]{Long.toString(updateTimeDifference), mAlbumID});
-        }
-
-        if (mShouldDownload) {
-            ContentValues albumStubValues = new ContentValues();
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-            try {
-                mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                Cursor nameCursor = mProvider
-                        .query(CrawlerContract.AccountEntry.CONTENT_URI,
-                                new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
-                                CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                                new String[]{mAlbumID}, null, null);
-                nameCursor.moveToFirst();
-                nameCursor.close();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            try {
-                download(mUrl);
-            } catch (FailedException e) {
-                e.printStackTrace();
-                mRunning = false;
-                wasSuccess = false;
-            } finally {
-                insertAndClearCache();
-            }
-        }
-        if (!mWasCancelled)
-            onFinished(true, wasSuccess);
-    }
-
     public String getAlbumID() {
         return mAlbumID;
+    }
+
+    private List<String> getIncompleteDownloadPhotoIds() {
+        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
+        Cursor recordsCursor = null;
+        try {
+            recordsCursor = mProvider.query(uri, new String[]
+                            {CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID},
+                    null,
+                    null, null);
+            List<String> photoIds = new ArrayList<>(recordsCursor.getCount());
+            recordsCursor.moveToPosition(-1);
+            while (recordsCursor.moveToNext()) {
+                photoIds.add(recordsCursor.getString(0));
+            }
+            return photoIds;
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (recordsCursor != null) {
+                recordsCursor.close();
+            }
+        }
     }
 
     private void onFinished(Boolean... result) {
@@ -448,8 +419,7 @@ public class TumblrRequest implements Runnable {
         }
         if (result[0]) {
             mContext.getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
-                    .edit().putBoolean(mAlbumID, result[1])
-                    .putLong(mAlbumID + SHUTDOWN_TIME_SUFFIX, System.currentTimeMillis()).apply();
+                    .edit().putBoolean(mAlbumID, result[1]).apply();
             notifyFinished(result[1]);
         } else {
             mWasCancelled = true;
@@ -478,10 +448,6 @@ public class TumblrRequest implements Runnable {
         }
     }
 
-    private enum Result {
-        SUCCESS, FAILED, CANCELLED
-    }
-
     public interface TumblrRequestObserver {
         public void onFinished(TumblrRequest result);
 
@@ -490,4 +456,65 @@ public class TumblrRequest implements Runnable {
 
     private class FailedException extends Exception {
     }
+
+    @Override
+    public void run() {
+        boolean wasSuccess = true;
+        boolean resetTime = false;
+        mShouldDownload = true;
+        mLastDownloadSuccessful = mContext
+                .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                .getBoolean(mAlbumID, false);
+
+        if (!wasUpdated()) {
+            mInitPage = mContext
+                    .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
+                    .getInt(mAlbumID + LAST_PAGE_SUFFIX, 1);
+
+            if (mLastDownloadSuccessful)
+                mShouldDownload = false;
+        } else {
+            if (mLastDownloadSuccessful) {
+                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                        null, null, new String[]{"604800000", mAlbumID});
+                resetTime = true;
+            }
+        }
+
+        if (mShouldDownload) {
+            ContentValues albumStubValues = new ContentValues();
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
+            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
+            try {
+                mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+            } catch (SQLException e) {
+                if (!mLastDownloadSuccessful)
+                    mIncompletedownloadPhotoIds = getIncompleteDownloadPhotoIds();
+                e.printStackTrace();
+            }
+
+            try {
+                download(mUrl);
+            } catch (FailedException e) {
+                e.printStackTrace();
+                mRunning = false;
+                wasSuccess = false;
+            } finally {
+                insertAndClearCache();
+            }
+        }
+        if (!mWasCancelled) {
+            if (resetTime) {
+                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                        null, null, new String[]{"-604800000", mAlbumID});
+            }
+            onFinished(true, wasSuccess);
+        }
+    }
+
+
 }
