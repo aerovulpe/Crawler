@@ -426,11 +426,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             public void onPhotosLoaded(List<Photo> photos) {
                 mPhotos = photos;
             }
-
-            @Override
-            public Context getContext() {
-                return getActivity();
-            }
         });
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);

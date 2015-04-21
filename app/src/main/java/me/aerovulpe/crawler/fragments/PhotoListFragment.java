@@ -241,11 +241,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
                             .createPhotoViewerInstance(mAlbumTitle, photos, initPos, isSlideShow);
                 }
-
-                @Override
-                public Context getContext() {
-                    return getActivity();
-                }
             });
     }
 

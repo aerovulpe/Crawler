@@ -1,6 +1,5 @@
 package me.aerovulpe.crawler.data;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.os.Handler;
 import android.os.Looper;
@@ -59,14 +58,12 @@ public class Photo implements Serializable, Parcelable {
                     photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
                     photos.add(photo);
                 }
-                Context context = photosLoadedListener.getContext();
-                if (context != null)
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            photosLoadedListener.onPhotosLoaded(photos);
-                        }
-                    });
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        photosLoadedListener.onPhotosLoaded(photos);
+                    }
+                });
             }
         }).start();
     }
@@ -166,7 +163,5 @@ public class Photo implements Serializable, Parcelable {
 
     public interface OnPhotosLoadedListener {
         public void onPhotosLoaded(List<Photo> photos);
-
-        public Context getContext();
     }
 }
