@@ -315,6 +315,11 @@ public class TumblrRequest implements Runnable {
                 continue;
             }
 
+            int deb = 0;
+            if (mIncompletedownloadPhotoIds != null)
+                deb = mIncompletedownloadPhotoIds.size();
+            Log.d("DEBUG: incomplete ", deb + " cache size " + mContentCache.size() +
+                    " last success " + mLastDownloadSuccessful);
             if (Uri.parse(imag_url).getLastPathSegment().contains("avatar") ||
                     (hasIncompleteDownloadPhoto(imag_url))) continue;
             String imageUrl = bestUrl(imag_url);
@@ -429,9 +434,15 @@ public class TumblrRequest implements Runnable {
         mRequestObserver.onFinished(this);
     }
 
+    public void finish() {
+        mRunning = false;
+        onFinished(true, true);
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
+        boolean resetTime = false;
         mShouldDownload = true;
         mLastDownloadSuccessful = mContext
                 .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
@@ -444,6 +455,12 @@ public class TumblrRequest implements Runnable {
 
             if (mLastDownloadSuccessful)
                 mShouldDownload = false;
+        } else {
+            if (mLastDownloadSuccessful) {
+                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                        null, null, new String[]{"604800000", mAlbumID});
+                resetTime = true;
+            }
         }
 
         if (mShouldDownload) {
@@ -470,15 +487,14 @@ public class TumblrRequest implements Runnable {
                 wasSuccess = false;
             } finally {
                 insertAndClearCache();
+                if (resetTime) {
+                    mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                            null, null, new String[]{"-604800000", mAlbumID});
+                }
             }
         }
         if (!mWasCancelled)
             onFinished(true, wasSuccess);
-    }
-
-    public void finish() {
-        mRunning = false;
-        onFinished(true, true);
     }
 
     private void notifyFinished(boolean wasSuccess) {
