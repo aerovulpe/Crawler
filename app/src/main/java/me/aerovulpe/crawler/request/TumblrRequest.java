@@ -454,9 +454,13 @@ public class TumblrRequest implements Runnable {
         public void startForeground();
     }
 
+    private class FailedException extends Exception {
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
+        boolean resetTime = false;
         mShouldDownload = true;
         mLastDownloadSuccessful = mContext
                 .getSharedPreferences(TUMBLR_PREF, Context.MODE_PRIVATE)
@@ -473,6 +477,7 @@ public class TumblrRequest implements Runnable {
             if (mLastDownloadSuccessful) {
                 mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
                         null, null, new String[]{"604800000", mAlbumID});
+                resetTime = true;
             }
         }
 
@@ -502,11 +507,13 @@ public class TumblrRequest implements Runnable {
                 insertAndClearCache();
             }
         }
-        if (!mWasCancelled)
+        if (!mWasCancelled) {
+            if (resetTime) {
+                mContext.getContentResolver().update(CrawlerContract.PhotoEntry.INCREMENT_URI,
+                        null, null, new String[]{"-604800000", mAlbumID});
+            }
             onFinished(true, wasSuccess);
-    }
-
-    private class FailedException extends Exception {
+        }
     }
 
 
