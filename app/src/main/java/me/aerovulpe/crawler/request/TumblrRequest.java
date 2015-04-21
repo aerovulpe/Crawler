@@ -315,11 +315,6 @@ public class TumblrRequest implements Runnable {
                 continue;
             }
 
-            int deb = 0;
-            if (mIncompletedownloadPhotoIds != null)
-                deb = mIncompletedownloadPhotoIds.size();
-            Log.d("DEBUG: incomplete ", deb + " cache size " + mContentCache.size() +
-                    " last success " + mLastDownloadSuccessful);
             if (Uri.parse(imag_url).getLastPathSegment().contains("avatar") ||
                     (hasIncompleteDownloadPhoto(imag_url))) continue;
             String imageUrl = bestUrl(imag_url);
@@ -439,6 +434,20 @@ public class TumblrRequest implements Runnable {
         onFinished(true, true);
     }
 
+    private void notifyFinished(boolean wasSuccess) {
+        if (mShouldDownload) {
+            if (wasSuccess) {
+                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
+                mViews.setTextViewText(R.id.detail, "Downloading finished");
+            } else {
+                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
+                mViews.setTextViewText(R.id.detail, "Downloading failed");
+            }
+            mBuilder.setContent(mViews);
+            mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
+        }
+    }
+
     @Override
     public void run() {
         boolean wasSuccess = true;
@@ -495,20 +504,6 @@ public class TumblrRequest implements Runnable {
         }
         if (!mWasCancelled)
             onFinished(true, wasSuccess);
-    }
-
-    private void notifyFinished(boolean wasSuccess) {
-        if (mShouldDownload) {
-            if (wasSuccess) {
-                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
-                mViews.setTextViewText(R.id.detail, "Downloading finished");
-            } else {
-                mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
-                mViews.setTextViewText(R.id.detail, "Downloading failed");
-            }
-            mBuilder.setContent(mViews);
-            mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
-        }
     }
 
     private enum Result {
