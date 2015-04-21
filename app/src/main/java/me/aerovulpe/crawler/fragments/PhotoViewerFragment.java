@@ -173,100 +173,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         ((PhotoManager) getActivity()).setFullScreen(false, true);
     }
 
-    private void setUpScrollingOfDescription() {
-        //use the same timer. Cancel if running
-        if (timerDescriptionScrolling != null) {
-            timerDescriptionScrolling.cancel();
-        } else {
-            timerDescriptionScrolling = new Timer("TextScrolling");
-        }
-
-        final Activity activity = getActivity();
-        long msBetweenSwaps = 5000;
-
-        //schedule this to
-        timerDescriptionScrolling.scheduleAtFixedRate(
-                new TimerTask() {
-                    public void run() {
-                        activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                if (mPhotos.size() == 0) return;
-                                Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
-                                TextSwitcher switcherDescription = (TextSwitcher) mViewPager
-                                        .findViewWithTag(mViewPager.getCurrentItem());
-                                updateScrollingDescription(currentPhoto, switcherDescription);
-                            }
-                        });
-                    }
-                }, msBetweenSwaps, msBetweenSwaps);
-    }
-
-
-    private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
-        //avoid NullPointer exceptions
-        if (switcherDescription == null) {
-            return;
-        }
-
-        String description = currentPhoto.getDescription();
-
-        TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
-
-        if (descriptionView == null || descriptionView.getLayout() == null) {
-            return;
-        }
-
-        //note currentDescription may contain more text that is shown (but is always a substring
-        String currentDescription = descriptionView.getText().toString();
-
-        if (currentDescription == null || description == null) {
-            return;
-        }
-
-        int indexEndCurrentDescription = descriptionView.getLayout().getLineEnd(1);
-
-        //if we are not displaying all characters, let swap to the not displayed substring
-        if (indexEndCurrentDescription > 0 && indexEndCurrentDescription < currentDescription.length()) {
-            String newDescription = currentDescription.substring(indexEndCurrentDescription);
-            switcherDescription.setText(newDescription);
-        } else if (indexEndCurrentDescription >= currentDescription.length() && indexEndCurrentDescription < description.length()) {
-            //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
-            switcherDescription.setText(description);
-        }
-    }
-
-    public void toggleDetailViews() {
-        View view = getView();
-        if (mShowText) {
-            if (getView() != null)
-                view.findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
-            PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
-            setShowText(false);
-        } else {
-            if (view != null)
-                view.findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
-            PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
-            setShowText(true);
-        }
-        // Prevent following view from fucking up.
-        int currentPosition = mViewPager.getCurrentItem();
-        PagerAdapter adapter = mViewPager.getAdapter();
-        mViewPager.setAdapter(adapter);
-        mViewPager.setCurrentItem(currentPosition);
-    }
-
-    private void setShowText(boolean showText) {
-        mShowText = showText;
-        ((PhotoViewerAdapter) mViewPager.getAdapter()).setShowText(showText);
-        if (showText) {
-            if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
-        } else {
-            if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
-        }
-    }
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -313,6 +219,79 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void setShowText(boolean showText) {
+        mShowText = showText;
+        ((PhotoViewerAdapter) mViewPager.getAdapter()).setShowText(showText);
+        if (showText) {
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
+        } else {
+            if (getView() != null)
+                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void setUpScrollingOfDescription() {
+        //use the same timer. Cancel if running
+        if (timerDescriptionScrolling != null) {
+            timerDescriptionScrolling.cancel();
+        } else {
+            timerDescriptionScrolling = new Timer("TextScrolling");
+        }
+
+        final Activity activity = getActivity();
+        long msBetweenSwaps = 5000;
+
+        //schedule this to
+        timerDescriptionScrolling.scheduleAtFixedRate(
+                new TimerTask() {
+                    public void run() {
+                        activity.runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (mPhotos.size() == 0) return;
+                                Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
+                                TextSwitcher switcherDescription = (TextSwitcher) mViewPager
+                                        .findViewWithTag(mViewPager.getCurrentItem());
+                                updateScrollingDescription(currentPhoto, switcherDescription);
+                            }
+                        });
+                    }
+                }, msBetweenSwaps, msBetweenSwaps);
+    }
+
+    private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
+        //avoid NullPointer exceptions
+        if (switcherDescription == null) {
+            return;
+        }
+
+        String description = currentPhoto.getDescription();
+
+        TextView descriptionView = ((TextView) switcherDescription.getCurrentView());
+
+        if (descriptionView == null || descriptionView.getLayout() == null) {
+            return;
+        }
+
+        //note currentDescription may contain more text that is shown (but is always a substring
+        String currentDescription = descriptionView.getText().toString();
+
+        if (currentDescription == null || description == null) {
+            return;
+        }
+
+        int indexEndCurrentDescription = descriptionView.getLayout().getLineEnd(1);
+
+        //if we are not displaying all characters, let swap to the not displayed substring
+        if (indexEndCurrentDescription > 0 && indexEndCurrentDescription < currentDescription.length()) {
+            String newDescription = currentDescription.substring(indexEndCurrentDescription);
+            switcherDescription.setText(newDescription);
+        } else if (indexEndCurrentDescription >= currentDescription.length() && indexEndCurrentDescription < description.length()) {
+            //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
+            switcherDescription.setText(description);
         }
     }
 
@@ -442,7 +421,17 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         if (mPhotos != null && photoCursor.getCount() == mPhotos.size())
             return;
         int currentItem = mViewPager.getCurrentItem();
-        mPhotos = Photo.fromCursor(photoCursor);
+        Photo.fromCursor(photoCursor, new Photo.OnPhotosLoadedListener() {
+            @Override
+            public void onPhotosLoaded(List<Photo> photos) {
+                mPhotos = photos;
+            }
+
+            @Override
+            public Context getContext() {
+                return getActivity();
+            }
+        });
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
     }
@@ -451,5 +440,25 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public boolean onLongClick(View v) {
         toggleDetailViews();
         return true;
+    }
+
+    public void toggleDetailViews() {
+        View view = getView();
+        if (mShowText) {
+            if (getView() != null)
+                view.findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
+            PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
+            setShowText(false);
+        } else {
+            if (view != null)
+                view.findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
+            PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
+            setShowText(true);
+        }
+        // Prevent following view from fucking up.
+        int currentPosition = mViewPager.getCurrentItem();
+        PagerAdapter adapter = mViewPager.getAdapter();
+        mViewPager.setAdapter(adapter);
+        mViewPager.setCurrentItem(currentPosition);
     }
 }

@@ -25,6 +25,8 @@ import android.view.ViewGroup;
 
 import com.melnykov.fab.FloatingActionButton;
 
+import java.util.List;
+
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
@@ -125,22 +127,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        final IntentFilter myFilter = new
-                IntentFilter(TumblrRequestService.ACTION_NOTIFY_TUMBLR_PROGRESS);
-        getActivity().registerReceiver(mReceiver, myFilter);
-        if (mRequestData) {
-            mProgressDialog = new ProgressDialog(getActivity());
-            if (mAlbumID != null && mPhotoDataUrl != null) {
-                doPhotosRequest();
-            }
-            mRequestData = false;
-        }
-        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -171,10 +157,19 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        if (mRecyclerView.getAdapter() == null) return;
-        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        final IntentFilter myFilter = new
+                IntentFilter(TumblrRequestService.ACTION_NOTIFY_TUMBLR_PROGRESS);
+        getActivity().registerReceiver(mReceiver, myFilter);
+        if (mRequestData) {
+            mProgressDialog = new ProgressDialog(getActivity());
+            if (mAlbumID != null && mPhotoDataUrl != null) {
+                doPhotosRequest();
+            }
+            mRequestData = false;
+        }
+        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
     }
 
     @Override
@@ -191,10 +186,27 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        if (mRecyclerView.getAdapter() == null) return;
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         doUnbindService();
         getActivity().unregisterReceiver(mReceiver);
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            getActivity().unbindService(mConnection);
+            mIsBound = false;
+            if (mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        }
     }
 
     private void doPhotosRequest() {
@@ -207,6 +219,34 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             getActivity().startService(intent);
             doBindService();
         }
+    }
+
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        getActivity().bindService(new Intent(getActivity(),
+                TumblrRequestService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+        mProgressDialog.setMessage(getResources().getString(R.string.loading_photos));
+        mProgressDialog.show();
+    }
+
+    private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
+        if (getActivity() != null)
+            Photo.fromCursor(cursor, new Photo.OnPhotosLoadedListener() {
+                @Override
+                public void onPhotosLoaded(List<Photo> photos) {
+                    mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
+                            .createPhotoViewerInstance(mAlbumTitle, photos, initPos, isSlideShow);
+                }
+
+                @Override
+                public Context getContext() {
+                    return getActivity();
+                }
+            });
     }
 
     @Override
@@ -227,35 +267,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
-    }
-
-    private void displayPhoto(Cursor cursor, int initPos, boolean isSlideShow) {
-        if (getActivity() != null)
-            mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
-                    .createPhotoViewerInstance(mAlbumTitle, Photo
-                            .fromCursor(cursor), initPos, isSlideShow);
-    }
-
-    void doBindService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        getActivity().bindService(new Intent(getActivity(),
-                TumblrRequestService.class), mConnection, Context.BIND_AUTO_CREATE);
-        mIsBound = true;
-        mProgressDialog.setMessage(getResources().getString(R.string.loading_photos));
-        mProgressDialog.show();
-    }
-
-    void doUnbindService() {
-        if (mIsBound) {
-            // Detach our existing connection.
-            getActivity().unbindService(mConnection);
-            mIsBound = false;
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
-        }
     }
 
     public interface OnPhotoCursorChangedListener {
