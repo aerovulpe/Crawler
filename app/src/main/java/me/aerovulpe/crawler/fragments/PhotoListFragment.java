@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import com.melnykov.fab.FloatingActionButton;
 
 import me.aerovulpe.crawler.CrawlerApplication;
+import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -232,7 +233,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
         if (getActivity() != null)
-            Photo.fromCursor(cursor);
+            mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
+                    .createPhotoViewerInstance(mAlbumTitle, Photo
+                            .fromCursor(cursor), initPos, isSlideShow);
     }
 
     @Override
