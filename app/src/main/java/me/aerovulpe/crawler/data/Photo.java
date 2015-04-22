@@ -1,8 +1,6 @@
 package me.aerovulpe.crawler.data;
 
 import android.database.Cursor;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -43,31 +41,30 @@ public class Photo implements Serializable, Parcelable {
     private String imageUrl;
     private String description;
 
-    public static void fromCursor(final Cursor cursor,
-                                  final OnPhotosLoadedListener photosLoadedListener) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (cursor) {
-                    final List<Photo> photos = new ArrayList<>(cursor.getCount());
-                    cursor.moveToPosition(-1);
-                    while (cursor.moveToNext()) {
-                        Photo photo = new Photo();
-                        photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
-                        photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
-                        photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
-                        photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-                        photos.add(photo);
-                    }
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            photosLoadedListener.onPhotosLoaded(photos);
-                        }
-                    });
-                }
-            }
-        }).start();
+    public static List<Photo> fromCursor(Cursor cursor) {
+        List<Photo> photos = new ArrayList<>(cursor.getCount());
+        cursor.moveToPosition(-1);
+        while (cursor.moveToNext()) {
+            Photo photo = new Photo();
+            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+            photos.add(photo);
+        }
+        return photos;
+    }
+
+    public static Photo fromCursor(Cursor cursor, int pos) {
+        Photo photo = null;
+        if (cursor.moveToPosition(pos)) {
+            photo = new Photo();
+            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+        }
+        return photo;
     }
 
     /**
@@ -161,9 +158,5 @@ public class Photo implements Serializable, Parcelable {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public interface OnPhotosLoadedListener {
-        public void onPhotosLoaded(List<Photo> photos);
     }
 }
