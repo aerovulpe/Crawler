@@ -23,9 +23,10 @@ public class PicasaPhotosRequestTask extends Task {
 
     @Override
     protected Boolean doInBackground(String... params) {
+        HttpURLConnection conn = null;
         try {
             URL url = new URL(params[0]);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setUseCaches(false);
             conn.setReadTimeout(30000); // 30 seconds.
             conn.setDoInput(true);
@@ -36,6 +37,9 @@ public class PicasaPhotosRequestTask extends Task {
         } catch (IOException | SAXException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            if (conn != null)
+                conn.disconnect();
         }
     }
 }

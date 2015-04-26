@@ -36,15 +36,13 @@ public final class AccountsUtil {
     public static String urlFromUser(String user, int type) {
         switch (type) {
             case ACCOUNT_TYPE_TUMBLR: {
-                final String BASE_URL = ".tumblr.com";
-                return "http://" + user + BASE_URL;
+                return "http://" + user + ".tumblr.com";
             }
             case ACCOUNT_TYPE_FLICKR: {
-                return "";
+                return "https://www.flickr.com/photos/" + user;
             }
             case ACCOUNT_TYPE_PICASA: {
-                final String BASE_URL = "http://picasaweb.google.com/data/feed/api/user/";
-                return BASE_URL + user;
+                return "http://picasaweb.google.com/data/feed/api/user/" + user;
             }
             default:
                 return null;

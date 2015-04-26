@@ -31,6 +31,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.request.FlickrRequestTask;
 import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
 import me.aerovulpe.crawler.request.TumblrRequestService;
 
@@ -216,6 +217,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             intent.putExtra(TumblrRequestService.ARG_RAW_URL, mPhotoDataUrl);
             getActivity().startService(intent);
             doBindService();
+        } else if (mPhotoDataUrl.contains("flickr")) {
+            new FlickrRequestTask(getActivity(), mAlbumID, R.string.loading_photos).execute(mAlbumID);
         }
     }
 

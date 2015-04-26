@@ -40,10 +40,10 @@ public final class NetworkUtil {
 
     public static boolean existsFileInServer(String uri) {
         boolean exists = false;
-
+        URLConnection connection = null;
         try {
             URL url = new URL(uri);
-            URLConnection connection = url.openConnection();
+            connection = url.openConnection();
             connection.connect();
 
             // Cast to a HttpURLConnection
@@ -55,25 +55,12 @@ public final class NetworkUtil {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (connection instanceof HttpURLConnection) {
+                ((HttpURLConnection) connection).disconnect();
+            }
         }
         return exists;
-    }
-
-    public static void validateUrl(final NetworkObserver observer, final String url) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final boolean doesExist = existsFileInServer(url);
-                if (observer.getContext() == null)
-                    return;
-                new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        observer.onNetworkStatusReceived(doesExist);
-                    }
-                });
-            }
-        }).start();
     }
 
     public static byte[] getBytesFromFile(String uri) throws IOException {
@@ -108,6 +95,23 @@ public final class NetworkUtil {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    public static void validateUrl(final NetworkObserver observer, final String url) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final boolean doesExist = existsFileInServer(url);
+                if (observer.getContext() == null)
+                    return;
+                new Handler(observer.getContext().getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        observer.onNetworkStatusReceived(doesExist);
+                    }
+                });
+            }
+        }).start();
     }
 
     public static boolean isNetworkAvailable(Context context) {

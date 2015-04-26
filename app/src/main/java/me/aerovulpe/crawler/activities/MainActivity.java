@@ -109,20 +109,20 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                 toolbar, R.string.drawer_open, R.string.drawer_close) {
 
             /**
-             * Called when a drawer has settled in a completely closed state.
-             */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mTitle);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-
-            /**
              * Called when a drawer has settled in a completely open state.
              */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle(mDrawerTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /**
+             * Called when a drawer has settled in a completely closed state.
+             */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
@@ -144,13 +144,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
+                    case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         createPhotoListInstance(intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_NAME),
                                 intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
                                 intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_ID), false);
-                        break;
-                    case AccountsUtil.ACCOUNT_TYPE_FLICKR:
                         break;
                     case AccountsUtil.ACCOUNT_TYPE_PICASA:
                         createAlbumListInstance(AccountsUtil.ACCOUNT_TYPE_PICASA,
@@ -160,25 +159,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         }
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
     }
 
     @Override
@@ -192,31 +172,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Pass the event to ActionBarDrawerToggle, if it returns
-        // true, then it has handled the app icon touch event
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        // Handle your other action bar items...
-
-        if (item.getItemId() == R.id.action_settings) {
-            Intent intent = new Intent(this, PreferencesActivity.class);
-            startActivity(intent);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /* Called whenever we call invalidateOptionsMenu() */
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -298,6 +253,50 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     public boolean isFullScreen() {
         return mIsFullScreen;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    /* Called whenever we call invalidateOptionsMenu() */
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Pass the event to ActionBarDrawerToggle, if it returns
+        // true, then it has handled the app icon touch event
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        // Handle your other action bar items...
+
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, PreferencesActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
