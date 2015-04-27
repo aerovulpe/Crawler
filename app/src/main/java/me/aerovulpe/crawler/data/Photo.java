@@ -42,7 +42,11 @@ public class Photo implements Serializable, Parcelable {
     private String imageUrl;
     private String description;
 
-    public static List<Photo> fromCursor(Cursor cursor) {
+    public static List<Photo> listFromCursor(Cursor cursor) {
+        return new ArrayList<>(Arrays.asList(arrayFromCursor(cursor)));
+    }
+
+    public static Photo[] arrayFromCursor(Cursor cursor) {
         Photo[] photos = new Photo[cursor.getCount()];
         int idx = 0;
         cursor.moveToPosition(-1);
@@ -54,7 +58,7 @@ public class Photo implements Serializable, Parcelable {
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
             photos[idx++] = photo;
         }
-        return new ArrayList<>(Arrays.asList(photos));
+        return photos;
     }
 
     public static Photo fromCursor(Cursor cursor, int pos) {

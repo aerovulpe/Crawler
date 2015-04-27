@@ -53,7 +53,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private static final long ANIM_SLIDESHOW_DELAY = 5000;
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
-    private List<Photo> mPhotos;
+    private Photo[] mPhotos;
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
@@ -82,7 +82,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
-            mPhotos = getArguments().getParcelableArrayList(ARG_ALBUM_ID);
+            ArrayList<Photo> arrayList = getArguments().getParcelableArrayList(ARG_ALBUM_ID);
+            mPhotos = arrayList.toArray(new Photo[arrayList.size()]);
             mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
         }
         mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
@@ -251,8 +252,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                if (mPhotos.size() == 0) return;
-                                Photo currentPhoto = mPhotos.get(mViewPager.getCurrentItem());
+                                if (mPhotos.length == 0) return;
+                                Photo currentPhoto = mPhotos[mViewPager.getCurrentItem()];
                                 TextSwitcher switcherDescription = (TextSwitcher) mViewPager
                                         .findViewWithTag(mViewPager.getCurrentItem());
                                 updateScrollingDescription(currentPhoto, switcherDescription);
@@ -326,7 +327,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                         public void run() {
                             PhotoViewerFragment.this.getActivity().runOnUiThread(new Runnable() {
                                 public void run() {
-                                    if (mViewPager.getCurrentItem() == mPhotos.size() - 1) {
+                                    if (mViewPager.getCurrentItem() == mPhotos.length - 1) {
                                         mViewPager.setCurrentItem(0);
                                         toggleSlideShow();
                                     } else {
@@ -349,7 +350,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public Photo getPhoto(int position) {
-        return mPhotos.get(position);
+        return mPhotos[position];
     }
 
     public void sharePhoto(Photo photo) {
@@ -418,10 +419,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public void photoCursorChanged(final Cursor photoCursor) {
         if (photoCursor == null)
             return;
-        if (mPhotos != null && photoCursor.getCount() == mPhotos.size())
+        if (mPhotos != null && photoCursor.getCount() == mPhotos.length)
             return;
         int currentItem = mViewPager.getCurrentItem();
-        mPhotos = Photo.fromCursor(photoCursor);
+        mPhotos = Photo.arrayFromCursor(photoCursor);
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
         mViewPager.setCurrentItem(currentItem);
     }

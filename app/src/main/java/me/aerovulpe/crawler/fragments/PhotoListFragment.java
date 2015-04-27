@@ -238,7 +238,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         if (getActivity() != null)
             mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, Photo
-                            .fromCursor(cursor), initPos, isSlideShow);
+                            .listFromCursor(cursor), initPos, isSlideShow);
     }
 
     @Override

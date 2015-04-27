@@ -21,8 +21,6 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
-import java.util.List;
-
 import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
@@ -43,9 +41,9 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private OnPhotoClickListener mOnClickListener;
     private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, OnPhotoClickListener onClickListener) {
+    public PhotoViewerAdapter(Context context, Photo[] photos, String albumTitle, OnPhotoClickListener onClickListener) {
         mContext = context;
-        mPhotos = photos.toArray(new Photo[photos.size()]);
+        mPhotos = photos;
         mAlbumTitle = albumTitle;
         mOnClickListener = onClickListener;
         mImageLoader = ImageLoader.getInstance();
@@ -166,8 +164,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
         return view == object;
     }
 
-    public void swapPhotos(List<Photo> newPhotos) {
-        mPhotos = newPhotos.toArray(new Photo[newPhotos.size()]);
+    public void swapPhotos(Photo[] newPhotos) {
+        mPhotos = newPhotos;
         notifyDataSetChanged();
     }
 
