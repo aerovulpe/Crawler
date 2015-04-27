@@ -11,7 +11,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
@@ -43,8 +42,7 @@ public class Photo implements Serializable, Parcelable {
     private String description;
 
     public static List<Photo> fromCursor(Cursor cursor) {
-        Photo[] photos = new Photo[cursor.getCount()];
-        int idx = 0;
+        List<Photo> photos = new ArrayList<>(cursor.getCount());
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
             Photo photo = new Photo();
@@ -52,9 +50,9 @@ public class Photo implements Serializable, Parcelable {
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
             photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-            photos[idx++] = photo;
+            photos.add(photo);
         }
-        return new ArrayList<>(Arrays.asList(photos));
+        return photos;
     }
 
     public static Photo fromCursor(Cursor cursor, int pos) {
