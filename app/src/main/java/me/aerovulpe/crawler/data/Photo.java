@@ -61,6 +61,27 @@ public class Photo implements Serializable, Parcelable {
         return photos;
     }
 
+    public static List<Photo> partialListFromCursor(Cursor cursor, int realLength, int startPos) {
+        int virtualLength = cursor.getCount();
+        if (realLength < virtualLength) throw new IllegalArgumentException();
+
+        Photo[] photoArray = new Photo[virtualLength];
+
+        int realStart = startPos - realLength / 2;
+        int idx = (realStart < 0) ? 0 : realStart;
+        cursor.moveToPosition(idx - 1);
+        while (cursor.moveToNext() && cursor.getPosition() < realLength) {
+            Photo photo = new Photo();
+            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+            photoArray[idx++] = photo;
+        }
+
+        return new ArrayList<>(Arrays.asList(photoArray));
+    }
+
     public static Photo fromCursor(Cursor cursor, int pos) {
         Photo photo = null;
         if (cursor.moveToPosition(pos)) {
