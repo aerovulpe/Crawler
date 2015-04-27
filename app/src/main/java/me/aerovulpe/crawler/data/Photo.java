@@ -63,7 +63,7 @@ public class Photo implements Serializable, Parcelable {
 
     public static List<Photo> partialListFromCursor(Cursor cursor, int realLength, int startPos) {
         int virtualLength = cursor.getCount();
-        if (realLength < virtualLength) throw new IllegalArgumentException();
+        if (realLength > virtualLength) throw new IllegalArgumentException();
 
         Photo[] photoArray = new Photo[virtualLength];
 
