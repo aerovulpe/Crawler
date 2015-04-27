@@ -33,11 +33,13 @@ public class FlickrRequestTask extends Task {
     public static final String FORMAT_PARAM = "format";
     public static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
     public static final String PER_PAGE_PARAM = "per_page";
+    public static final String PAGE_PARAM = "page";
     public static final String METHOD_PARAM = "method";
     public static final int CACHE_SIZE = 1000;
     private static final String LOG_TAG = FlickrRequestTask.class.getSimpleName();
     private final Vector<ContentValues> mContentCache;
     private String mAlbumID;
+    private int mNumofPages = 1;
 
     public FlickrRequestTask(Context context, String id, int resourceId) {
         super(context, id, resourceId);
@@ -60,9 +62,11 @@ public class FlickrRequestTask extends Task {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            URL url = userIdUrlFromUserId(userIdFromUserName(Uri.parse(params[0])
-                    .getLastPathSegment()));
-            parseResult(getStringFromServer(url));
+            for (int i = 1; i <= mNumofPages; i++) {
+                URL url = urlFromUserId(userIdFromUserName(Uri.parse(params[0])
+                        .getLastPathSegment()), i);
+                parseResult(getStringFromServer(url));
+            }
             if (!mContentCache.isEmpty()) {
                 mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                         mContentCache.toArray(new ContentValues[mContentCache.size()]));
@@ -75,12 +79,13 @@ public class FlickrRequestTask extends Task {
         }
     }
 
-    private URL userIdUrlFromUserId(String userId) throws MalformedURLException {
+    private URL urlFromUserId(String userId, int page) throws MalformedURLException {
         Uri uri = Uri.parse(FLICKR_API_BASE_URI).buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, API_KEY)
                 .appendQueryParameter(METHOD_PARAM, "flickr.people.getPhotos")
                 .appendQueryParameter(USER_ID_PARAM, userId)
                 .appendQueryParameter(PER_PAGE_PARAM, "500")
+                .appendQueryParameter(PAGE_PARAM, Integer.toString(page))
                 .appendQueryParameter(FORMAT_PARAM, "json")
                 .appendQueryParameter(NOJSONCALLBACK_PARAM, "1").build();
 
@@ -108,8 +113,9 @@ public class FlickrRequestTask extends Task {
 
     private void parseResult(String results) {
         try {
-            JSONObject rootObject = new JSONObject(results);
-            JSONArray photosArray = rootObject.getJSONObject("photos").getJSONArray("photo");
+            JSONObject rootObject = new JSONObject(results).getJSONObject("photos");
+            mNumofPages = rootObject.getInt("pages");
+            JSONArray photosArray = rootObject.getJSONArray("photo");
             Log.d(mAlbumID, photosArray.length() + "");
             for (int i = 0; i < photosArray.length(); i++) {
                 JSONObject photoObject = photosArray.getJSONObject(i);
