@@ -28,7 +28,7 @@ public class FlickrRequestTask extends Task {
     public static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
     public static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
     public static final String API_KEY_PARAM = "api_key";
-    public static final String USERNAME_PARAM = "username";
+    public static final String URL_PARAM = "url";
     public static final String USER_ID_PARAM = "user_id";
     public static final String FORMAT_PARAM = "format";
     public static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
@@ -62,9 +62,11 @@ public class FlickrRequestTask extends Task {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
+            String userId = getUserId();
+            Log.d(LOG_TAG, userId);
             for (int i = 1; i <= mNumofPages; i++) {
-                URL url = urlFromUserId(userIdFromUserName(Uri.parse(params[0])
-                        .getLastPathSegment()), i);
+                URL url = urlFromUserId(userId, i);
                 parseResult(getStringFromServer(url));
             }
             if (!mContentCache.isEmpty()) {
@@ -79,24 +81,11 @@ public class FlickrRequestTask extends Task {
         }
     }
 
-    private URL urlFromUserId(String userId, int page) throws MalformedURLException {
+    private String getUserId() {
         Uri uri = Uri.parse(FLICKR_API_BASE_URI).buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                .appendQueryParameter(METHOD_PARAM, "flickr.people.getPhotos")
-                .appendQueryParameter(USER_ID_PARAM, userId)
-                .appendQueryParameter(PER_PAGE_PARAM, "500")
-                .appendQueryParameter(PAGE_PARAM, Integer.toString(page))
-                .appendQueryParameter(FORMAT_PARAM, "json")
-                .appendQueryParameter(NOJSONCALLBACK_PARAM, "1").build();
-
-        return new URL(uri.toString());
-    }
-
-    private String userIdFromUserName(String userName) {
-        Uri uri = Uri.parse(FLICKR_API_BASE_URI).buildUpon()
-                .appendQueryParameter(API_KEY_PARAM, API_KEY)
-                .appendQueryParameter(METHOD_PARAM, "flickr.people.findByUsername")
-                .appendQueryParameter(USERNAME_PARAM, userName)
+                .appendQueryParameter(METHOD_PARAM, "flickr.urls.lookupUser")
+                .appendQueryParameter(URL_PARAM, mAlbumID)
                 .appendQueryParameter(FORMAT_PARAM, "json")
                 .appendQueryParameter(NOJSONCALLBACK_PARAM, "1").build();
 
@@ -109,6 +98,19 @@ public class FlickrRequestTask extends Task {
         }
 
         return null;
+    }
+
+    private URL urlFromUserId(String userId, int page) throws MalformedURLException {
+        Uri uri = Uri.parse(FLICKR_API_BASE_URI).buildUpon()
+                .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                .appendQueryParameter(METHOD_PARAM, "flickr.people.getPhotos")
+                .appendQueryParameter(USER_ID_PARAM, userId)
+                .appendQueryParameter(PER_PAGE_PARAM, "500")
+                .appendQueryParameter(PAGE_PARAM, Integer.toString(page))
+                .appendQueryParameter(FORMAT_PARAM, "json")
+                .appendQueryParameter(NOJSONCALLBACK_PARAM, "1").build();
+
+        return new URL(uri.toString());
     }
 
     private void parseResult(String results) {
