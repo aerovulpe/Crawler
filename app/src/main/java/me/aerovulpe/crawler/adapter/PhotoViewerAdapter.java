@@ -38,14 +38,14 @@ public class PhotoViewerAdapter extends PagerAdapter {
     private final ImageLoader mImageLoader;
     DisplayImageOptions mOptions;
     private Context mContext;
-    private List<Photo> mPhotos;
+    private Photo[] mPhotos;
     private String mAlbumTitle;
     private OnPhotoClickListener mOnClickListener;
     private boolean mShowText;
 
     public PhotoViewerAdapter(Context context, List<Photo> photos, String albumTitle, OnPhotoClickListener onClickListener) {
         mContext = context;
-        mPhotos = photos;
+        mPhotos = photos.toArray(new Photo[photos.size()]);
         mAlbumTitle = albumTitle;
         mOnClickListener = onClickListener;
         mImageLoader = ImageLoader.getInstance();
@@ -62,7 +62,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return mPhotos.size();
+        return mPhotos.length;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
         photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
-        Photo currentPhoto = mPhotos.get(position);
+        Photo currentPhoto = mPhotos[position];
         mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                 new ImageLoadingListener() {
                     @Override
@@ -108,8 +108,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
         txtPhotoTitle.setText(currentPhoto.getName());
         txtAlbumName.setText(mAlbumTitle);
 
-        if (mPhotos.size() > (position + 1)) {
-            Photo photo = mPhotos.get(position + 1);
+        if (mPhotos.length > (position + 1)) {
+            Photo photo = mPhotos[position + 1];
             if (photo != null) {
                 mImageLoader.loadImage(photo.getImageUrl(), null);
             }
@@ -167,7 +167,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
     }
 
     public void swapPhotos(List<Photo> newPhotos) {
-        mPhotos = newPhotos;
+        mPhotos = newPhotos.toArray(new Photo[newPhotos.size()]);
         notifyDataSetChanged();
     }
 
