@@ -37,7 +37,7 @@ public class FlickrRequestTask extends Task {
     public static final String PER_PAGE_PARAM = "per_page";
     public static final String PAGE_PARAM = "page";
     public static final String METHOD_PARAM = "method";
-    public static final int CACHE_SIZE = 1000;
+    public static final int CACHE_SIZE = 3000;
     private static final String LOG_TAG = FlickrRequestTask.class.getSimpleName();
     private final Vector<ContentValues> mContentCache;
     private final ContentProviderClient mProvider;
