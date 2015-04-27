@@ -87,6 +87,8 @@ public class FlickrRequestTask extends Task {
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        } finally {
+            mProvider.release();
         }
     }
 
