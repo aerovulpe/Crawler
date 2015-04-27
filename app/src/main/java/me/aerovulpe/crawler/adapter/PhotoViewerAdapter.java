@@ -60,6 +60,76 @@ public class PhotoViewerAdapter extends PagerAdapter {
                 .build();
     }
 
+    @Override
+    public int getCount() {
+        return mPhotos.size();
+    }
+
+    @Override
+    public Object instantiateItem(ViewGroup container, int position) {
+        LayoutInflater inflater = (LayoutInflater) mContext
+                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        View rootView = inflater.inflate(R.layout.photo_view, container, false);
+        TouchImageView photoView = (TouchImageView) rootView.findViewById(R.id.photo);
+        TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
+        TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
+        TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
+        final ProgressBar spinner = (ProgressBar) rootView.findViewById(R.id.loading);
+        setVisibilityOfPhotoText(rootView, mShowText);
+
+        photoView.setTag(rootView);
+        photoView.setOnClickListener(mOnClickListener);
+        photoView.setOnLongClickListener(mOnClickListener);
+
+        Photo currentPhoto = mPhotos.get(position);
+        mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
+                new ImageLoadingListener() {
+                    @Override
+                    public void onLoadingStarted(String imageUri, View view) {
+
+                    }
+
+                    @Override
+                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                        Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onLoadingCancelled(String imageUri, View view) {
+                        spinner.setVisibility(View.INVISIBLE);
+                    }
+                });
+        txtPhotoTitle.setText(currentPhoto.getName());
+        txtAlbumName.setText(mAlbumTitle);
+
+        if (mPhotos.size() > (position + 1)) {
+            Photo photo = mPhotos.get(position + 1);
+            if (photo != null) {
+                mImageLoader.loadImage(photo.getImageUrl(), null);
+            }
+        }
+
+        Animation inAnim = AnimationUtils.loadAnimation(mContext,
+                R.anim.slide_in_up);
+        Animation outAnim = AnimationUtils.loadAnimation(mContext,
+                R.anim.slide_out_down);
+
+        descriptionSwitcher.setInAnimation(inAnim);
+        descriptionSwitcher.setOutAnimation(outAnim);
+
+        descriptionSwitcher.setText(currentPhoto.getDescription());
+
+        descriptionSwitcher.setTag(position);
+        container.addView(rootView);
+        return rootView;
+    }
+
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
         if (photoView == null) {
             return;
@@ -87,82 +157,13 @@ public class PhotoViewerAdapter extends PagerAdapter {
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-        LayoutInflater inflater = (LayoutInflater) mContext
-                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        View rootView = inflater.inflate(R.layout.photo_view, container, false);
-        TouchImageView photoView = (TouchImageView) rootView.findViewById(R.id.photo);
-        TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
-        TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
-        TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
-        final ProgressBar spinner = (ProgressBar) rootView.findViewById(R.id.loading);
-        setVisibilityOfPhotoText(rootView, mShowText);
-
-        photoView.setTag(rootView);
-        photoView.setOnClickListener(mOnClickListener);
-        photoView.setOnLongClickListener(mOnClickListener);
-
-        mImageLoader.displayImage(mPhotos.get(position).getImageUrl(), photoView, mOptions,
-                new ImageLoadingListener() {
-                    @Override
-                    public void onLoadingStarted(String imageUri, View view) {
-
-                    }
-
-                    @Override
-                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                        Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onLoadingCancelled(String imageUri, View view) {
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
-                });
-        txtPhotoTitle.setText(mPhotos.get(position).getName());
-        txtAlbumName.setText(mAlbumTitle);
-
-        if (mPhotos.size() > (position + 1)) {
-            Photo photo = mPhotos.get(position + 1);
-            if (photo != null) {
-                mImageLoader.loadImage(photo.getImageUrl(), null);
-            }
-        }
-
-        Animation inAnim = AnimationUtils.loadAnimation(mContext,
-                R.anim.slide_in_up);
-        Animation outAnim = AnimationUtils.loadAnimation(mContext,
-                R.anim.slide_out_down);
-
-        descriptionSwitcher.setInAnimation(inAnim);
-        descriptionSwitcher.setOutAnimation(outAnim);
-
-        descriptionSwitcher.setText(mPhotos.get(position).getDescription());
-
-        descriptionSwitcher.setTag(position);
-        container.addView(rootView);
-        return rootView;
-    }
-
-    @Override
-    public int getCount() {
-        return mPhotos.size();
+    public void destroyItem(ViewGroup container, int position, Object object) {
+        container.removeView((View) object);
     }
 
     @Override
     public boolean isViewFromObject(View view, Object object) {
         return view == object;
-    }
-
-    @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
-        container.removeView((View) object);
     }
 
     public void swapPhotos(List<Photo> newPhotos) {

@@ -1,9 +1,11 @@
 package me.aerovulpe.crawler.request;
 
+import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.SQLException;
 import android.net.Uri;
+import android.os.RemoteException;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -38,12 +40,15 @@ public class FlickrRequestTask extends Task {
     public static final int CACHE_SIZE = 1000;
     private static final String LOG_TAG = FlickrRequestTask.class.getSimpleName();
     private final Vector<ContentValues> mContentCache;
+    private final ContentProviderClient mProvider;
     private String mAlbumID;
-    private int mNumofPages = 1;
+    private int mNumOfPages = 1;
 
     public FlickrRequestTask(Context context, String id, int resourceId) {
         super(context, id, resourceId);
         mContentCache = new Vector<>(CACHE_SIZE);
+        mProvider = context.getContentResolver()
+                .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
     }
 
     @Override
@@ -65,13 +70,17 @@ public class FlickrRequestTask extends Task {
 
             String userId = getUserId();
             Log.d(LOG_TAG, userId);
-            for (int i = 1; i <= mNumofPages; i++) {
+            for (int i = 1; i <= mNumOfPages; i++) {
                 URL url = urlFromUserId(userId, i);
                 parseResult(getStringFromServer(url));
             }
             if (!mContentCache.isEmpty()) {
-                mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                try {
+                    mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 mContentCache.clear();
             }
             return true;
@@ -116,7 +125,7 @@ public class FlickrRequestTask extends Task {
     private void parseResult(String results) {
         try {
             JSONObject rootObject = new JSONObject(results).getJSONObject("photos");
-            mNumofPages = rootObject.getInt("pages");
+            mNumOfPages = rootObject.getInt("pages");
             JSONArray photosArray = rootObject.getJSONArray("photo");
             Log.d(mAlbumID, photosArray.length() + "");
             for (int i = 0; i < photosArray.length(); i++) {
@@ -133,8 +142,12 @@ public class FlickrRequestTask extends Task {
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
                 mContentCache.add(values);
                 if (mContentCache.size() >= CACHE_SIZE) {
-                    mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                    try {
+                        mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                                mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
                     mContentCache.clear();
                 }
             }
