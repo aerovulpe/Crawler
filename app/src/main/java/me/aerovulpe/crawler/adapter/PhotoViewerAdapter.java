@@ -60,7 +60,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return mPhotos.length;
+        return (mPhotos != null) ? mPhotos.length : 0;
     }
 
     @Override
@@ -80,50 +80,54 @@ public class PhotoViewerAdapter extends PagerAdapter {
         photoView.setOnLongClickListener(mOnClickListener);
 
         Photo currentPhoto = mPhotos[position];
-        mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
-                new ImageLoadingListener() {
-                    @Override
-                    public void onLoadingStarted(String imageUri, View view) {
 
-                    }
+        if (currentPhoto != null) {
+            mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
+                    new ImageLoadingListener() {
+                        @Override
+                        public void onLoadingStarted(String imageUri, View view) {
 
-                    @Override
-                    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                        Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
+                        }
 
-                    @Override
-                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
+                        @Override
+                        public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                            Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
+                            spinner.setVisibility(View.INVISIBLE);
+                        }
 
-                    @Override
-                    public void onLoadingCancelled(String imageUri, View view) {
-                        spinner.setVisibility(View.INVISIBLE);
-                    }
-                });
-        txtPhotoTitle.setText(currentPhoto.getName());
-        txtAlbumName.setText(mAlbumTitle);
+                        @Override
+                        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                            spinner.setVisibility(View.INVISIBLE);
+                        }
 
-        if (mPhotos.length > (position + 1)) {
-            Photo photo = mPhotos[position + 1];
-            if (photo != null) {
-                mImageLoader.loadImage(photo.getImageUrl(), null);
+                        @Override
+                        public void onLoadingCancelled(String imageUri, View view) {
+                            spinner.setVisibility(View.INVISIBLE);
+                        }
+                    });
+            txtPhotoTitle.setText(currentPhoto.getName());
+            txtAlbumName.setText(mAlbumTitle);
+
+            if (mPhotos.length > (position + 1)) {
+                Photo photo = mPhotos[position + 1];
+                if (photo != null) {
+                    mImageLoader.loadImage(photo.getImageUrl(), null);
+                }
             }
+
+            Animation inAnim = AnimationUtils.loadAnimation(mContext,
+                    R.anim.slide_in_up);
+            Animation outAnim = AnimationUtils.loadAnimation(mContext,
+                    R.anim.slide_out_down);
+
+            descriptionSwitcher.setInAnimation(inAnim);
+            descriptionSwitcher.setOutAnimation(outAnim);
+
+            descriptionSwitcher.setText(currentPhoto.getDescription());
+
+            descriptionSwitcher.setTag(position);
         }
 
-        Animation inAnim = AnimationUtils.loadAnimation(mContext,
-                R.anim.slide_in_up);
-        Animation outAnim = AnimationUtils.loadAnimation(mContext,
-                R.anim.slide_out_down);
-
-        descriptionSwitcher.setInAnimation(inAnim);
-        descriptionSwitcher.setOutAnimation(outAnim);
-
-        descriptionSwitcher.setText(currentPhoto.getDescription());
-
-        descriptionSwitcher.setTag(position);
         container.addView(rootView);
         return rootView;
     }
