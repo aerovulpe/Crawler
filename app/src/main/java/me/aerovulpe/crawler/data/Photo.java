@@ -110,9 +110,8 @@ public class Photo implements Serializable, Parcelable {
                     photos = arrayFromCursor(params[0]);
                 } catch (StaleDataException e) {
                     e.printStackTrace();
-                } finally {
-                    cursor.close();
                 }
+
                 return photos;
             }
 
