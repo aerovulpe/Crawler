@@ -237,8 +237,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
         if (getActivity() != null) {
-            List<Photo> photos = (cursor.getCount() < 3000) ?
-                    Photo.listFromCursor(cursor) : Photo.partialListFromCursor(cursor, 2000, initPos);
+            int syncLoadLimit = 3500;
+            List<Photo> photos = (cursor.getCount() < syncLoadLimit) ?
+                    Photo.listFromCursor(cursor) :
+                    Photo.partialListFromCursor(cursor, syncLoadLimit, initPos);
             ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, mAlbumID, photos, initPos, isSlideShow);
         }
