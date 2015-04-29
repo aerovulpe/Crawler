@@ -1,6 +1,7 @@
 package me.aerovulpe.crawler.data;
 
 import android.database.Cursor;
+import android.database.StaleDataException;
 import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -51,7 +52,7 @@ public class Photo implements Serializable, Parcelable {
         Photo[] photos = new Photo[cursor.getCount()];
         int idx = 0;
         cursor.moveToPosition(-1);
-        while (cursor.moveToNext()) {
+        while (!cursor.isClosed() && cursor.moveToNext()) {
             Photo photo = new Photo();
             photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
@@ -98,11 +99,21 @@ public class Photo implements Serializable, Parcelable {
         return photo;
     }
 
-    public static void loadPhotosAsync(Cursor cursor, final OnPhotosLoadedListener onPhotosLoadedListener) {
+    public static void loadPhotosAsync(final Cursor cursor, final OnPhotosLoadedListener onPhotosLoadedListener) {
         new AsyncTask<Cursor, Void, Photo[]>() {
             @Override
             protected Photo[] doInBackground(Cursor... params) {
-                return arrayFromCursor(params[0]);
+                if (params[0].isClosed()) return null;
+
+                Photo[] photos = null;
+                try {
+                    photos = arrayFromCursor(params[0]);
+                } catch (StaleDataException e) {
+                    e.printStackTrace();
+                } finally {
+                    cursor.close();
+                }
+                return photos;
             }
 
             @Override

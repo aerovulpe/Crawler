@@ -479,10 +479,14 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         Photo.loadPhotosAsync(data, new Photo.OnPhotosLoadedListener() {
             @Override
             public void onPhotosLoaded(Photo[] photos) {
+                if (photos == null) return;
+
                 int currentItem = mViewPager.getCurrentItem();
                 mPhotos = photos;
                 ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
                 mViewPager.setCurrentItem(currentItem);
+                Log.d(PhotoViewerFragment.class.getSimpleName(), "Photos changed: size is " +
+                        mPhotos.length);
             }
         });
     }
