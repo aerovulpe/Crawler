@@ -1,6 +1,7 @@
 package me.aerovulpe.crawler.data;
 
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -97,6 +98,20 @@ public class Photo implements Serializable, Parcelable {
         return photo;
     }
 
+    public static void loadPhotosAsync(Cursor cursor, final OnPhotosLoadedListener onPhotosLoadedListener) {
+        new AsyncTask<Cursor, Void, Photo[]>() {
+            @Override
+            protected Photo[] doInBackground(Cursor... params) {
+                return arrayFromCursor(params[0]);
+            }
+
+            @Override
+            protected void onPostExecute(Photo[] photos) {
+                onPhotosLoadedListener.onPhotosLoaded(photos);
+            }
+        }.execute(cursor);
+    }
+
     /**
      * Returns the photo name.
      */
@@ -188,5 +203,9 @@ public class Photo implements Serializable, Parcelable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static interface OnPhotosLoadedListener {
+        public void onPhotosLoaded(Photo[] photos);
     }
 }

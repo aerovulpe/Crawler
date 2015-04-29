@@ -192,7 +192,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl, boolean addToBackstack) {
+    public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl,
+                                        boolean addToBackstack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle,
                 albumID, photoDataUrl), albumTitle);
@@ -201,9 +202,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow) {
+    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, String albumId,
+                                                         List<Photo> photos, int currentPhotoIndex,
+                                                         boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, photos, currentPhotoIndex);
+        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, albumId, photos,
+                currentPhotoIndex);
         fragmentTransaction.add(R.id.content_frame, fragment, null);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();

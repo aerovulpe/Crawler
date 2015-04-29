@@ -3,9 +3,12 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
@@ -38,9 +41,11 @@ import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
+import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 
-public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener, PhotoListFragment.OnPhotoCursorChangedListener {
+public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
@@ -48,11 +53,21 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
-    public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
+    public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_VIEW.album_id";
+    public static final String ARG_ALBUM_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
     public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
     private static final long ANIM_SLIDESHOW_DELAY = 5000;
+    private static final int PHOTOS_LOADER = 3;
+    private static String[] PHOTOS_COLUMNS = {
+            CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION
+    };
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
+    private String mAlbumID;
     private Photo[] mPhotos;
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
@@ -67,11 +82,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         // Required empty public constructor
     }
 
-    public static PhotoViewerFragment newInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex) {
+    public static PhotoViewerFragment newInstance(String albumTitle, String albumId,
+                                                  List<Photo> photos, int currentPhotoIndex) {
         PhotoViewerFragment fragment = new PhotoViewerFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
-        args.putParcelableArrayList(ARG_ALBUM_ID, (ArrayList<Photo>) photos);
+        args.putString(ARG_ALBUM_ID, albumId);
+        args.putParcelableArrayList(ARG_ALBUM_PHOTOS, (ArrayList<Photo>) photos);
         args.putInt(ARG_PHOTO_INDEX, currentPhotoIndex);
         fragment.setArguments(args);
         return fragment;
@@ -80,11 +97,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
-            ArrayList<Photo> arrayList = getArguments().getParcelableArrayList(ARG_ALBUM_ID);
+        Bundle args = getArguments();
+        if (args != null) {
+            mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
+            mAlbumID = args.getString(ARG_ALBUM_ID);
+            ArrayList<Photo> arrayList = args.getParcelableArrayList(ARG_ALBUM_PHOTOS);
             mPhotos = arrayList.toArray(new Photo[arrayList.size()]);
-            mInitPhotoIndex = getArguments().getInt(ARG_PHOTO_INDEX);
+            mInitPhotoIndex = args.getInt(ARG_PHOTO_INDEX);
         }
         mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
@@ -105,9 +124,15 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-
+        getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
         if (mInitPhotoIndex != -1) {
             mViewPager.setCurrentItem(mInitPhotoIndex);
             mInitPhotoIndex = -1;
@@ -416,18 +441,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
-    public void photoCursorChanged(final Cursor photoCursor) {
-        if (photoCursor == null)
-            return;
-        if (mPhotos != null && photoCursor.getCount() == mPhotos.length)
-            return;
-        int currentItem = mViewPager.getCurrentItem();
-        mPhotos = Photo.arrayFromCursor(photoCursor);
-        ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
-        mViewPager.setCurrentItem(currentItem);
-    }
-
-    @Override
     public boolean onLongClick(View v) {
         toggleDetailViews();
         return true;
@@ -451,5 +464,31 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         PagerAdapter adapter = mViewPager.getAdapter();
         mViewPager.setAdapter(adapter);
         mViewPager.setCurrentItem(currentPosition);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
+        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
+        return new CursorLoader(getActivity(), uri, PHOTOS_COLUMNS, null,
+                null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Photo.loadPhotosAsync(data, new Photo.OnPhotosLoadedListener() {
+            @Override
+            public void onPhotosLoaded(Photo[] photos) {
+                int currentItem = mViewPager.getCurrentItem();
+                mPhotos = photos;
+                ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
+                mViewPager.setCurrentItem(currentItem);
+            }
+        });
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }

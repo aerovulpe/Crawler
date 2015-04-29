@@ -70,7 +70,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private String mAlbumID;
     private String mPhotoDataUrl;
     private RecyclerView mRecyclerView;
-    private OnPhotoCursorChangedListener mOnPhotoCursorChangedListener;
     private boolean mRequestData;
     private TumblrRequestService mBoundService;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -240,9 +239,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         if (getActivity() != null) {
             List<Photo> photos = (cursor.getCount() < 3000) ?
                     Photo.listFromCursor(cursor) : Photo.partialListFromCursor(cursor, 2000, initPos);
-            // TODO Reload completely async.
-            mOnPhotoCursorChangedListener = ((PhotoManager) getActivity())
-                    .createPhotoViewerInstance(mAlbumTitle, photos, initPos, isSlideShow);
+            ((PhotoManager) getActivity())
+                    .createPhotoViewerInstance(mAlbumTitle, mAlbumID, photos, initPos, isSlideShow);
         }
     }
 
@@ -257,16 +255,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
-        if (mOnPhotoCursorChangedListener != null)
-            mOnPhotoCursorChangedListener.photoCursorChanged(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
-    }
-
-    public interface OnPhotoCursorChangedListener {
-        public void photoCursorChanged(Cursor photoCursor);
     }
 }

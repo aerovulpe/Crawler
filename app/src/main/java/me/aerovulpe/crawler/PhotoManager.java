@@ -11,9 +11,12 @@ import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 public interface PhotoManager {
     public void createAlbumListInstance(int accountType, String accountID);
 
-    public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl, boolean addToBackstack);
+    public void createPhotoListInstance(String albumTitle, String albumID,
+                                        String photoDataUrl, boolean addToBackstack);
 
-    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, List<Photo> photos, int currentPhotoIndex, boolean isSlideShow);
+    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, String albumID,
+                                                         List<Photo> photos, int currentPhotoIndex,
+                                                         boolean isSlideShow);
 
     public void setFullScreen(boolean fullScreen, boolean restoreActionBar);
 
