@@ -469,7 +469,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
-        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
+        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " DESC";
         return new CursorLoader(getActivity(), uri, PHOTOS_COLUMNS, null,
                 null, sortOrder);
     }

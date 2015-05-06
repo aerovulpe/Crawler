@@ -105,7 +105,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
                             spinner.setVisibility(View.INVISIBLE);
                         }
                     });
-            txtPhotoTitle.setText(currentPhoto.getName());
+            txtPhotoTitle.setText(currentPhoto.getTitle());
             txtAlbumName.setText(mAlbumTitle);
 
             if (mPhotos.length > (position + 1)) {

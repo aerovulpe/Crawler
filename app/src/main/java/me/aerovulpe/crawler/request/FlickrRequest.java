@@ -9,11 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -24,18 +20,17 @@ import me.aerovulpe.crawler.util.AccountsUtil;
  * Created by Aaron on 26/04/2015.
  */
 public class FlickrRequest extends Request {
-    public static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
-    public static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
-    public static final String API_KEY_PARAM = "api_key";
-    public static final String URL_PARAM = "url";
-    public static final String USER_ID_PARAM = "user_id";
-    public static final String FORMAT_PARAM = "format";
-    public static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
-    public static final String PER_PAGE_PARAM = "per_page";
-    public static final String PAGE_PARAM = "page";
-    public static final String METHOD_PARAM = "method";
+    private static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
+    private static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
+    private static final String API_KEY_PARAM = "api_key";
+    private static final String URL_PARAM = "url";
+    private static final String USER_ID_PARAM = "user_id";
+    private static final String FORMAT_PARAM = "format";
+    private static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
+    private static final String PER_PAGE_PARAM = "per_page";
+    private static final String PAGE_PARAM = "page";
+    private static final String METHOD_PARAM = "method";
     private static final String LOG_TAG = FlickrRequest.class.getSimpleName();
-    private int mNumOfPages;
 
     public FlickrRequest(RequestService requestService, String rawUrl) {
         super(requestService, rawUrl);
@@ -143,7 +138,7 @@ public class FlickrRequest extends Request {
                         photoObject.getString("server") + "/" + id + "_" +
                         photoObject.getString("secret") + ".jpg";
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, id);
-                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, Long.valueOf("-" + id));
+                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, Long.valueOf(id));
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
                 mContentCache.add(values);
                 if (mContentCache.size() >= CACHE_SIZE) {
@@ -152,44 +147,6 @@ public class FlickrRequest extends Request {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-        }
-    }
-
-    private String getStringFromServer(URL url) {
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setUseCaches(false);
-            urlConnection.setReadTimeout(30000); // 30 seconds.
-            urlConnection.setDoInput(true);
-            urlConnection.connect();
-            InputStream inputStream = urlConnection.getInputStream();
-
-            if (inputStream == null)
-                return null;
-
-            StringBuilder buffer = new StringBuilder();
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line).append("\n");
-            }
-
-            return buffer.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (urlConnection != null)
-                urlConnection.disconnect();
-
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Error closing the reader", e);
-                }
         }
     }
 }

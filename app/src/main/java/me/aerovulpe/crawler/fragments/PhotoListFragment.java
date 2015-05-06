@@ -36,6 +36,7 @@ import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
 import me.aerovulpe.crawler.request.RequestService;
+import me.aerovulpe.crawler.request.TumblrRequest;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -216,7 +217,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         } else if (mPhotoDataUrl.contains("tumblr")) {
             Intent intent = new Intent(getActivity(), RequestService.class);
             intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
-            intent.putExtra(RequestService.ARG_REQUEST_TYPE, RequestService.class.getName());
+            intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
             getActivity().startService(intent);
             doBindService();
         } else if (mPhotoDataUrl.contains("flickr")) {
@@ -254,7 +255,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
-        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " ASC";
+        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " DESC";
         return new CursorLoader(getActivity(), uri, PHOTOS_COLUMNS, null,
                 null, sortOrder);
     }

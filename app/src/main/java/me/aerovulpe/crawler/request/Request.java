@@ -19,6 +19,12 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.R;
@@ -31,11 +37,11 @@ import me.aerovulpe.crawler.data.CrawlerContract;
  */
 public abstract class Request implements Runnable {
     public static final String REQUEST_PREF = "me.aerovulpe.crawler.REQUEST_PREF";
-    protected static final int CACHE_SIZE = 3000;
     private static final String LAST_PHOTO_ID_SUFFIX = ".LAST_PHOTO_ID";
     private static final String NUM_OF_PHOTOS_SUFFIX = ".NUM_OF_PHOTOS";
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";
     private static final String LOG_TAG = Request.class.getSimpleName();
+    protected static int CACHE_SIZE = 3000;
     protected final RequestService mRequestService;
     protected final ContentProviderClient mProvider;
     protected final String mAlbumID;
@@ -43,6 +49,7 @@ public abstract class Request implements Runnable {
     protected String mUrl;
     protected volatile boolean mIsRunning = true;
     protected int mCurrentPage;
+    protected int mNumOfPages;
     private NotificationManager mNotifyManager;
     private NotificationCompat.Builder mBuilder;
     private boolean mIsFirstNotification = true;
@@ -156,6 +163,44 @@ public abstract class Request implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
 
+    protected static String getStringFromServer(URL url) {
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setUseCaches(false);
+            urlConnection.setReadTimeout(30000); // 30 seconds.
+            urlConnection.setDoInput(true);
+            urlConnection.connect();
+            InputStream inputStream = urlConnection.getInputStream();
+
+            if (inputStream == null)
+                return null;
+
+            StringBuilder buffer = new StringBuilder();
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line).append("\n");
+            }
+
+            return buffer.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (urlConnection != null)
+                urlConnection.disconnect();
+
+            if (reader != null)
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Error closing the reader", e);
+                }
+        }
+    }
+
     protected void notifyUser(int accountType) {
         if (mIsFirstNotification) {
             mRequestService.startForeground();
@@ -180,7 +225,9 @@ public abstract class Request implements Runnable {
         PendingIntent pi = PendingIntent.getBroadcast(mRequestService, 0,
                 new Intent(mAlbumID + ".CANCEL"), 0);
         mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
-        mViews.setTextViewText(R.id.detail, "Downloading page: " + mCurrentPage);
+        mViews.setTextViewText(R.id.detail, "Downloading page " + mCurrentPage +
+                " of " + mNumOfPages);
+        mViews.setProgressBar(R.id.status_progress, mNumOfPages, mCurrentPage, false);
         mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
         mBuilder.setContent(mViews);
         if (mIsRunning)
