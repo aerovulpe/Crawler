@@ -43,8 +43,38 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
     }
 
     @Override
-    public void characters(char[] ch, int start, int length) throws SAXException {
-        builder.append(ch, start, length);
+    public void endDocument() throws SAXException {
+        if (!mContentCache.isEmpty()) {
+            mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            mContentCache.clear();
+        }
+        super.endDocument();
+    }
+
+    @Override
+    public void startElement(String uri, String localName, String qName,
+                             Attributes attributes) throws SAXException {
+        if (localName.equals("entry")) {
+            currentPhotoValues = new ContentValues();
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME,
+                    -System.currentTimeMillis());
+        } else {
+            if (currentPhotoValues != null) {
+                if (localName.equals("content")) {
+                    String image = attributes.getValue("", "url");
+                    if (image != null) {
+                        int photoSizeLongSide = 1920;
+                        int pos = image.lastIndexOf('/');
+                        image = image.substring(0, pos + 1) + 's' + photoSizeLongSide
+                                + image.substring(pos);
+                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, image);
+                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, image);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -66,36 +96,7 @@ public class PicasaPhotosSaxHandler extends DefaultHandler {
     }
 
     @Override
-    public void startElement(String uri, String localName, String qName,
-                             Attributes attributes) throws SAXException {
-        if (localName.equals("entry")) {
-            currentPhotoValues = new ContentValues();
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
-            currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
-        } else {
-            if (currentPhotoValues != null) {
-                if (localName.equals("content")) {
-                    String image = attributes.getValue("", "url");
-                    if (image != null) {
-                        int photoSizeLongSide = 1920;
-                        int pos = image.lastIndexOf('/');
-                        image = image.substring(0, pos + 1) + 's' + photoSizeLongSide
-                                + image.substring(pos);
-                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, image);
-                        currentPhotoValues.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, image);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public void endDocument() throws SAXException {
-        if (!mContentCache.isEmpty()) {
-            mContext.getContentResolver().bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            mContentCache.clear();
-        }
-        super.endDocument();
+    public void characters(char[] ch, int start, int length) throws SAXException {
+        builder.append(ch, start, length);
     }
 }
