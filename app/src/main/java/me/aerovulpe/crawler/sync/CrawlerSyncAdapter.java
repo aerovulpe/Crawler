@@ -16,7 +16,10 @@ import android.os.RemoteException;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.RequestService;
+import me.aerovulpe.crawler.request.TumblrRequest;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 
 /**
@@ -153,11 +156,25 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
             try {
                 Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
                         new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
+                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
+                                AccountsUtil.ACCOUNT_TYPE_TUMBLR, null, null);
                 accountsCursor.moveToPosition(-1);
                 while (accountsCursor.moveToNext()) {
                     Intent intent = new Intent(getContext(), RequestService.class);
                     intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                    intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
+                    getContext().startService(intent);
+                }
+                accountsCursor.close();
+                accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
+                        new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
+                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
+                                AccountsUtil.ACCOUNT_TYPE_FLICKR, null, null);
+                accountsCursor.moveToPosition(-1);
+                while (accountsCursor.moveToNext()) {
+                    Intent intent = new Intent(getContext(), RequestService.class);
+                    intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                    intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
                     getContext().startService(intent);
                 }
                 accountsCursor.close();

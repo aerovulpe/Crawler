@@ -36,6 +36,9 @@ public class TumblrRequest extends Request {
     @Override
     public void run() {
         try {
+            if (wasNotUpdated()) {
+                mIsRunning = false;
+            }
             mCurrentPage = getInitialPage();
             mNumOfPages = mCurrentPage;
             Log.d(LOG_TAG, "Initial page: " + getInitialPage());
@@ -59,6 +62,22 @@ public class TumblrRequest extends Request {
         } catch (IOException e) {
             e.printStackTrace();
             onDownloadFailed();
+        }
+    }
+
+    private boolean wasNotUpdated() {
+        int numOfPhotos;
+        try {
+            JSONObject rootObject = new JSONObject(getStringFromServer(urlFromBlog(0)))
+                    .getJSONObject("response");
+            numOfPhotos = rootObject.getInt("total_posts");
+            Log.d(mAlbumID, numOfPhotos + "");
+            return wasNotUpdated(numOfPhotos, rootObject.getJSONArray("posts").getJSONObject(0)
+                    .getJSONArray("photos").getJSONObject(0).getJSONObject("original_size")
+                    .getString("url"));
+        } catch (JSONException | MalformedURLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
