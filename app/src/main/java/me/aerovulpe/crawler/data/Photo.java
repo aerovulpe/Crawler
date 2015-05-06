@@ -215,7 +215,7 @@ public class Photo implements Serializable, Parcelable {
         return null;
     }
 
-    public static interface OnPhotosLoadedListener {
-        public void onPhotosLoaded(Photo[] photos);
+    public interface OnPhotosLoadedListener {
+        void onPhotosLoaded(Photo[] photos);
     }
 }

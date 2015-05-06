@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,18 +19,20 @@ import me.aerovulpe.crawler.activities.AccountsActivity;
 /**
  * Created by Aaron on 14/04/2015.
  */
-public class TumblrRequestService extends Service implements TumblrRequest.TumblrRequestObserver {
-    public static final String ARG_RAW_URL = "me.aerovulpe.crawler.TUMBLR_REQUEST_SERVICE.RAW_URL";
-    public static final String ACTION_NOTIFY_TUMBLR_PROGRESS =
-            "me.aerovulpe.crawler.TUMBLR_REQUEST_SERVICE.NOTIFY_TUMBLR_PROGRESS";
+public class RequestService extends Service {
+    public static final String ARG_RAW_URL = "me.aerovulpe.crawler.REQUEST_SERVICE.RAW_URL";
+    public static final String ARG_REQUEST_TYPE = "me.aerovulpe.crawler.REQUEST_SERVICE.REQUEST_TYPE";
+    public static final String ACTION_NOTIFY_PROGRESS =
+            "me.aerovulpe.crawler.REQUEST_SERVICE.NOTIFY_PROGRESS";
+    private static final String LOG_TAG = RequestService.class.getSimpleName();
     private static final int KEEP_ALIVE_TIME = 5;
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
     private static int NUMBER_OF_CORES =
             Runtime.getRuntime().availableProcessors();
     private final IBinder mBinder = new LocalBinder();
     private ThreadPoolExecutor mRequestThreadPool;
-    private HashSet<String> mTumblrRequestIds = new HashSet<>(10);
-    private TumblrRequest mLastTumblrRequest;
+    private volatile HashSet<String> mRequestRegistry = new HashSet<>(10);
+    private Request mLastRequest;
 
     @Override
     public void onCreate() {
@@ -46,10 +49,16 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String rawUrl = intent.getStringExtra(ARG_RAW_URL);
-            if (!mTumblrRequestIds.contains(rawUrl)) {
-                mLastTumblrRequest = new TumblrRequest(this, this, rawUrl);
-                mRequestThreadPool.execute(mLastTumblrRequest);
-                mTumblrRequestIds.add(rawUrl);
+            if (!mRequestRegistry.contains(rawUrl)) {
+                if (TumblrRequest.class.getName()
+                        .equals(intent.getStringExtra(ARG_REQUEST_TYPE)))
+                    mLastRequest = new TumblrRequest(this, rawUrl);
+                else if (FlickrRequest.class.getName()
+                        .equals(intent.getStringExtra(ARG_REQUEST_TYPE)))
+                    mLastRequest = new FlickrRequest(this, rawUrl);
+                mRequestThreadPool.execute(mLastRequest);
+                mRequestRegistry.add(rawUrl);
+                Log.d(LOG_TAG, "Request added: " + rawUrl);
             }
         }
         return START_REDELIVER_INTENT;
@@ -60,28 +69,29 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
         return mBinder;
     }
 
-    @Override
-    public synchronized void onFinished(TumblrRequest result) {
+    public synchronized void onFinished(Request result) {
         if (result != null) {
-            mTumblrRequestIds.remove(result.getAlbumID());
-            if (mLastTumblrRequest != null &&
-                    result.getAlbumID().equals(mLastTumblrRequest.getAlbumID())) {
-                Intent intent = new Intent(ACTION_NOTIFY_TUMBLR_PROGRESS);
-                sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_TUMBLR_PROGRESS");
-                mLastTumblrRequest = null;
+            mRequestRegistry.remove(result.getAlbumID());
+            if (mLastRequest != null &&
+                    result.getAlbumID().equals(mLastRequest.getAlbumID())) {
+                Intent intent = new Intent(ACTION_NOTIFY_PROGRESS);
+                sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_PROGRESS");
+                mLastRequest = null;
             }
+            Log.d(LOG_TAG, "Request removed: " + result.getAlbumID());
         }
 
-        if (mTumblrRequestIds.isEmpty())
+        Log.d(LOG_TAG, "registry size: " + mRequestRegistry.size());
+
+        if (mRequestRegistry.isEmpty())
             stopForeground(true);
     }
 
-    @Override
     public synchronized void startForeground() {
         Notification.Builder builder = new Notification.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Loading tumblr blogs")
-                .setContentText("tumblr download in progress")
+                .setContentTitle("Loading photos")
+                .setContentText("Download in progress...")
                 .setContentIntent(PendingIntent.getActivity(
                         this,
                         0,
@@ -97,8 +107,8 @@ public class TumblrRequestService extends Service implements TumblrRequest.Tumbl
      * IPC.
      */
     public class LocalBinder extends Binder {
-        public TumblrRequestService getService() {
-            return TumblrRequestService.this;
+        public RequestService getService() {
+            return RequestService.this;
         }
     }
 }

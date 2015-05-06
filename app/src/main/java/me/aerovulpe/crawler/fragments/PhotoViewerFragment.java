@@ -305,7 +305,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         //note currentDescription may contain more text that is shown (but is always a substring
         String currentDescription = descriptionView.getText().toString();
 
-        if (currentDescription == null || description == null) {
+        if (description == null) {
             return;
         }
 

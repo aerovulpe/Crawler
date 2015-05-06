@@ -16,7 +16,7 @@ import android.os.RemoteException;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.TumblrRequestService;
+import me.aerovulpe.crawler.request.RequestService;
 
 
 /**
@@ -156,8 +156,8 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                         CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " + 0, null, null);
                 accountsCursor.moveToPosition(-1);
                 while (accountsCursor.moveToNext()) {
-                    Intent intent = new Intent(getContext(), TumblrRequestService.class);
-                    intent.putExtra(TumblrRequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                    Intent intent = new Intent(getContext(), RequestService.class);
+                    intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
                     getContext().startService(intent);
                 }
                 accountsCursor.close();
@@ -165,8 +165,8 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                 e.printStackTrace();
             }
         } else {
-            Intent intent = new Intent(getContext(), TumblrRequestService.class);
-            intent.putExtra(TumblrRequestService.ARG_RAW_URL, url);
+            Intent intent = new Intent(getContext(), RequestService.class);
+            intent.putExtra(RequestService.ARG_RAW_URL, url);
             getContext().startService(intent);
         }
     }

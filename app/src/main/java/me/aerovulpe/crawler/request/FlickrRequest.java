@@ -1,9 +1,6 @@
 package me.aerovulpe.crawler.request;
 
-import android.content.ContentProviderClient;
 import android.content.ContentValues;
-import android.content.Context;
-import android.database.SQLException;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.util.Log;
@@ -19,14 +16,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 /**
  * Created by Aaron on 26/04/2015.
  */
-public class FlickrRequestTask extends Task {
+public class FlickrRequest extends Request {
     public static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
     public static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
     public static final String API_KEY_PARAM = "api_key";
@@ -37,42 +34,32 @@ public class FlickrRequestTask extends Task {
     public static final String PER_PAGE_PARAM = "per_page";
     public static final String PAGE_PARAM = "page";
     public static final String METHOD_PARAM = "method";
-    public static final int CACHE_SIZE = 3000;
-    private static final String LOG_TAG = FlickrRequestTask.class.getSimpleName();
-    private final Vector<ContentValues> mContentCache;
-    private final ContentProviderClient mProvider;
-    private String mAlbumID;
-    private int mNumOfPages = 1;
+    private static final String LOG_TAG = FlickrRequest.class.getSimpleName();
+    private int mNumOfPages;
 
-    public FlickrRequestTask(Context context, String id, int resourceId) {
-        super(context, id, resourceId);
-        mContentCache = new Vector<>(CACHE_SIZE);
-        mProvider = context.getContentResolver()
-                .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
+    public FlickrRequest(RequestService requestService, String rawUrl) {
+        super(requestService, rawUrl);
+        mUrl = rawUrl;
     }
 
     @Override
-    protected Boolean doInBackground(String... params) {
-        mAlbumID = params[0];
+    public void run() {
         try {
-            ContentValues albumStubValues = new ContentValues();
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-            albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-            try {
-                mContext.getContentResolver().insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
             String userId = getUserId();
+            if (userId == null) {
+                onDownloadFailed();
+            } else if (wasNotUpdated(userId)) {
+                mIsRunning = false;
+            }
+            mCurrentPage = getInitialPage();
+            mNumOfPages = mCurrentPage;
             Log.d(LOG_TAG, userId);
-            for (int i = 1; i <= mNumOfPages; i++) {
-                URL url = urlFromUserId(userId, i);
+            Log.d(LOG_TAG, "Initial page: " + getInitialPage());
+            for (; mCurrentPage <= mNumOfPages
+                    && mIsRunning; mCurrentPage++) {
+                URL url = urlFromUserId(userId, mCurrentPage);
                 parseResult(getStringFromServer(url));
+                notifyUser(AccountsUtil.ACCOUNT_TYPE_FLICKR);
             }
             if (!mContentCache.isEmpty()) {
                 try {
@@ -83,12 +70,11 @@ public class FlickrRequestTask extends Task {
                 }
                 mContentCache.clear();
             }
-            return true;
+            if (mIsRunning)
+                onDownloadSuccess();
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
-        } finally {
-            mProvider.release();
+            onDownloadFailed();
         }
     }
 
@@ -104,11 +90,26 @@ public class FlickrRequestTask extends Task {
             JSONObject rootObject = new JSONObject(getStringFromServer(new URL(uri.toString())));
             JSONObject userObject = rootObject.optJSONObject("user");
             return (userObject != null) ? userObject.optString("id") : null;
-        } catch (JSONException | MalformedURLException e) {
+        } catch (JSONException | MalformedURLException | NullPointerException e) {
             e.printStackTrace();
         }
 
         return null;
+    }
+
+    private boolean wasNotUpdated(String userId) {
+        int numOfPhotos;
+        try {
+            JSONObject rootObject = new JSONObject(getStringFromServer(urlFromUserId(userId, 1)))
+                    .getJSONObject("photos");
+            JSONArray photosArray = rootObject.getJSONArray("photo");
+            numOfPhotos = rootObject.getInt("total");
+            Log.d(mAlbumID, numOfPhotos + "");
+            return wasNotUpdated(numOfPhotos, photosArray.getJSONObject(0).getString("id"));
+        } catch (JSONException | MalformedURLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private URL urlFromUserId(String userId, int page) throws MalformedURLException {
@@ -129,28 +130,24 @@ public class FlickrRequestTask extends Task {
             JSONObject rootObject = new JSONObject(results).getJSONObject("photos");
             mNumOfPages = rootObject.getInt("pages");
             JSONArray photosArray = rootObject.getJSONArray("photo");
-            Log.d(mAlbumID, photosArray.length() + "");
-            for (int i = 0; i < photosArray.length(); i++) {
+            if (photosArray == null) return;
+
+            for (int i = 0; i < photosArray.length() && mIsRunning; i++) {
                 JSONObject photoObject = photosArray.getJSONObject(i);
                 ContentValues values = new ContentValues();
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
                         photoObject.getString("title"));
-                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, System.currentTimeMillis());
                 values.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+                String id = photoObject.getString("id");
                 String url = "https://farm" + photoObject.getInt("farm") + ".staticflickr.com/" +
-                        photoObject.getString("server") + "/" + photoObject.getString("id") + "_" +
+                        photoObject.getString("server") + "/" + id + "_" +
                         photoObject.getString("secret") + ".jpg";
-                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, url);
+                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, id);
+                values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, Long.valueOf("-" + id));
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
                 mContentCache.add(values);
                 if (mContentCache.size() >= CACHE_SIZE) {
-                    try {
-                        mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                                mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                    mContentCache.clear();
+                    insertAndClearCache();
                 }
             }
         } catch (JSONException e) {
