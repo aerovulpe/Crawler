@@ -44,7 +44,7 @@ public class FlickrRequest extends Request {
             if (userId == null) {
                 onDownloadFailed();
             } else if (wasNotUpdated(userId)) {
-                mIsRunning = false;
+                onDownloadSuccess();
             }
             mCurrentPage = getInitialPage();
             mNumOfPages = mCurrentPage;
