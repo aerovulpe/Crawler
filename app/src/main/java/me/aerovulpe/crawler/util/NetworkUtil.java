@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 
 /**
  * Created by Aaron on 09/04/2015.
@@ -44,7 +45,12 @@ public final class NetworkUtil {
         try {
             URL url = new URL(uri);
             connection = url.openConnection();
-            connection.connect();
+            try {
+                connection.connect();
+            } catch (UnknownHostException e) {
+                // Couldn't connect, let's assume it's a valid url.
+                exists = true;
+            }
 
             // Cast to a HttpURLConnection
             if (connection instanceof HttpURLConnection) {

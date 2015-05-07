@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.os.RemoteException;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -48,15 +47,6 @@ public class TumblrRequest extends Request {
                 parseResult(getStringFromServer(url));
                 notifyUser(AccountsUtil.ACCOUNT_TYPE_TUMBLR);
             }
-            if (!mContentCache.isEmpty()) {
-                try {
-                    mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-                mContentCache.clear();
-            }
             if (mIsRunning)
                 onDownloadSuccess();
         } catch (IOException e) {
@@ -66,13 +56,13 @@ public class TumblrRequest extends Request {
     }
 
     private boolean wasNotUpdated() {
-        int numOfPhotos;
+        int numOfPosts;
         try {
             JSONObject rootObject = new JSONObject(getStringFromServer(urlFromBlog(0)))
                     .getJSONObject("response");
-            numOfPhotos = rootObject.getInt("total_posts");
-            Log.d(mAlbumID, numOfPhotos + "");
-            return wasNotUpdated(numOfPhotos, rootObject.getJSONArray("posts").getJSONObject(0)
+            numOfPosts = rootObject.getInt("total_posts");
+            Log.d(mAlbumID, numOfPosts + "");
+            return wasNotUpdated(numOfPosts, rootObject.getJSONArray("posts").getJSONObject(0)
                     .getJSONArray("photos").getJSONObject(0).getJSONObject("original_size")
                     .getString("url"));
         } catch (JSONException | MalformedURLException | NullPointerException e) {

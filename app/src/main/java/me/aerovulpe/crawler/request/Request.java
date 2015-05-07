@@ -132,6 +132,16 @@ public abstract class Request implements Runnable {
         // result[0] == finishedDownload
         // result[1] == wasSuccess
         mIsRunning = false;
+        if (!mContentCache.isEmpty()) {
+            try {
+                mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                Log.d(LOG_TAG, mContentCache.size() + " inserted.");
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            mContentCache.clear();
+        }
         SharedPreferences.Editor editor = mRequestService
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
 
@@ -181,7 +191,7 @@ public abstract class Request implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
 
-    protected static String getStringFromServer(URL url) {
+    protected String getStringFromServer(URL url) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         try {
@@ -204,7 +214,7 @@ public abstract class Request implements Runnable {
 
             return buffer.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            onDownloadFailed();
             return null;
         } finally {
             if (urlConnection != null)
@@ -217,6 +227,11 @@ public abstract class Request implements Runnable {
                     Log.e(LOG_TAG, "Error closing the reader", e);
                 }
         }
+    }
+
+    protected void onDownloadFailed() {
+        Log.d(LOG_TAG, "onDownloadFailed");
+        onFinished(true, false);
     }
 
     protected void notifyUser(int accountType) {
@@ -264,6 +279,7 @@ public abstract class Request implements Runnable {
         try {
             rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            Log.d(LOG_TAG, mContentCache.size() + " inserted.");
             mContentCache.clear();
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -283,11 +299,6 @@ public abstract class Request implements Runnable {
 
     public String getAlbumID() {
         return mAlbumID;
-    }
-
-    protected void onDownloadFailed() {
-        Log.d(LOG_TAG, "onDownloadFailed");
-        onFinished(true, false);
     }
 
     protected int getInitialPage() {

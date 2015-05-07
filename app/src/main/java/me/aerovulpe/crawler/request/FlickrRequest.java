@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.os.RemoteException;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -55,15 +54,6 @@ public class FlickrRequest extends Request {
                 URL url = urlFromUserId(userId, mCurrentPage);
                 parseResult(getStringFromServer(url));
                 notifyUser(AccountsUtil.ACCOUNT_TYPE_FLICKR);
-            }
-            if (!mContentCache.isEmpty()) {
-                try {
-                    mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                            mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-                mContentCache.clear();
             }
             if (mIsRunning)
                 onDownloadSuccess();
