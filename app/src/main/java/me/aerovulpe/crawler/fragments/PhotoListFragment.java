@@ -194,6 +194,12 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getActivity().sendBroadcast(new Intent(mAlbumID + ".SHOW"));
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         doUnbindService();

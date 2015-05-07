@@ -53,6 +53,7 @@ public abstract class Request implements Runnable {
     private NotificationManager mNotifyManager;
     private NotificationCompat.Builder mBuilder;
     private boolean mIsFirstNotification = true;
+    private volatile boolean mShowNotification;
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
     private String mAlbumName;
@@ -100,16 +101,22 @@ public abstract class Request implements Runnable {
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                onCancel();
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(mRequestService, mAlbumName
-                                + " download cancelled", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if ((mAlbumID + ".CANCEL").equals(intent.getAction())) {
+                    onCancel();
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mRequestService, mAlbumName
+                                    + " download cancelled", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else if ((mAlbumID + ".SHOW").equals(intent.getAction())) {
+                    mRequestService.unregisterReceiver(mReceiver);
+                    mShowNotification = true;
+                }
             }
         };
+        mRequestService.registerReceiver(mReceiver, new IntentFilter(mAlbumID + ".SHOW"));
     }
 
     protected void onCancel() {
@@ -146,12 +153,16 @@ public abstract class Request implements Runnable {
         if (result[0]) {
             notifyFinished(result[1]);
         } else {
-            mNotifyManager.cancel(mAlbumID.hashCode());
+            if (mShowNotification)
+                mNotifyManager.cancel(mAlbumID.hashCode());
         }
         mRequestService.onFinished(this);
     }
 
     private void notifyFinished(boolean wasSuccess) {
+        if (!mShowNotification)
+            return;
+
         if (wasSuccess) {
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
             mViews.setTextViewText(R.id.detail, "Downloading finished");
@@ -202,6 +213,9 @@ public abstract class Request implements Runnable {
     }
 
     protected void notifyUser(int accountType) {
+        if (!mShowNotification)
+            return;
+
         if (mIsFirstNotification) {
             mRequestService.startForeground();
             Intent intent = new Intent(mRequestService, MainActivity.class);
@@ -215,7 +229,10 @@ public abstract class Request implements Runnable {
                     0,
                     intent,
                     0);
-            mRequestService.registerReceiver(mReceiver, new IntentFilter(mAlbumID + ".CANCEL"));
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(mAlbumID + ".CANCEL");
+            filter.addAction(mAlbumID + ".SHOW");
+            mRequestService.registerReceiver(mReceiver, filter);
             mBuilder.setSmallIcon(R.drawable.ic_download)
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent);
