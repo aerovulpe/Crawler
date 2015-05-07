@@ -145,7 +145,7 @@ public abstract class Request implements Runnable {
 
         // Download wasn't successful
         if (!result[0] || !result[1]) {
-            editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, mCurrentPage);
+            editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, mCurrentPage - 1);
             editor.putBoolean(mAlbumID, false);
         } else {
             // Was successful! Reset the initial page.
