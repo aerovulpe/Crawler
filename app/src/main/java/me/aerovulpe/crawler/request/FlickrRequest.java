@@ -31,9 +31,8 @@ public class FlickrRequest extends Request {
     private static final String METHOD_PARAM = "method";
     private static final String LOG_TAG = FlickrRequest.class.getSimpleName();
 
-    public FlickrRequest(RequestService requestService, String rawUrl) {
-        super(requestService, rawUrl);
-        mUrl = rawUrl;
+    public FlickrRequest(RequestService requestService, String albumId) {
+        super(requestService, albumId);
     }
 
     @Override
@@ -130,10 +129,7 @@ public class FlickrRequest extends Request {
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, id);
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, Long.valueOf(id));
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
-                mContentCache.add(values);
-                if (mContentCache.size() >= CACHE_SIZE) {
-                    insertAndClearCache();
-                }
+                addValues(values);
             }
         } catch (JSONException | NullPointerException e) {
             e.printStackTrace();

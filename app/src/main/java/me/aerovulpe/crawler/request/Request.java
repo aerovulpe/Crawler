@@ -36,17 +36,16 @@ import me.aerovulpe.crawler.data.CrawlerContract;
  * Created by Aaron on 07/04/2015.
  */
 public abstract class Request implements Runnable {
-    public static final String REQUEST_PREF = "me.aerovulpe.crawler.REQUEST_PREF";
+    protected static final String REQUEST_PREF = "me.aerovulpe.crawler.REQUEST_PREF";
     private static final String LAST_PHOTO_ID_SUFFIX = ".LAST_PHOTO_ID";
     private static final String NUM_OF_PHOTOS_SUFFIX = ".NUM_OF_PHOTOS";
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";
     private static final String LOG_TAG = Request.class.getSimpleName();
     protected static int CACHE_SIZE = 3000;
-    protected final RequestService mRequestService;
-    protected final ContentProviderClient mProvider;
     protected final String mAlbumID;
-    protected final Vector<ContentValues> mContentCache;
-    protected String mUrl;
+    private final RequestService mRequestService;
+    private final ContentProviderClient mProvider;
+    private final Vector<ContentValues> mContentCache;
     protected volatile boolean mIsRunning = true;
     protected int mCurrentPage;
     protected int mNumOfPages;
@@ -59,11 +58,10 @@ public abstract class Request implements Runnable {
     private String mAlbumName;
     private boolean mLastDownloadSuccessful;
 
-    public Request(RequestService requestService, String rawUrl) {
+    public Request(RequestService requestService, String albumId) {
         mRequestService = requestService;
         mContentCache = new Vector<>(CACHE_SIZE);
-        mAlbumID = rawUrl;
-        mUrl = rawUrl;
+        mAlbumID = albumId;
         mProvider = requestService.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
         mViews = new RemoteViews(requestService.getPackageName(), R.layout.notification);
@@ -191,6 +189,37 @@ public abstract class Request implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
 
+    protected void addValues(ContentValues values) {
+        mContentCache.add(values);
+        if (mContentCache.size() >= CACHE_SIZE) {
+            insertAndClearCache();
+        }
+    }
+
+    protected void insertAndClearCache() {
+        int rowsInserted = 0;
+
+        try {
+            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
+            Log.d(LOG_TAG, mContentCache.size() + " inserted.");
+            mContentCache.clear();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        if (rowsInserted == 0 && mLastDownloadSuccessful) {
+            // Stop we're up to date!
+            Log.d(LOG_TAG, "DONE");
+            onDownloadSuccess();
+        }
+    }
+
+    protected void onDownloadSuccess() {
+        Log.d(LOG_TAG, "onDownloadSuccess");
+        onFinished(true, true);
+    }
+
     protected String getStringFromServer(URL url) {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
@@ -271,30 +300,6 @@ public abstract class Request implements Runnable {
         mBuilder.setContent(mViews);
         if (mIsRunning)
             mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
-    }
-
-    protected void insertAndClearCache() {
-        int rowsInserted = 0;
-
-        try {
-            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                    mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            Log.d(LOG_TAG, mContentCache.size() + " inserted.");
-            mContentCache.clear();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        if (rowsInserted == 0 && mLastDownloadSuccessful) {
-            // Stop we're up to date!
-            Log.d(LOG_TAG, "DONE");
-            onDownloadSuccess();
-        }
-    }
-
-    protected void onDownloadSuccess() {
-        Log.d(LOG_TAG, "onDownloadSuccess");
-        onFinished(true, true);
     }
 
     public String getAlbumID() {

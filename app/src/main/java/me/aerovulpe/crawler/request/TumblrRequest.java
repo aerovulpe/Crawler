@@ -27,8 +27,8 @@ public class TumblrRequest extends Request {
     private static final String OFFSET_PARAM = "offset";
     private static final String LOG_TAG = TumblrRequest.class.getSimpleName();
 
-    public TumblrRequest(RequestService requestService, String rawUrl) {
-        super(requestService, rawUrl);
+    public TumblrRequest(RequestService requestService, String albumId) {
+        super(requestService, albumId);
         CACHE_SIZE = 500;
     }
 
@@ -90,7 +90,6 @@ public class TumblrRequest extends Request {
             JSONObject rootObject = new JSONObject(results).getJSONObject("response");
             int numOfPosts = rootObject.getInt("total_posts");
             mNumOfPages = (numOfPosts / 50) + ((numOfPosts % 50 == 0) ? 0 : 1);
-            Log.d(LOG_TAG, "num of posts: " + numOfPosts + ", num of Pages: " + mNumOfPages);
             JSONArray postsArray = rootObject.getJSONArray("posts");
             for (int i = 0; i < postsArray.length(); i++) {
                 JSONObject postObject = postsArray.getJSONObject(i);
@@ -111,10 +110,7 @@ public class TumblrRequest extends Request {
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, time);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, url);
-                    mContentCache.add(values);
-                    if (mContentCache.size() >= CACHE_SIZE) {
-                        insertAndClearCache();
-                    }
+                    addValues(values);
                 }
             }
         } catch (JSONException | NullPointerException e) {
