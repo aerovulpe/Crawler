@@ -1,19 +1,3 @@
-/*
- * Copyright 2011 Google Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
@@ -96,6 +80,37 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     }
 
     @Override
+    protected void showAddAccountDialog() {
+        AddEditAccountFragment dialog = new AddEditAccountFragment();
+        dialog.show(getFragmentManager(), "accountAddDialog");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, MENU_ADD_ACCOUNT, 0, R.string.add_account).setIcon(
+                android.R.drawable.ic_menu_add);
+        menu.add(0, MENU_PREFERENCES, 1, R.string.action_settings).setIcon(
+                android.R.drawable.ic_menu_manage);
+        menu.add(0, MENU_ABOUT, 2, R.string.about).setIcon(
+                android.R.drawable.ic_menu_info_details);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_ADD_ACCOUNT:
+                showAddAccountDialog();
+                return true;
+            case MENU_PREFERENCES:
+                Intent intent = new Intent(this, PreferencesActivity.class);
+                startActivity(intent);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenuInfo menuInfo) {
         if (v.getId() == R.id.accounts_list) {
@@ -127,37 +142,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 return true;
         }
         return super.onContextItemSelected(item);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case MENU_ADD_ACCOUNT:
-                showAddAccountDialog();
-                return true;
-            case MENU_PREFERENCES:
-                Intent intent = new Intent(this, PreferencesActivity.class);
-                startActivity(intent);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_ADD_ACCOUNT, 0, R.string.add_account).setIcon(
-                android.R.drawable.ic_menu_add);
-        menu.add(0, MENU_PREFERENCES, 1, R.string.action_settings).setIcon(
-                android.R.drawable.ic_menu_manage);
-        menu.add(0, MENU_ABOUT, 2, R.string.about).setIcon(
-                android.R.drawable.ic_menu_info_details);
-        return true;
-    }
-
-    @Override
-    protected void showAddAccountDialog() {
-        AddEditAccountFragment dialog = new AddEditAccountFragment();
-        dialog.show(getFragmentManager(), "accountAddDialog");
     }
 
     private void showAreYouSureDialog(final String accountID) {

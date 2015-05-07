@@ -37,7 +37,7 @@ public class TumblrRequest extends Request {
     public void run() {
         try {
             if (wasNotUpdated()) {
-                mIsRunning = false;
+                onDownloadSuccess();
             }
             mCurrentPage = getInitialPage();
             mNumOfPages = mCurrentPage;
@@ -75,7 +75,7 @@ public class TumblrRequest extends Request {
             return wasNotUpdated(numOfPhotos, rootObject.getJSONArray("posts").getJSONObject(0)
                     .getJSONArray("photos").getJSONObject(0).getJSONObject("original_size")
                     .getString("url"));
-        } catch (JSONException | MalformedURLException e) {
+        } catch (JSONException | MalformedURLException | NullPointerException e) {
             e.printStackTrace();
             return false;
         }

@@ -101,7 +101,7 @@ public class FlickrRequest extends Request {
             numOfPhotos = rootObject.getInt("total");
             Log.d(mAlbumID, numOfPhotos + "");
             return wasNotUpdated(numOfPhotos, photosArray.getJSONObject(0).getString("id"));
-        } catch (JSONException | MalformedURLException e) {
+        } catch (JSONException | MalformedURLException | NullPointerException e) {
             e.printStackTrace();
             return false;
         }

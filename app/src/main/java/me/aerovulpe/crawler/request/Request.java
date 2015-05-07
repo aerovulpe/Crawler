@@ -57,6 +57,7 @@ public abstract class Request implements Runnable {
     private RemoteViews mViews;
     private BroadcastReceiver mReceiver;
     private String mAlbumName;
+    private boolean mLastDownloadSuccessful;
 
     public Request(RequestService requestService, String rawUrl) {
         mRequestService = requestService;
@@ -98,6 +99,9 @@ public abstract class Request implements Runnable {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        mLastDownloadSuccessful = mRequestService
+                .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE)
+                .getBoolean(mAlbumID, false);
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -132,10 +136,13 @@ public abstract class Request implements Runnable {
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
 
         // Download wasn't successful
-        if (!result[0] || result[1]) {
+        if (!result[0] || !result[1]) {
             editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, mCurrentPage);
             editor.putBoolean(mAlbumID, false);
         } else {
+            // Was successful! Reset the initial page.
+            Log.d(LOG_TAG, "Reset initial page");
+            editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, 1);
             editor.putBoolean(mAlbumID, true);
         }
         editor.apply();
@@ -252,22 +259,30 @@ public abstract class Request implements Runnable {
     }
 
     protected void insertAndClearCache() {
+        int rowsInserted = 0;
+
         try {
-            mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
             mContentCache.clear();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
 
-    public String getAlbumID() {
-        return mAlbumID;
+        if (rowsInserted == 0 && mLastDownloadSuccessful) {
+            // Stop we're up to date!
+            Log.d(LOG_TAG, "DONE");
+            onDownloadSuccess();
+        }
     }
 
     protected void onDownloadSuccess() {
         Log.d(LOG_TAG, "onDownloadSuccess");
         onFinished(true, true);
+    }
+
+    public String getAlbumID() {
+        return mAlbumID;
     }
 
     protected void onDownloadFailed() {
@@ -285,7 +300,6 @@ public abstract class Request implements Runnable {
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE);
         int lastNumOfPhotos = preferences.getInt(mAlbumID + NUM_OF_PHOTOS_SUFFIX, -1);
         String lastPhotoId = preferences.getString(mAlbumID + LAST_PHOTO_ID_SUFFIX, "");
-        boolean lastDownloadSuccessful = preferences.getBoolean(mAlbumID, false);
         Log.d(Request.class.getSimpleName() + ".wasNotUpdated", numOfPhotos + "");
         Log.d(Request.class.getSimpleName() + ".wasNotUpdated", lastNumOfPhotos + "");
         Log.d(Request.class.getSimpleName() + ".wasNotUpdated", photoId);
@@ -296,11 +310,8 @@ public abstract class Request implements Runnable {
                 .putString(mAlbumID + LAST_PHOTO_ID_SUFFIX, photoId).commit();
 
         boolean wasNotUpdated = (numOfPhotos == lastNumOfPhotos) && photoId.equals(lastPhotoId) &&
-                lastDownloadSuccessful;
+                mLastDownloadSuccessful;
         Log.d("DEBUG", wasNotUpdated + "");
         return wasNotUpdated;
-    }
-
-    protected class FailedException extends Exception {
     }
 }
