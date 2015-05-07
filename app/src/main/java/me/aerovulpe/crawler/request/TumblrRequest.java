@@ -127,7 +127,7 @@ public class TumblrRequest extends Request {
                     }
                 }
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             e.printStackTrace();
         }
     }
