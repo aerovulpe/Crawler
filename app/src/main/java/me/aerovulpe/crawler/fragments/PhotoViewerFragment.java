@@ -29,7 +29,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.viewpagerindicator.CirclePageIndicator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,10 +140,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
 
         if (getView() != null) {
-            //Bind the indicator to the adapter
-            CirclePageIndicator pageIndicator = (CirclePageIndicator) getView().findViewById(R.id.pageIndicator);
-            pageIndicator.setViewPager(mViewPager);
-            pageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -161,7 +157,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                         toggleSlideShow();
                 }
             });
-            if (mShowText) pageIndicator.setVisibility(View.VISIBLE);
         }
         setUpScrollingOfDescription();
         setUpSlideShowTask();
@@ -251,13 +246,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private void setShowText(boolean showText) {
         mShowText = showText;
         ((PhotoViewerAdapter) mViewPager.getAdapter()).setShowText(showText);
-        if (showText) {
-            if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
-        } else {
-            if (getView() != null)
-                getView().findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
-        }
     }
 
     private void setUpScrollingOfDescription() {
@@ -449,13 +437,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public void toggleDetailViews() {
         View view = getView();
         if (mShowText) {
-            if (getView() != null)
-                view.findViewById(R.id.pageIndicator).setVisibility(View.INVISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, false);
             setShowText(false);
         } else {
-            if (view != null)
-                view.findViewById(R.id.pageIndicator).setVisibility(View.VISIBLE);
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
             setShowText(true);
         }
