@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import static me.aerovulpe.crawler.data.CrawlerContract.AccountEntry;
 import static me.aerovulpe.crawler.data.CrawlerContract.AlbumEntry;
+import static me.aerovulpe.crawler.data.CrawlerContract.ExplorerEntry;
 import static me.aerovulpe.crawler.data.CrawlerContract.PhotoEntry;
 
 /**
@@ -76,9 +77,24 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 " UNIQUE (" + PhotoEntry.COLUMN_PHOTO_ID + ", " +
                 PhotoEntry.COLUMN_ALBUM_KEY + ") ON CONFLICT IGNORE);";
 
+        final String SQL_CREATE_EXPLORERS_TABLE = "CREATE TABLE " + ExplorerEntry.TABLE_NAME + " (" +
+                ExplorerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+
+                ExplorerEntry.COLUMN_ACCOUNT_ID + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_NAME + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_TIME + " INTEGER NOT NULL, " +
+
+                // To assure the application has just one account explorer entry per id
+                // per type, it's created a UNIQUE constraint with REPLACE strategy
+                "UNIQUE (" + ExplorerEntry.COLUMN_ACCOUNT_ID + ", " +
+                ExplorerEntry.COLUMN_ACCOUNT_TYPE + ") ON CONFLICT REPLACE);";
+
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_EXPLORERS_TABLE);
     }
 
     @Override
@@ -86,6 +102,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AccountEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PhotoEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ExplorerEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

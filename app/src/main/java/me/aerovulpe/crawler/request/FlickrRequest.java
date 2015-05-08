@@ -37,6 +37,7 @@ public class FlickrRequest extends Request {
 
     @Override
     public void run() {
+        super.run();
         try {
             String userId = getUserId();
             if (userId == null) {
@@ -109,7 +110,8 @@ public class FlickrRequest extends Request {
         return new URL(uri.toString());
     }
 
-    private void parseResult(String results) {
+    @Override
+    protected void parseResult(String results) {
         try {
             JSONObject rootObject = new JSONObject(results).getJSONObject("photos");
             mNumOfPages = rootObject.getInt("pages");

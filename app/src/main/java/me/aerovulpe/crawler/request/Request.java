@@ -68,35 +68,6 @@ public abstract class Request implements Runnable {
         mBuilder = new NotificationCompat.Builder(requestService);
         mNotifyManager = (NotificationManager) requestService
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-
-        ContentValues albumStubValues = new ContentValues();
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-        try {
-            requestService.getContentResolver()
-                    .insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-        } catch (SQLException e) {
-            Log.d(LOG_TAG, "Album exists");
-        }
-
-        mAlbumName = mAlbumID;
-        try {
-            Cursor nameCursor = mProvider
-                    .query(CrawlerContract.AccountEntry.CONTENT_URI,
-                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
-                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                            new String[]{mAlbumID}, null, null);
-            if (nameCursor.moveToFirst())
-                mAlbumName = nameCursor.getString(0);
-
-            nameCursor.close();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
         mLastDownloadSuccessful = mRequestService
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE)
                 .getBoolean(mAlbumID, false);
@@ -124,6 +95,38 @@ public abstract class Request implements Runnable {
     protected void onCancel() {
         Log.d(LOG_TAG, "onCancel");
         onFinished(false, false);
+    }
+
+    @Override
+    public void run() {
+        ContentValues albumStubValues = new ContentValues();
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
+        try {
+            mRequestService.getContentResolver()
+                    .insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+        } catch (SQLException e) {
+            Log.d(LOG_TAG, "Album exists");
+        }
+
+        mAlbumName = mAlbumID;
+        try {
+            Cursor nameCursor = mProvider
+                    .query(CrawlerContract.AccountEntry.CONTENT_URI,
+                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
+                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                            new String[]{mAlbumID}, null, null);
+            if (nameCursor.moveToFirst())
+                mAlbumName = nameCursor.getString(0);
+
+            nameCursor.close();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private void onFinished(Boolean... result) {
@@ -181,6 +184,7 @@ public abstract class Request implements Runnable {
         if (wasSuccess) {
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
             mViews.setTextViewText(R.id.detail, "Downloading finished");
+            mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
         } else {
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
             mViews.setTextViewText(R.id.detail, "Downloading failed");
@@ -188,6 +192,8 @@ public abstract class Request implements Runnable {
         mBuilder.setContent(mViews);
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
+
+    protected abstract void parseResult(String results);
 
     protected void addValues(ContentValues values) {
         mContentCache.add(values);
@@ -330,4 +336,6 @@ public abstract class Request implements Runnable {
         Log.d("DEBUG", wasNotUpdated + "");
         return wasNotUpdated;
     }
+
+
 }

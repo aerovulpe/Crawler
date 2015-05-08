@@ -34,6 +34,7 @@ public class TumblrRequest extends Request {
 
     @Override
     public void run() {
+        super.run();
         try {
             if (wasNotUpdated()) {
                 onDownloadSuccess();
@@ -85,7 +86,8 @@ public class TumblrRequest extends Request {
         return new URL(uri.toString());
     }
 
-    private void parseResult(String results) {
+    @Override
+    protected void parseResult(String results) {
         try {
             JSONObject rootObject = new JSONObject(results).getJSONObject("response");
             int numOfPosts = rootObject.getInt("total_posts");

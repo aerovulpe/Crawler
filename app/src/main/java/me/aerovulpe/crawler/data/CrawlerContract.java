@@ -27,6 +27,7 @@ public class CrawlerContract {
     public static final String PATH_PHOTOS_INCREMENT_TIME = "photos_increment_time";
     public static final String PATH_ALBUMS = "albums";
     public static final String PATH_ACCOUNTS = "accounts";
+    public static final String PATH_EXPLORERS = "explorers";
     public static final String TAG = CrawlerContract.class.getSimpleName();
 
     public static final class AccountEntry implements BaseColumns {
@@ -40,15 +41,14 @@ public class CrawlerContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACCOUNTS).build();
-
-        public static Uri buildAccountsUri(long id) {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-
         public static final String CONTENT_TYPE =
                 "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ACCOUNTS;
         public static final String CONTENT_ITEM_TYPE =
                 "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ACCOUNTS;
+
+        public static Uri buildAccountsUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
 
 
     }
@@ -68,6 +68,10 @@ public class CrawlerContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ALBUMS).build();
+        public static final String CONTENT_TYPE =
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
+        public static final String CONTENT_ITEM_TYPE =
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
 
         public static Uri buildAlbumsUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -80,13 +84,6 @@ public class CrawlerContract {
         public static String getAccountIDFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
         }
-
-        public static final String CONTENT_TYPE =
-                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
-
-
-        public static final String CONTENT_ITEM_TYPE =
-                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ALBUMS;
 
 
     }
@@ -110,6 +107,10 @@ public class CrawlerContract {
 
         public static final Uri INCREMENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS_INCREMENT_TIME).build();
+        public static final String CONTENT_TYPE =
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
+        public static final String CONTENT_ITEM_TYPE =
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
 
         public static Uri buildPhotosUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -123,13 +124,29 @@ public class CrawlerContract {
             return uri.getPathSegments().get(1);
         }
 
+
+    }
+
+    public static final class ExplorerEntry implements BaseColumns {
+        // Table name
+        public static final String TABLE_NAME = "explorers";
+
+        public static final String COLUMN_ACCOUNT_ID = "explorer_id";
+        public static final String COLUMN_ACCOUNT_NAME = "explorer_name";
+        public static final String COLUMN_ACCOUNT_TYPE = "explorer_type";
+        public static final String COLUMN_ACCOUNT_TIME = "explorer_time";
+        public static final String COLUMN_ACCOUNT_PREVIEW_URL = "explorer_url";
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_EXPLORERS).build();
         public static final String CONTENT_TYPE =
-                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
-
-
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_EXPLORERS;
         public static final String CONTENT_ITEM_TYPE =
-                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_EXPLORERS;
 
+        public static Uri buildExplorerUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
 
     }
 }
