@@ -57,6 +57,9 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 AlbumEntry.COLUMN_ACCOUNT_KEY + ", " + AlbumEntry.COLUMN_ALBUM_PHOTO_DATA +
                 ") ON CONFLICT IGNORE);";
 
+        final String SQL_CREATE_ALBUM_INDEX = "CREATE INDEX " + AlbumEntry.TABLE_NAME + "_index"
+                + " on " + AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + ");";
+
         final String SQL_CREATE_PHOTOS_TABLE = "CREATE TABLE " + PhotoEntry.TABLE_NAME + " (" +
                 PhotoEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 
@@ -77,6 +80,9 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 " UNIQUE (" + PhotoEntry.COLUMN_PHOTO_ID + ", " +
                 PhotoEntry.COLUMN_ALBUM_KEY + ") ON CONFLICT IGNORE);";
 
+        final String SQL_CREATE_PHOTOS_INDEX = "CREATE INDEX " + PhotoEntry.TABLE_NAME + "_index"
+                + " on " + PhotoEntry.TABLE_NAME + " (" + PhotoEntry.COLUMN_ALBUM_KEY + ");";
+
         final String SQL_CREATE_EXPLORERS_TABLE = "CREATE TABLE " + ExplorerEntry.TABLE_NAME + " (" +
                 ExplorerEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
 
@@ -93,7 +99,9 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_ALBUM_INDEX);
         sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_INDEX);
         sqLiteDatabase.execSQL(SQL_CREATE_EXPLORERS_TABLE);
     }
 

@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -175,15 +176,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public void onBackPressed() {
-        if (getFragmentManager().getBackStackEntryCount() == 0) {
-            this.finish();
-        } else {
-            getFragmentManager().popBackStack();
-        }
-    }
-
-    @Override
     public void createAlbumListInstance(int accountType, String accountID) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         fragmentTransaction.add(R.id.content_frame, AlbumListFragment
@@ -218,6 +210,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
 
     @Override
     public void setFullScreen(boolean fullScreen, boolean restoreActionBar) {
+        ActionBar actionBar = getSupportActionBar();
         if (fullScreen) {
             if (Build.VERSION.SDK_INT < 16) { //ye olde method
                 getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -231,7 +224,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                 decorView.setSystemUiVisibility(uiOptions);
                 // Remember that you should never show the action bar if the
                 // status bar is hidden, so hide that too if necessary.
-                getSupportActionBar().hide();
+                if (actionBar != null)
+                    actionBar.hide();
             }
         } else {
             if (Build.VERSION.SDK_INT < 16) { //ye olde method
@@ -243,7 +237,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                 decorView.setSystemUiVisibility(uiOptions);
                 // Remember that you should never show the action bar if the
                 // status bar is hidden, so !hide that too if necessary.
-                if (restoreActionBar) getSupportActionBar().show();
+                if (restoreActionBar && actionBar != null)
+                    actionBar.show();
             }
         }
         mIsFullScreen = fullScreen;
@@ -257,6 +252,15 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     public boolean isFullScreen() {
         return mIsFullScreen;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() == 0) {
+            this.finish();
+        } else {
+            getFragmentManager().popBackStack();
+        }
     }
 
     @Override
