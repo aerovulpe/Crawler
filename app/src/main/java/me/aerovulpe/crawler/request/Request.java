@@ -97,38 +97,6 @@ public abstract class Request implements Runnable {
         onFinished(false, false);
     }
 
-    @Override
-    public void run() {
-        ContentValues albumStubValues = new ContentValues();
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
-        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
-        try {
-            mRequestService.getContentResolver()
-                    .insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
-        } catch (SQLException e) {
-            Log.d(LOG_TAG, "Album exists");
-        }
-
-        mAlbumName = mAlbumID;
-        try {
-            Cursor nameCursor = mProvider
-                    .query(CrawlerContract.AccountEntry.CONTENT_URI,
-                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
-                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                            new String[]{mAlbumID}, null, null);
-            if (nameCursor.moveToFirst())
-                mAlbumName = nameCursor.getString(0);
-
-            nameCursor.close();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void onFinished(Boolean... result) {
         // result[0] == finishedDownload
         // result[1] == wasSuccess
@@ -175,6 +143,39 @@ public abstract class Request implements Runnable {
                 mNotifyManager.cancel(mAlbumID.hashCode());
         }
         mRequestService.onFinished(this);
+    }
+
+    @Override
+    public void run() {
+        ContentValues albumStubValues = new ContentValues();
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ACCOUNT_KEY, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_PHOTO_DATA, mAlbumID);
+        albumStubValues.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_TIME, System.currentTimeMillis());
+        try {
+            mProvider.insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
+        } catch (SQLException e) {
+            Log.d(LOG_TAG, "Album exists");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        mAlbumName = mAlbumID;
+        try {
+            Cursor nameCursor = mProvider
+                    .query(CrawlerContract.AccountEntry.CONTENT_URI,
+                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
+                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                            new String[]{mAlbumID}, null, null);
+            if (nameCursor.moveToFirst())
+                mAlbumName = nameCursor.getString(0);
+
+            nameCursor.close();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private void notifyFinished(boolean wasSuccess) {
