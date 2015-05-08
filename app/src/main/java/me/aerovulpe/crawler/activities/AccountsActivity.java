@@ -89,10 +89,11 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.add(0, MENU_ADD_ACCOUNT, 0, R.string.add_account).setIcon(
-                android.R.drawable.ic_menu_add);
+                android.R.drawable.ic_menu_add)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menu.add(0, MENU_EXPLORE, 1, R.string.explore).setIcon(
-                android.R.drawable.ic_menu_compass
-        );
+                android.R.drawable.ic_menu_compass)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menu.add(0, MENU_PREFERENCES, 2, R.string.action_settings).setIcon(
                 android.R.drawable.ic_menu_manage);
         menu.add(0, MENU_ABOUT, 3, R.string.about).setIcon(

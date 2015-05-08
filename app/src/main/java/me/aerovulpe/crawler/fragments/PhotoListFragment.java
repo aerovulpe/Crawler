@@ -64,14 +64,16 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private boolean mRequestData;
     private RequestService mBoundService;
     private ProgressDialog mProgressDialog;
+    private boolean mIsRequesting = true;
+    private boolean mIsLoading = true;
     // For getting confirmation from the service
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i(TAG, "receiver onReceive...");
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
+            if (!mIsLoading)
+                dismissDialog();
         }
     };
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -82,8 +84,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
             mBoundService = ((RequestService.LocalBinder) service).getService();
-
-            // Tell the user about this for our demo.
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -92,8 +92,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             // Because it is running in our same process, we should never
             // see this happen.
             mBoundService = null;
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
+            mIsRequesting = false;
         }
     };
     private boolean mIsBound;
@@ -164,7 +163,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 IntentFilter(RequestService.ACTION_NOTIFY_PROGRESS);
         getActivity().registerReceiver(mReceiver, myFilter);
         if (mRequestData) {
-            mProgressDialog = new ProgressDialog(getActivity());
             if (mAlbumID != null && mPhotoDataUrl != null) {
                 doPhotosRequest();
             }
@@ -184,13 +182,20 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
+        // If is loading, show progress dialog.
+        if (mIsRequesting || mIsLoading) {
+            makeProgressDialog();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mRecyclerView.getAdapter() == null) return;
-        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        if (mRecyclerView.getAdapter() == null)
+            return;
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
+                .findFirstCompletelyVisibleItemPosition();
+        dismissDialog();
     }
 
     @Override
@@ -211,9 +216,33 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             // Detach our existing connection.
             getActivity().unbindService(mConnection);
             mIsBound = false;
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
+            mIsRequesting = false;
+            if (!mIsLoading)
+                dismissDialog();
         }
+    }
+
+    // Method to dismiss progress dialogs.
+    private void dismissDialog() {
+        try {
+            if (mProgressDialog != null && mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } finally {
+            mProgressDialog = null;
+        }
+    }
+
+    // ProgressDialog method to inform the user of the asynchronous
+    // processing
+    private void makeProgressDialog() {
+        mIsRequesting = true;
+        ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMessage(getResources()
+                .getString(R.string.loading_photos));
+        progressDialog.show();
+        mProgressDialog = progressDialog;
     }
 
     private void doPhotosRequest() {
@@ -243,8 +272,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         getActivity().bindService(new Intent(getActivity(),
                 RequestService.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
-        mProgressDialog.setMessage(getResources().getString(R.string.loading_photos));
-        mProgressDialog.show();
     }
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
@@ -269,6 +296,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
+        mIsLoading = false;
+        if (!mIsRequesting)
+            dismissDialog();
     }
 
     @Override
