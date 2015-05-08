@@ -72,6 +72,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.i(TAG, "receiver onReceive...");
+            mIsRequesting = false;
             if (!mIsLoading)
                 dismissDialog();
         }
@@ -93,6 +94,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             // see this happen.
             mBoundService = null;
             mIsRequesting = false;
+            if (!mIsLoading)
+                dismissDialog();
         }
     };
     private boolean mIsBound;
