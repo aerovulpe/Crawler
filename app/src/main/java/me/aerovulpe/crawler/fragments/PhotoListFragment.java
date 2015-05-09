@@ -37,6 +37,7 @@ import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -251,11 +252,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private void doPhotosRequest() {
         Intent intent = new Intent(getActivity(), RequestService.class);
         intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
-        if (mPhotoDataUrl.contains("picasaweb")) {
+        if (mPhotoDataUrl.contains(AccountsUtil.PICASA_BASE)) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
-        } else if (mPhotoDataUrl.contains("tumblr")) {
+        } else if (mPhotoDataUrl.contains(AccountsUtil.TUMBLR_BASE_SUFFIX)) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-        } else if (mPhotoDataUrl.contains("flickr")) {
+        } else if (mPhotoDataUrl.contains(AccountsUtil.FLICKR_BASE)) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
         }
         getActivity().startService(intent);

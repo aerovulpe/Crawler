@@ -18,6 +18,7 @@ public class PicasaPhotosRequest extends Request {
 
     public PicasaPhotosRequest(RequestService requestService, String albumId) {
         super(requestService, albumId);
+        CACHE_SIZE = 50;
     }
 
     @Override

@@ -102,7 +102,14 @@ public abstract class Request implements Runnable {
         // result[1] == wasSuccess
         mIsRunning = false;
         if (!mContentCache.isEmpty()) {
-            insertAndClearCache();
+            try {
+                mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                Log.d(LOG_TAG, mContentCache.size() + " inserted.");
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+            mContentCache.clear();
         }
         SharedPreferences.Editor editor = mRequestService
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
@@ -154,6 +161,8 @@ public abstract class Request implements Runnable {
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
 
+    protected abstract void parseResult(String results);
+
     @Override
     public void run() {
         ContentValues albumStubValues = new ContentValues();
@@ -186,8 +195,6 @@ public abstract class Request implements Runnable {
             e.printStackTrace();
         }
     }
-
-    protected abstract void parseResult(String results);
 
     protected void addValues(ContentValues values) {
         mContentCache.add(values);
