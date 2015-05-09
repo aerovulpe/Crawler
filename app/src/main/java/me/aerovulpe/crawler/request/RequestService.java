@@ -29,6 +29,8 @@ public class RequestService extends Service {
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
     private static int NUMBER_OF_CORES =
             Runtime.getRuntime().availableProcessors();
+    private static final int CORE_POOL_SIZE = NUMBER_OF_CORES + 2;
+    private static final int MAXIMUM_POOL_SIZE = NUMBER_OF_CORES * 2 + 1;
     private final IBinder mBinder = new LocalBinder();
     private ThreadPoolExecutor mRequestThreadPool;
     private volatile HashSet<String> mRequestRegistry = new HashSet<>(10);
@@ -38,8 +40,8 @@ public class RequestService extends Service {
     public void onCreate() {
         super.onCreate();
         mRequestThreadPool = new ThreadPoolExecutor(
-                NUMBER_OF_CORES,       // Initial pool size
-                NUMBER_OF_CORES,       // Max pool size
+                CORE_POOL_SIZE,       // Initial pool size
+                MAXIMUM_POOL_SIZE,       // Max pool size
                 KEEP_ALIVE_TIME,
                 KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<Runnable>());
