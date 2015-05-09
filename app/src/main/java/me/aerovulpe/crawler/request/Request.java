@@ -209,7 +209,7 @@ public abstract class Request implements Runnable {
         try {
             rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            Log.d(LOG_TAG, mContentCache.size() + " inserted.");
+            Log.d(LOG_TAG, rowsInserted + " inserted.");
             mContentCache.clear();
         } catch (RemoteException e) {
             e.printStackTrace();

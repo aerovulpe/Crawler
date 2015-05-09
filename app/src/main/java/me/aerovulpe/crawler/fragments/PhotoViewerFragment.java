@@ -300,11 +300,15 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         int indexEndCurrentDescription = descriptionView.getLayout().getLineEnd(1);
 
         //if we are not displaying all characters, let swap to the not displayed substring
-        if (indexEndCurrentDescription > 0 && indexEndCurrentDescription < currentDescription.length()) {
-            String newDescription = currentDescription.substring(indexEndCurrentDescription);
+        if (indexEndCurrentDescription > 0 &&
+                indexEndCurrentDescription < currentDescription.length()) {
+            String newDescription = currentDescription
+                    .substring(indexEndCurrentDescription);
             switcherDescription.setText(newDescription);
-        } else if (indexEndCurrentDescription >= currentDescription.length() && indexEndCurrentDescription < description.length()) {
-            //if we are displaying the last of the text, but the text has multiple sections. Display the  first one again
+        } else if (indexEndCurrentDescription >= currentDescription.length() &&
+                indexEndCurrentDescription < description.length()) {
+            //if we are displaying the last of the text, but the text has multiple sections.
+            // Display the  first one again
             switcherDescription.setText(description);
         }
     }
@@ -331,9 +335,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             slideShowTimer = new Timer("SlideShow");
         }
 
-        ((PhotoManager) getActivity()).setFullScreen(isSlideShowRunning, true);
+        Activity activity = getActivity();
+        if (activity == null)
+            return;
+
+        ((PhotoManager) activity).setFullScreen(isSlideShowRunning, true);
         if (isSlideShowRunning) {
-            getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to
             slideShowTimer.scheduleAtFixedRate(
                     new TimerTask() {
@@ -353,7 +361,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
         } else {
             slideShowTimer = null;
-            getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 
