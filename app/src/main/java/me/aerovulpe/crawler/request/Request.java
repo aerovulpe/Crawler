@@ -279,7 +279,7 @@ public abstract class Request implements Runnable {
             return;
 
         if (mIsFirstNotification) {
-            mRequestService.startForeground();
+            // mRequestService.startForeground();
             Intent intent = new Intent(mRequestService, MainActivity.class);
             intent.setAction(mAlbumID);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -298,16 +298,16 @@ public abstract class Request implements Runnable {
             mBuilder.setSmallIcon(R.drawable.ic_download)
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent);
+            mViews.setTextViewText(R.id.title, "Downloading from " + mAlbumName);
+            PendingIntent pi = PendingIntent.getBroadcast(mRequestService, 0,
+                    new Intent(mAlbumID + ".CANCEL"), 0);
+            mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
+            mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
             mIsFirstNotification = false;
         }
-        mViews.setTextViewText(R.id.title, "Downloading from " + mAlbumName);
-        PendingIntent pi = PendingIntent.getBroadcast(mRequestService, 0,
-                new Intent(mAlbumID + ".CANCEL"), 0);
-        mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
         mViews.setTextViewText(R.id.detail, "Downloading page " + mCurrentPage +
                 " of " + mNumOfPages);
         mViews.setProgressBar(R.id.status_progress, mNumOfPages, mCurrentPage, false);
-        mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
         mBuilder.setContent(mViews);
         if (mIsRunning)
             mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
