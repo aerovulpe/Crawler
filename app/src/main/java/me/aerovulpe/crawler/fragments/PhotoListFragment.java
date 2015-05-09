@@ -23,7 +23,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 
@@ -213,7 +212,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         if (mIsRequesting || mIsLoading) {
             makeProgressDialog();
         }
-        Toast.makeText(activity, "OnAttached", Toast.LENGTH_SHORT).show();
     }
 
     @Override
