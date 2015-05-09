@@ -1,6 +1,7 @@
 package me.aerovulpe.crawler.fragments;
 
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.ProgressDialog;
@@ -22,6 +23,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 
@@ -186,10 +188,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
-        // If is loading, show progress dialog.
-        if ((mIsRequesting || mIsLoading) && isVisible()) {
-            makeProgressDialog();
-        }
     }
 
     @Override
@@ -209,6 +207,16 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // If is loading, show progress dialog.
+        if (mIsRequesting || mIsLoading) {
+            makeProgressDialog();
+        }
+        Toast.makeText(activity, "OnAttached", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         doUnbindService();
@@ -220,9 +228,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             // Detach our existing connection.
             getActivity().unbindService(mConnection);
             mIsBound = false;
-            mIsRequesting = false;
-            if (!mIsLoading)
-                dismissDialog();
         }
     }
 
@@ -241,7 +246,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     // ProgressDialog method to inform the user of the asynchronous
     // processing
     private void makeProgressDialog() {
-        mIsRequesting = true;
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getResources()
                 .getString(R.string.loading_photos));
