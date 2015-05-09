@@ -17,6 +17,7 @@
 package me.aerovulpe.crawler.fragments;
 
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ContentValues;
 import android.content.Context;
@@ -114,9 +115,11 @@ public class AddEditAccountFragment extends DialogFragment {
                                             type);
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
                                             System.currentTimeMillis());
-                                    getActivity().getContentResolver()
-                                            .insert(CrawlerContract.AccountEntry.CONTENT_URI,
-                                                    values);
+                                    Activity activity = getActivity();
+                                    if (activity != null)
+                                        activity.getContentResolver()
+                                                .insert(CrawlerContract.AccountEntry.CONTENT_URI,
+                                                        values);
                                 }
                             }).start();
                             dismiss();
