@@ -41,7 +41,7 @@ public abstract class Request implements Runnable {
     private static final String NUM_OF_PHOTOS_SUFFIX = ".NUM_OF_PHOTOS";
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";
     private static final String LOG_TAG = Request.class.getSimpleName();
-    protected static int CACHE_SIZE = 3000;
+    protected int CACHE_SIZE = 3000;
     private final String mAlbumID;
     private final RequestService mRequestService;
     private final ContentProviderClient mProvider;
