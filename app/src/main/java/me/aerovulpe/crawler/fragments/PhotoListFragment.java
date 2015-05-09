@@ -187,7 +187,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             }
         });
         // If is loading, show progress dialog.
-        if (mIsRequesting || mIsLoading) {
+        if ((mIsRequesting || mIsLoading) && isVisible()) {
             makeProgressDialog();
         }
     }

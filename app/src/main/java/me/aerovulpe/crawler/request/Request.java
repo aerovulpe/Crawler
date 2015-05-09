@@ -1,5 +1,6 @@
 package me.aerovulpe.crawler.request;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -150,13 +151,16 @@ public abstract class Request implements Runnable {
             return;
 
         if (wasSuccess) {
+            mBuilder.setSmallIcon(android.R.drawable.ic_dialog_info);
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
             mViews.setTextViewText(R.id.detail, "Downloading finished");
             mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
         } else {
+            mBuilder.setSmallIcon(android.R.drawable.ic_dialog_alert);
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
             mViews.setTextViewText(R.id.detail, "Downloading failed");
         }
+        mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         mBuilder.setContent(mViews);
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
