@@ -68,6 +68,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private ProgressDialog mProgressDialog;
     private boolean mIsRequesting = true;
     private boolean mIsLoading = true;
+    private boolean mHasDisplayedPhotos;
     // For getting confirmation from the service
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
@@ -244,6 +245,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     // ProgressDialog method to inform the user of the asynchronous
     // processing
     private void makeProgressDialog() {
+        if (mHasDisplayedPhotos)
+            return;
+
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getResources()
                 .getString(R.string.loading_photos));
@@ -283,6 +287,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     Photo.partialListFromCursor(cursor, syncLoadLimit, initPos);
             ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, mAlbumID, photos, initPos, isSlideShow);
+            mHasDisplayedPhotos = true;
         }
     }
 
