@@ -62,7 +62,7 @@ public class TumblrRequest extends Request {
             JSONObject rootObject = new JSONObject(getStringFromServer(urlFromBlog(0)))
                     .getJSONObject("response");
             numOfPosts = rootObject.getInt("total_posts");
-            Log.d(mAlbumID, numOfPosts + "");
+            Log.d(getAlbumID(), numOfPosts + "");
             return wasNotUpdated(numOfPosts, rootObject.getJSONArray("posts").getJSONObject(0)
                     .getJSONArray("photos").getJSONObject(0).getJSONObject("original_size")
                     .getString("url"));
@@ -74,8 +74,8 @@ public class TumblrRequest extends Request {
 
     private URL urlFromBlog(int page) throws MalformedURLException {
         int offset = (page * 50) - 50;
-        String blog = mAlbumID.replaceFirst("^(http://|http://www\\.|www\\.)", "");
-        Log.d(LOG_TAG, "blog: " + blog + ", album: " + mAlbumID);
+        String blog = getAlbumID().replaceFirst("^(http://|http://www\\.|www\\.)", "");
+        Log.d(LOG_TAG, "blog: " + blog + ", album: " + getAlbumID());
         Uri uri = Uri.parse(TUMBLR_API_BASE_URI).buildUpon()
                 .appendPath(blog)
                 .appendPath("posts")
@@ -105,7 +105,7 @@ public class TumblrRequest extends Request {
                             .getString("url");
                     String filename = Uri.parse(url).getLastPathSegment();
                     ContentValues values = new ContentValues();
-                    values.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+                    values.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, getAlbumID());
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE, title);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);

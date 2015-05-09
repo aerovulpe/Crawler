@@ -42,7 +42,7 @@ public abstract class Request implements Runnable {
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";
     private static final String LOG_TAG = Request.class.getSimpleName();
     protected static int CACHE_SIZE = 3000;
-    protected final String mAlbumID;
+    private final String mAlbumID;
     private final RequestService mRequestService;
     private final ContentProviderClient mProvider;
     private final Vector<ContentValues> mContentCache;
@@ -102,14 +102,7 @@ public abstract class Request implements Runnable {
         // result[1] == wasSuccess
         mIsRunning = false;
         if (!mContentCache.isEmpty()) {
-            try {
-                mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                Log.d(LOG_TAG, mContentCache.size() + " inserted.");
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            mContentCache.clear();
+            insertAndClearCache();
         }
         SharedPreferences.Editor editor = mRequestService
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
@@ -145,6 +138,22 @@ public abstract class Request implements Runnable {
         mRequestService.onFinished(this);
     }
 
+    private void notifyFinished(boolean wasSuccess) {
+        if (!mShowNotification)
+            return;
+
+        if (wasSuccess) {
+            mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
+            mViews.setTextViewText(R.id.detail, "Downloading finished");
+            mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
+        } else {
+            mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
+            mViews.setTextViewText(R.id.detail, "Downloading failed");
+        }
+        mBuilder.setContent(mViews);
+        mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
+    }
+
     @Override
     public void run() {
         ContentValues albumStubValues = new ContentValues();
@@ -176,22 +185,6 @@ public abstract class Request implements Runnable {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
-
-    private void notifyFinished(boolean wasSuccess) {
-        if (!mShowNotification)
-            return;
-
-        if (wasSuccess) {
-            mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
-            mViews.setTextViewText(R.id.detail, "Downloading finished");
-            mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
-        } else {
-            mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
-            mViews.setTextViewText(R.id.detail, "Downloading failed");
-        }
-        mBuilder.setContent(mViews);
-        mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }
 
     protected abstract void parseResult(String results);

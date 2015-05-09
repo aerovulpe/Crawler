@@ -67,7 +67,7 @@ public class FlickrRequest extends Request {
         Uri uri = Uri.parse(FLICKR_API_BASE_URI).buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, API_KEY)
                 .appendQueryParameter(METHOD_PARAM, "flickr.urls.lookupUser")
-                .appendQueryParameter(URL_PARAM, mAlbumID)
+                .appendQueryParameter(URL_PARAM, getAlbumID())
                 .appendQueryParameter(FORMAT_PARAM, "json")
                 .appendQueryParameter(NOJSONCALLBACK_PARAM, "1").build();
 
@@ -89,7 +89,7 @@ public class FlickrRequest extends Request {
                     .getJSONObject("photos");
             JSONArray photosArray = rootObject.getJSONArray("photo");
             numOfPhotos = rootObject.getInt("total");
-            Log.d(mAlbumID, numOfPhotos + "");
+            Log.d(getAlbumID(), numOfPhotos + "");
             return wasNotUpdated(numOfPhotos, photosArray.getJSONObject(0).getString("id"));
         } catch (JSONException | MalformedURLException | NullPointerException e) {
             e.printStackTrace();
@@ -123,7 +123,7 @@ public class FlickrRequest extends Request {
                 ContentValues values = new ContentValues();
                 values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
                         photoObject.getString("title"));
-                values.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, mAlbumID);
+                values.put(CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY, getAlbumID());
                 String id = photoObject.getString("id");
                 String url = "https://farm" + photoObject.getInt("farm") + ".staticflickr.com/" +
                         photoObject.getString("server") + "/" + id + "_" +

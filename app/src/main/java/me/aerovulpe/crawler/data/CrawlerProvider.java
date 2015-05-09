@@ -218,11 +218,7 @@ public class CrawlerProvider extends ContentProvider {
                 if (_id > 0)
                     returnUri = CrawlerContract.PhotoEntry.buildPhotosUri(_id);
                 else
-                    returnUri = CrawlerContract.PhotoEntry
-                            .buildPhotosUri(update(CrawlerContract.PhotoEntry.CONTENT_URI, values,
-                                    CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL + "=?",
-                                    new String[]{values.getAsString(CrawlerContract
-                                            .PhotoEntry.COLUMN_PHOTO_URL)}));
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
             case ALBUMS: {
@@ -269,11 +265,6 @@ public class CrawlerProvider extends ContentProvider {
                         long _id = db.insert(CrawlerContract.PhotoEntry.TABLE_NAME, null, value);
                         if (_id != -1) {
                             returnCount++;
-                        } else {
-                            db.update(CrawlerContract.PhotoEntry.TABLE_NAME, value, CrawlerContract
-                                            .PhotoEntry.COLUMN_PHOTO_URL + "=?",
-                                    new String[]{value.getAsString(CrawlerContract
-                                            .PhotoEntry.COLUMN_PHOTO_URL)});
                         }
                     }
                     db.setTransactionSuccessful();

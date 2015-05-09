@@ -34,7 +34,7 @@ import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.FlickrRequest;
-import me.aerovulpe.crawler.request.PicasaPhotosRequestTask;
+import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
 
@@ -249,22 +249,17 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void doPhotosRequest() {
+        Intent intent = new Intent(getActivity(), RequestService.class);
+        intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
         if (mPhotoDataUrl.contains("picasaweb")) {
-            new PicasaPhotosRequestTask(getActivity(), mAlbumID,
-                    R.string.loading_photos).execute(mPhotoDataUrl, mAlbumID);
+            intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
         } else if (mPhotoDataUrl.contains("tumblr")) {
-            Intent intent = new Intent(getActivity(), RequestService.class);
-            intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-            getActivity().startService(intent);
-            doBindService();
         } else if (mPhotoDataUrl.contains("flickr")) {
-            Intent intent = new Intent(getActivity(), RequestService.class);
-            intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
-            getActivity().startService(intent);
-            doBindService();
         }
+        getActivity().startService(intent);
+        doBindService();
     }
 
     void doBindService() {

@@ -50,12 +50,16 @@ public class RequestService extends Service {
         if (intent != null) {
             String rawUrl = intent.getStringExtra(ARG_RAW_URL);
             if (!mRequestRegistry.contains(rawUrl)) {
+                String requestExtra = intent.getStringExtra(ARG_REQUEST_TYPE);
                 if (TumblrRequest.class.getName()
-                        .equals(intent.getStringExtra(ARG_REQUEST_TYPE)))
+                        .equals(requestExtra))
                     mLastRequest = new TumblrRequest(this, rawUrl);
                 else if (FlickrRequest.class.getName()
-                        .equals(intent.getStringExtra(ARG_REQUEST_TYPE)))
+                        .equals(requestExtra))
                     mLastRequest = new FlickrRequest(this, rawUrl);
+                else if (PicasaPhotosRequest.class.getName()
+                        .equals(requestExtra))
+                    mLastRequest = new PicasaPhotosRequest(this, rawUrl);
                 mRequestThreadPool.execute(mLastRequest);
                 mRequestRegistry.add(rawUrl);
                 Log.d(LOG_TAG, "Request added: " + rawUrl);

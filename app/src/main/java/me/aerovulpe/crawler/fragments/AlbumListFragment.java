@@ -20,7 +20,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.PicasaAlbumsRequestTask;
+import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -71,16 +71,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        if (mAccountID != null && mRequestData) {
-            doAlbumsRequest();
-            mRequestData = false;
-        }
-        getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -105,10 +95,13 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        if (mRecyclerView.getAdapter() == null) return;
-        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (mAccountID != null && mRequestData) {
+            doAlbumsRequest();
+            mRequestData = false;
+        }
+        getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
 
     @Override
@@ -124,13 +117,19 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         });
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mRecyclerView.getAdapter() == null) return;
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+    }
+
     /**
      * Loads the albums for the given user.
      */
     private void doAlbumsRequest() {
         if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-            new PicasaAlbumsRequestTask(getActivity(), mAccountID,
-                    R.string.loading_albums).execute(mAccountID);
+            new PicasaAlbumsRequest(getActivity()).execute(mAccountID);
         }
     }
 
