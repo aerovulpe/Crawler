@@ -147,7 +147,7 @@ public abstract class Request implements Runnable {
     }
 
     private void notifyFinished(boolean wasSuccess) {
-        if (!mShowNotification)
+        if (!mShowNotification || mIsFirstNotification)
             return;
 
         if (wasSuccess) {
