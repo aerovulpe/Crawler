@@ -137,7 +137,7 @@ public class Photo implements Serializable, Parcelable {
     }
 
     public String getTitle() {
-        if (title == null) return name;
+        if (title == null || title.isEmpty()) return name;
         return title;
     }
 
@@ -215,7 +215,7 @@ public class Photo implements Serializable, Parcelable {
         return null;
     }
 
-    public static interface OnPhotosLoadedListener {
-        public void onPhotosLoaded(Photo[] photos);
+    public interface OnPhotosLoadedListener {
+        void onPhotosLoaded(Photo[] photos);
     }
 }

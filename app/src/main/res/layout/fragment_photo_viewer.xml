@@ -9,12 +9,4 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
-
-    <com.viewpagerindicator.CirclePageIndicator
-        android:id="@+id/pageIndicator"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:padding="5dp"
-        android:visibility="invisible"/>
 </FrameLayout>

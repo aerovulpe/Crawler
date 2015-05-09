@@ -88,7 +88,7 @@ public class AddEditAccountFragment extends DialogFragment {
                 final int type = accountType.getSelectedItemPosition();
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
-                if (name == null || name.isEmpty()) name = id;
+                if (name.isEmpty()) name = id;
                 id = AccountsUtil.urlFromUser(id, type);
 
                 final String finalId = id;
@@ -102,12 +102,23 @@ public class AddEditAccountFragment extends DialogFragment {
                     @Override
                     public void onNetworkStatusReceived(boolean doesExist) {
                         if (doesExist || !NetworkUtil.isNetworkAvailable(getActivity())) {
-                            ContentValues values = new ContentValues();
-                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID, finalId);
-                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME, finalName);
-                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE, type);
-                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME, System.currentTimeMillis());
-                            getActivity().getContentResolver().insert(CrawlerContract.AccountEntry.CONTENT_URI, values);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ContentValues values = new ContentValues();
+                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+                                            finalId);
+                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+                                            finalName);
+                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
+                                            type);
+                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
+                                            System.currentTimeMillis());
+                                    getActivity().getContentResolver()
+                                            .insert(CrawlerContract.AccountEntry.CONTENT_URI,
+                                                    values);
+                                }
+                            }).start();
                             dismiss();
                         } else {
                             showInvalidAccountError();

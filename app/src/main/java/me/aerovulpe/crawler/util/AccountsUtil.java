@@ -11,6 +11,9 @@ public final class AccountsUtil {
     public static final int ACCOUNT_TYPE_TUMBLR = 0;
     public static final int ACCOUNT_TYPE_FLICKR = 1;
     public static final int ACCOUNT_TYPE_PICASA = 2;
+    public static final String TUMBLR_BASE_SUFFIX = ".tumblr.com";
+    public static final String FLICKR_BASE = "https://www.flickr.com/photos/";
+    public static final String PICASA_BASE = "http://picasaweb.google.com/data/feed/api/user/";
     private final String[] typeNames;
 
     public AccountsUtil(Resources resources) {
@@ -36,13 +39,13 @@ public final class AccountsUtil {
     public static String urlFromUser(String user, int type) {
         switch (type) {
             case ACCOUNT_TYPE_TUMBLR: {
-                return "http://" + user + ".tumblr.com";
+                return "http://" + user + TUMBLR_BASE_SUFFIX;
             }
             case ACCOUNT_TYPE_FLICKR: {
-                return "https://www.flickr.com/photos/" + user;
+                return FLICKR_BASE + user;
             }
             case ACCOUNT_TYPE_PICASA: {
-                return "http://picasaweb.google.com/data/feed/api/user/" + user;
+                return PICASA_BASE + user;
             }
             default:
                 return null;

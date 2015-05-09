@@ -56,7 +56,9 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
             thumbnailTitle = cursor.getString(AlbumListFragment.COL_ALBUM_NAME);
         } else if (mType == TYPE_PHOTOS) {
             thumbnailUrl = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
-            thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_NAME);
+            thumbnailTitle = cursor.getString(PhotoListFragment.COL_PHOTO_TITLE);
+            thumbnailTitle = (thumbnailTitle == null || thumbnailTitle.isEmpty()) ?
+                    cursor.getString(PhotoListFragment.COL_PHOTO_NAME) : thumbnailTitle;
         }
         viewHolder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         mImageLoader.displayImage(thumbnailUrl,

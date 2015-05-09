@@ -10,6 +10,7 @@
     <!-- Accounts List -->
     <string name="accounts_you_follow">Accounts you follow:</string>
     <string name="add_account">Add account</string>
+    <string name="explore">Explore</string>
     <string name="about">About</string>
 
     <!--  Add/Edit Accounts Dialog -->
@@ -44,4 +45,7 @@
     <string name="loading_photos">Loading photos…</string>
     <string name="loading_albums">Loading albums…</string>
     <string name="task_working">Downloading page %1$d</string>
+    <string name="title_activity_explorer">ExplorerActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>
