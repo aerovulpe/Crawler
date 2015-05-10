@@ -324,7 +324,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             else message = "Slideshow Paused";
         }
         setUpSlideShowTask();
-        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        Activity activity = getActivity();
+        if (activity != null)
+            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
 
     public void setUpSlideShowTask() {

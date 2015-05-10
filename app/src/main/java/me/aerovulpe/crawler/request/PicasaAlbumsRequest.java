@@ -117,7 +117,7 @@ public class PicasaAlbumsRequest extends AsyncTask<String, String, Void> {
                 values.put(CrawlerContract.AlbumEntry.COLUMN_ALBUM_THUMBNAIL_URL, thumbnailUrl);
                 addValues(values);
             }
-        } catch (JSONException e) {
+        } catch (JSONException | NullPointerException e) {
             e.printStackTrace();
         }
     }
