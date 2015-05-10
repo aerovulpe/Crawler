@@ -93,11 +93,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                 }
             }
         });
-        if (CrawlerApplication.randomDraw(1 / 5.0)) {
             AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
-        }
         return rootView;
     }
 

@@ -78,7 +78,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         });
         registerForContextMenu(mainList);
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
-        if (CrawlerApplication.randomDraw(1 / 15.0)) {
+        if (CrawlerApplication.randomDraw(1 / 10.0)) {
             AdView mAdView = (AdView) findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
@@ -122,7 +122,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 showAddAccountDialog();
                 return true;
             case MENU_EXPLORE:
-                if (CrawlerApplication.randomDraw(1 / 10.0) && mInterstitialAd.isLoaded()) {
+                if (CrawlerApplication.randomDraw(1 / 5.0) && mInterstitialAd.isLoaded()) {
                     mInterstitialAd.show();
                 } else {
                     startActivity(new Intent(this, ExplorerActivity.class));
