@@ -279,7 +279,7 @@ public abstract class Request implements Runnable {
             return;
 
         if (mIsFirstNotification) {
-            // mRequestService.startForeground();
+            mRequestService.startForeground();
             Intent intent = new Intent(mRequestService, MainActivity.class);
             intent.setAction(mAlbumID);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
