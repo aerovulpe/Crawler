@@ -121,9 +121,11 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
-        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        if (CrawlerApplication.randomDraw(1 / 10.0)) {
+            AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
         return rootView;
     }
 

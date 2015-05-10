@@ -23,6 +23,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -77,9 +78,11 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         });
         registerForContextMenu(mainList);
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
-        AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        if (CrawlerApplication.randomDraw(1 / 15.0)) {
+            AdView mAdView = (AdView) findViewById(R.id.adView);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mAdView.loadAd(adRequest);
+        }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
         requestNewInterstitial();
@@ -119,7 +122,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 showAddAccountDialog();
                 return true;
             case MENU_EXPLORE:
-                if (mInterstitialAd.isLoaded()) {
+                if (CrawlerApplication.randomDraw(1 / 10.0) && mInterstitialAd.isLoaded()) {
                     mInterstitialAd.show();
                 } else {
                     startActivity(new Intent(this, ExplorerActivity.class));

@@ -26,6 +26,8 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
+import java.util.Random;
+
 import me.aerovulpe.crawler.activities.PreferencesActivity;
 
 public class CrawlerApplication extends Application {
@@ -81,6 +83,10 @@ public class CrawlerApplication extends Application {
                 * displayMetrics.density;
         return (int) Math
                 .floor(displayMetrics.widthPixels / thumbnailWithPx);
+    }
+
+    public static boolean randomDraw(double odds){
+        return (odds > 0) && new Random().nextDouble() <= odds;
     }
 
     @Override
