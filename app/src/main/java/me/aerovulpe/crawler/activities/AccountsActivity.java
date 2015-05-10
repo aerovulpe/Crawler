@@ -18,6 +18,11 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -46,6 +51,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE
     };
     private AccountsAdapter adapter;
+    private InterstitialAd mInterstitialAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +76,13 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             }
         });
         registerForContextMenu(mainList);
-
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        requestNewInterstitial();
     }
 
     @Override
@@ -108,7 +119,18 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 showAddAccountDialog();
                 return true;
             case MENU_EXPLORE:
-                startActivity(new Intent(this, ExplorerActivity.class));
+                if (mInterstitialAd.isLoaded()) {
+                    mInterstitialAd.show();
+                } else {
+                    startActivity(new Intent(this, ExplorerActivity.class));
+                }
+                mInterstitialAd.setAdListener(new AdListener() {
+                    @Override
+                    public void onAdClosed() {
+                        requestNewInterstitial();
+                        startActivity(new Intent(AccountsActivity.this, ExplorerActivity.class));
+                    }
+                });
                 return true;
             case MENU_PREFERENCES:
                 startActivity(new Intent(this, PreferencesActivity.class));
@@ -159,10 +181,19 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" + accountID + "'", null);
+                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
+                                accountID + "'", null);
             }
         });
         builder.create().show();
+    }
+
+    private void requestNewInterstitial() {
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice("61105D9E9F07332601057B30599B0164")
+                .build();
+
+        mInterstitialAd.loadAd(adRequest);
     }
 
     @Override

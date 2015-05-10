@@ -28,6 +28,8 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
@@ -119,6 +121,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
                 .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
+        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
         return rootView;
     }
 

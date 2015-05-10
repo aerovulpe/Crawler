@@ -24,6 +24,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.util.List;
@@ -159,6 +161,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 displayPhoto(cursor, position, false);
             }
         });
+        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
         return rootView;
     }
 
