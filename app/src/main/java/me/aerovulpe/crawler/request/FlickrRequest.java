@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,8 +46,6 @@ public class FlickrRequest extends Request {
             }
             mCurrentPage = getInitialPage();
             mNumOfPages = mCurrentPage;
-            Log.d(LOG_TAG, userId);
-            Log.d(LOG_TAG, "Initial page: " + getInitialPage());
             for (; mCurrentPage <= mNumOfPages
                     && mIsRunning; mCurrentPage++) {
                 URL url = urlFromUserId(userId, mCurrentPage);
@@ -89,7 +86,6 @@ public class FlickrRequest extends Request {
                     .getJSONObject("photos");
             JSONArray photosArray = rootObject.getJSONArray("photo");
             numOfPhotos = rootObject.getInt("total");
-            Log.d(getAlbumID(), numOfPhotos + "");
             return wasNotUpdated(numOfPhotos, photosArray.getJSONObject(0).getString("id"));
         } catch (JSONException | MalformedURLException | NullPointerException e) {
             e.printStackTrace();

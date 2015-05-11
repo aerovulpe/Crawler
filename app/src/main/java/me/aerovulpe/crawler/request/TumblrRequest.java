@@ -2,7 +2,6 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentValues;
 import android.net.Uri;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,7 +40,6 @@ public class TumblrRequest extends Request {
             }
             mCurrentPage = getInitialPage();
             mNumOfPages = mCurrentPage;
-            Log.d(LOG_TAG, "Initial page: " + getInitialPage());
             for (; mCurrentPage <= mNumOfPages
                     && mIsRunning; mCurrentPage++) {
                 URL url = urlFromBlog(mCurrentPage);
@@ -62,7 +60,6 @@ public class TumblrRequest extends Request {
             JSONObject rootObject = new JSONObject(getStringFromServer(urlFromBlog(0)))
                     .getJSONObject("response");
             numOfPosts = rootObject.getInt("total_posts");
-            Log.d(getAlbumID(), numOfPosts + "");
             return wasNotUpdated(numOfPosts, rootObject.getJSONArray("posts").getJSONObject(0)
                     .getJSONArray("photos").getJSONObject(0).getJSONObject("original_size")
                     .getString("url"));
@@ -75,7 +72,6 @@ public class TumblrRequest extends Request {
     private URL urlFromBlog(int page) throws MalformedURLException {
         int offset = (page * 50) - 50;
         String blog = getAlbumID().replaceFirst("^(http://|http://www\\.|www\\.)", "");
-        Log.d(LOG_TAG, "blog: " + blog + ", album: " + getAlbumID());
         Uri uri = Uri.parse(TUMBLR_API_BASE_URI).buildUpon()
                 .appendPath(blog)
                 .appendPath("posts")
