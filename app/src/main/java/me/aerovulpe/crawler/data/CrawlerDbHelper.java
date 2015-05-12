@@ -89,6 +89,8 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 ExplorerEntry.COLUMN_ACCOUNT_ID + " TEXT NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_NAME + " TEXT NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_CATEGORY + " TEXT NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_TIME + " INTEGER NOT NULL, " +
 

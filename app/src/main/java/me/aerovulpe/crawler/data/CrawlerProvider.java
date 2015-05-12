@@ -21,16 +21,26 @@ public class CrawlerProvider extends ContentProvider {
     private static final int ALBUMS_WITH_ACCOUNT = 301;
     private static final int ACCOUNTS = 400;
     private static final int EXPLORERS = 500;
+    private static final int EXPLORER_ACCOUNTS_WITH_TYPE = 501;
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
+    private static final SQLiteQueryBuilder sAccountsByAccountTypeQueryBuilder;
     private static final SQLiteQueryBuilder sAlbumsByAccountQueryBuilder;
     private static final SQLiteQueryBuilder sPhotosByAlbumQueryBuilder;
+    private static final String sAccountTypeSelection =
+            CrawlerContract.ExplorerEntry.TABLE_NAME +
+                    "." + CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE + " = ? ";
     private static final String sAccountIDSelection =
             CrawlerContract.AccountEntry.TABLE_NAME +
                     "." + CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " = ? ";
     private static final String sAlbumUrlSelection =
             CrawlerContract.AlbumEntry.TABLE_NAME +
                     "." + CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID + " = ? ";
+
+    static {
+        sAccountsByAccountTypeQueryBuilder = new SQLiteQueryBuilder();
+        sAccountsByAccountTypeQueryBuilder.setTables(CrawlerContract.ExplorerEntry.TABLE_NAME);
+    }
 
     static {
         sAlbumsByAccountQueryBuilder = new SQLiteQueryBuilder();
@@ -77,6 +87,7 @@ public class CrawlerProvider extends ContentProvider {
         matcher.addURI(authority, CrawlerContract.PATH_ACCOUNTS, ACCOUNTS);
 
         matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS, EXPLORERS);
+        matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS + "/#", EXPLORER_ACCOUNTS_WITH_TYPE);
         return matcher;
     }
 
@@ -144,6 +155,9 @@ public class CrawlerProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
+            case EXPLORER_ACCOUNTS_WITH_TYPE:
+                retCursor = getAccountsByAccountType(uri, projection, sortOrder);
+                break;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -182,6 +196,21 @@ public class CrawlerProvider extends ContentProvider {
         );
     }
 
+    private Cursor getAccountsByAccountType(Uri uri, String[] projection, String sortOrder) {
+        String accountType = CrawlerContract.ExplorerEntry.getAccountTypeFromUri(uri);
+        String selection = sAccountTypeSelection;
+        String[] selectionArgs = new String[]{accountType};
+
+        return sAccountsByAccountTypeQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
     @Override
     public String getType(Uri uri) {
         // Use the Uri Matcher to determine what kind of URI this is.
@@ -200,6 +229,8 @@ public class CrawlerProvider extends ContentProvider {
                 return CrawlerContract.AccountEntry.CONTENT_TYPE;
             case EXPLORERS:
                 return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
+            case EXPLORER_ACCOUNTS_WITH_TYPE:
+                return CrawlerContract.ExplorerEntry.CONTENT_ITEM_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

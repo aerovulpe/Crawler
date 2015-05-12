@@ -52,7 +52,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_PHOTO_TITLE = 2;
     public static final int COL_PHOTO_URL = 3;
     public static final int COL_PHOTO_DESCRIPTION = 4;
-    private static final int PHOTOS_LOADER = 2;
+    private static final int PHOTOS_LOADER = 4;
     private static final String TAG = PhotoListFragment.class.getSimpleName();
     private static String[] PHOTOS_COLUMNS = {
             CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
@@ -125,10 +125,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mAlbumTitle = getArguments().getString(ARG_ALBUM_TITLE);
-            mAlbumID = getArguments().getString(ARG_ALBUM_ID);
-            mPhotoDataUrl = getArguments().getString(ARG_PHOTO_DATA_URL);
+        Bundle args = getArguments();
+        if (args != null) {
+            mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
+            mAlbumID = args.getString(ARG_ALBUM_ID);
+            mPhotoDataUrl = args.getString(ARG_PHOTO_DATA_URL);
         }
         mRequestData = true;
         setRetainInstance(true);

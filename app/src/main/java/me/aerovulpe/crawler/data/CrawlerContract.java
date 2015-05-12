@@ -136,6 +136,8 @@ public class CrawlerContract {
         public static final String COLUMN_ACCOUNT_TYPE = "explorer_type";
         public static final String COLUMN_ACCOUNT_TIME = "explorer_time";
         public static final String COLUMN_ACCOUNT_PREVIEW_URL = "explorer_url";
+        public static final String COLUMN_ACCOUNT_DESCRIPTION = "explorer_description";
+        public static final String COLUMN_ACCOUNT_CATEGORY = "explorer_category";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_EXPLORERS).build();
@@ -148,5 +150,12 @@ public class CrawlerContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
+        public static Uri buildAccountsUriWithAccountType(int accountType) {
+            return CONTENT_URI.buildUpon().appendPath(String.valueOf(accountType)).build();
+        }
+
+        public static String getAccountTypeFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
+        }
     }
 }

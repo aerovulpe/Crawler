@@ -31,12 +31,14 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
+import me.aerovulpe.crawler.fragments.ExplorerFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
 public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter.ViewHolder> {
 
-    public static final int TYPE_ALBUMS = 0;
-    public static final int TYPE_PHOTOS = 1;
+    public static final int TYPE_EXPLORER = 0;
+    public static final int TYPE_ALBUMS = 1;
+    public static final int TYPE_PHOTOS = 2;
     private final ImageLoader mImageLoader;
     private final int mType;
     private OnItemClickListener mItemClickListener;
@@ -51,7 +53,10 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
     public void onBindViewHolder(final ViewHolder viewHolder, Cursor cursor) {
         String thumbnailUrl = null;
         String thumbnailTitle = null;
-        if (mType == TYPE_ALBUMS) {
+        if (mType == TYPE_EXPLORER) {
+            thumbnailTitle = cursor.getString(ExplorerFragment.COL_ACCOUNT_NAME);
+            thumbnailUrl = cursor.getString(ExplorerFragment.COL_ACCOUNT_PREVIEW_URL);
+        } else if (mType == TYPE_ALBUMS) {
             thumbnailUrl = cursor.getString(AlbumListFragment.COL_ALBUM_THUMBNAIL_URL);
             thumbnailTitle = cursor.getString(AlbumListFragment.COL_ALBUM_NAME);
         } else if (mType == TYPE_PHOTOS) {
@@ -100,7 +105,7 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
     }
 
     public interface OnItemClickListener {
-        public void onItemClick(View view, int position);
+        void onItemClick(View view, int position);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

@@ -33,7 +33,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_ALBUM_THUMBNAIL_URL = 3;
     public static final int COL_ALBUM_PHOTO_DATA = 4;
     private static final String TAG = AlbumListFragment.class.getSimpleName();
-    private static final int ALBUMS_LOADER = 1;
+    private static final int ALBUMS_LOADER = 3;
 
     private static String[] ALBUMS_COLUMNS = {
             CrawlerContract.AlbumEntry.TABLE_NAME + "." + CrawlerContract.AlbumEntry._ID,
@@ -65,9 +65,10 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mAccountType = getArguments().getInt(AccountsActivity.ARG_ACCOUNT_TYPE);
-            mAccountID = getArguments().getString(AccountsActivity.ARG_ACCOUNT_ID);
+        Bundle args = getArguments();
+        if (args != null) {
+            mAccountType = args.getInt(AccountsActivity.ARG_ACCOUNT_TYPE);
+            mAccountID = args.getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
         mRequestData = true;
         setRetainInstance(true);
@@ -82,7 +83,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
         mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_ALBUMS));
-        ((ThumbnailAdapter) mRecyclerView.getAdapter()).setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
+        ((ThumbnailAdapter) mRecyclerView.getAdapter())
+                .setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
@@ -126,7 +128,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     public void onPause() {
         super.onPause();
         if (mRecyclerView.getAdapter() == null) return;
-        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
+                .findFirstCompletelyVisibleItemPosition();
     }
 
     /**

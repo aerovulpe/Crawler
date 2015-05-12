@@ -1,27 +1,52 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:crawler="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
               tools:context="me.aerovulpe.crawler.activities.ExplorerActivity">
 
-    <include
+    <android.support.v7.widget.Toolbar
         android:id="@+id/app_bar"
-        layout="@layout/toolbar"/>
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:theme="@style/ActionBarThemeOverlay"
+        crawler:titleTextAppearance="@style/ActionBar.TitleText">
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical|end">
+
+            <Spinner
+                android:id="@+id/spinner_nav"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"/>
+        </FrameLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <com.astuetz.PagerSlidingTabStrip
+        android:id="@+id/tabs"
+        android:layout_width="match_parent"
+        android:layout_height="48dip"/>
 
     <FrameLayout
-        android:id="@+id/content_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin">
+        android:layout_height="match_parent">
 
-        <TextView
+        <android.support.v4.view.ViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world"/>
+            android:layout_gravity="center_horizontal|bottom"
+            crawler:adSize="BANNER"
+            crawler:adUnitId="@string/banner_ad_unit_id"/>
     </FrameLayout>
 
 </LinearLayout>

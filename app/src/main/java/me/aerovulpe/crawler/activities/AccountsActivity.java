@@ -44,7 +44,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     // The order of these must match the array "account_actions" in strings.xml.
     private static final int CONTEXT_MENU_EDIT = 0;
     private static final int CONTEXT_MENU_DELETE = 1;
-    private static final int ACCOUNTS_LOADER = 0;
+    private static final int ACCOUNTS_LOADER = 1;
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,

@@ -45,7 +45,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;
-    private static final int ACCOUNTS_LOADER = 0;
+    private static final int ACCOUNTS_LOADER = 2;
     private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
