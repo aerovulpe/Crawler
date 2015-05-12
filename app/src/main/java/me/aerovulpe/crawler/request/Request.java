@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.request;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
@@ -236,9 +237,6 @@ public abstract class Request implements Runnable {
         BufferedReader reader = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setUseCaches(false);
-            urlConnection.setReadTimeout(30000); // 30 seconds.
-            urlConnection.setDoInput(true);
             urlConnection.connect();
             InputStream inputStream = urlConnection.getInputStream();
 
@@ -249,7 +247,7 @@ public abstract class Request implements Runnable {
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while ((line = reader.readLine()) != null) {
-                buffer.append(line).append("\n");
+                buffer.append(line);
             }
 
             return buffer.toString();
@@ -282,15 +280,14 @@ public abstract class Request implements Runnable {
             mRequestService.startForeground();
             Intent intent = new Intent(mRequestService, MainActivity.class);
             intent.setAction(mAlbumID);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, mAlbumID);
             intent.putExtra(AccountsActivity.ARG_ACCOUNT_TYPE, accountType);
             intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME, mAlbumName);
-            PendingIntent pendingIntent = PendingIntent.getActivity(
-                    mRequestService,
-                    0,
-                    intent,
-                    0);
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(mRequestService)
+                    .addParentStack(MainActivity.class)
+                    .addNextIntent(intent);
+            PendingIntent pendingIntent = stackBuilder
+                    .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
             IntentFilter filter = new IntentFilter();
             filter.addAction(mAlbumID + ".CANCEL");
             filter.addAction(mAlbumID + ".SHOW");
