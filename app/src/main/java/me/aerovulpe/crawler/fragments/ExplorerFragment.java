@@ -17,20 +17,22 @@ import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.TumblrExplorerRequest;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 /**
  * Created by Aaron on 07/05/2015.
  */
 public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
-    public static final String ARG_ACCOUNT_CATEGORY = "me.aerovulpe.crawler.EXPLORER.account_category";
-    public static final String DEFAULT_POSITION = "me.aerovulpe.crawler.EXPLORER.default";
+    public static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_PREVIEW_URL = 3;
     public static final int COL_ACCOUNT_DESCRIPTION = 4;
 
-    private static final int ACCOUNTS_LOADER = 0;
+    private static final int EXPLORER_LOADER = 5;
+
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.ExplorerEntry.TABLE_NAME + "." + CrawlerContract.ExplorerEntry._ID,
             CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
@@ -41,7 +43,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     private int mAccountType;
     private RecyclerView mRecyclerView;
-    private boolean mRequestData;
     private int mIndex;
     private String mCategory;
 
@@ -53,7 +54,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         ExplorerFragment fragment = new ExplorerFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_ACCOUNT_TYPE, accountType);
-        args.putString(ARG_ACCOUNT_CATEGORY, category);
+        args.putString(ARG_CATEGORY_NAME, category);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,7 +65,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         Bundle args = getArguments();
         if (args != null) {
             mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
-            mCategory = args.getString(ARG_ACCOUNT_CATEGORY);
+            mCategory = args.getString(ARG_CATEGORY_NAME);
         }
         setRetainInstance(true);
     }
@@ -94,17 +95,16 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (mRequestData) {
-            // TODO request data
-            mRequestData = false;
+        if (savedInstanceState == null && mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+            new TumblrExplorerRequest(getActivity()).execute(mCategory);
         }
-        getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+        getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
+        getLoaderManager().restartLoader(EXPLORER_LOADER, null, this);
         if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
             @Override
@@ -122,13 +122,20 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 .findFirstCompletelyVisibleItemPosition();
     }
 
+    public void setCategory(String category) {
+        if (mCategory.equals(category)) return;
+        mCategory = category;
+        new TumblrExplorerRequest(getActivity()).execute(mCategory);
+        LoaderManager loaderManager = getLoaderManager();
+        loaderManager.destroyLoader(EXPLORER_LOADER);
+        loaderManager.initLoader(EXPLORER_LOADER, null, this);
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = CrawlerContract.ExplorerEntry.buildAccountsUriWithAccountType(mAccountType);
+        Uri uri = CrawlerContract.ExplorerEntry.buildAccountsUriWithCategory(mCategory);
         String sortOrder = CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME + " ASC";
-        return new CursorLoader(getActivity(), uri, ACCOUNTS_COLUMNS,
-                CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY + " == ?",
-                new String[]{mCategory}, sortOrder);
+        return new CursorLoader(getActivity(), uri, ACCOUNTS_COLUMNS, null, null, sortOrder);
     }
 
     @Override

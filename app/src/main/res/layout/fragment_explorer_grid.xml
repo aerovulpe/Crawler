@@ -8,6 +8,8 @@
         android:id="@+id/account_grid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="5dp"
-        android:drawSelectorOnTop="true"/>
+        android:drawSelectorOnTop="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"/>
 </FrameLayout>

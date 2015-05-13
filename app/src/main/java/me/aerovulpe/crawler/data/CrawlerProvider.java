@@ -21,15 +21,16 @@ public class CrawlerProvider extends ContentProvider {
     private static final int ALBUMS_WITH_ACCOUNT = 301;
     private static final int ACCOUNTS = 400;
     private static final int EXPLORERS = 500;
-    private static final int EXPLORER_ACCOUNTS_WITH_TYPE = 501;
+    private static final int EXPLORER_ACCOUNTS_WITH_CATEGORY = 501;
+    private static final int CATEGORIES = 600;
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-    private static final SQLiteQueryBuilder sAccountsByAccountTypeQueryBuilder;
+    private static final SQLiteQueryBuilder sAccountsByCategoryQueryBuilder;
     private static final SQLiteQueryBuilder sAlbumsByAccountQueryBuilder;
     private static final SQLiteQueryBuilder sPhotosByAlbumQueryBuilder;
-    private static final String sAccountTypeSelection =
-            CrawlerContract.ExplorerEntry.TABLE_NAME +
-                    "." + CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE + " = ? ";
+    private static final String sCategorySelection =
+            CrawlerContract.CategoryEntry.TABLE_NAME +
+                    "." + CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID + " = ? ";
     private static final String sAccountIDSelection =
             CrawlerContract.AccountEntry.TABLE_NAME +
                     "." + CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " = ? ";
@@ -38,8 +39,13 @@ public class CrawlerProvider extends ContentProvider {
                     "." + CrawlerContract.AlbumEntry.COLUMN_ALBUM_ID + " = ? ";
 
     static {
-        sAccountsByAccountTypeQueryBuilder = new SQLiteQueryBuilder();
-        sAccountsByAccountTypeQueryBuilder.setTables(CrawlerContract.ExplorerEntry.TABLE_NAME);
+        sAccountsByCategoryQueryBuilder = new SQLiteQueryBuilder();
+        sAccountsByCategoryQueryBuilder.setTables(CrawlerContract.ExplorerEntry.TABLE_NAME
+                + " INNER JOIN " + CrawlerContract.CategoryEntry.TABLE_NAME +
+                " ON " + CrawlerContract.ExplorerEntry.TABLE_NAME +
+                "." + CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY +
+                " = " + CrawlerContract.CategoryEntry.TABLE_NAME +
+                "." + CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID);
     }
 
     static {
@@ -87,7 +93,9 @@ public class CrawlerProvider extends ContentProvider {
         matcher.addURI(authority, CrawlerContract.PATH_ACCOUNTS, ACCOUNTS);
 
         matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS, EXPLORERS);
-        matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS + "/#", EXPLORER_ACCOUNTS_WITH_TYPE);
+        matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS + "/*", EXPLORER_ACCOUNTS_WITH_CATEGORY);
+
+        matcher.addURI(authority, CrawlerContract.PATH_CATEGORIES, CATEGORIES);
         return matcher;
     }
 
@@ -155,8 +163,19 @@ public class CrawlerProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case EXPLORER_ACCOUNTS_WITH_TYPE:
-                retCursor = getAccountsByAccountType(uri, projection, sortOrder);
+            case EXPLORER_ACCOUNTS_WITH_CATEGORY:
+                retCursor = getAccountsByCategory(uri, projection, sortOrder);
+                break;
+            case CATEGORIES:
+                retCursor = mOpenHelper.getReadableDatabase().query(
+                        CrawlerContract.CategoryEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
                 break;
 
             default:
@@ -196,12 +215,12 @@ public class CrawlerProvider extends ContentProvider {
         );
     }
 
-    private Cursor getAccountsByAccountType(Uri uri, String[] projection, String sortOrder) {
-        String accountType = CrawlerContract.ExplorerEntry.getAccountTypeFromUri(uri);
-        String selection = sAccountTypeSelection;
-        String[] selectionArgs = new String[]{accountType};
+    private Cursor getAccountsByCategory(Uri uri, String[] projection, String sortOrder) {
+        String category = CrawlerContract.ExplorerEntry.getCategoryFromUri(uri);
+        String selection = sCategorySelection;
+        String[] selectionArgs = new String[]{category};
 
-        return sAccountsByAccountTypeQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+        return sAccountsByCategoryQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 selection,
                 selectionArgs,
@@ -229,8 +248,10 @@ public class CrawlerProvider extends ContentProvider {
                 return CrawlerContract.AccountEntry.CONTENT_TYPE;
             case EXPLORERS:
                 return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
-            case EXPLORER_ACCOUNTS_WITH_TYPE:
+            case EXPLORER_ACCOUNTS_WITH_CATEGORY:
                 return CrawlerContract.ExplorerEntry.CONTENT_ITEM_TYPE;
+            case CATEGORIES:
+                return CrawlerContract.CategoryEntry.CONTENT_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -272,6 +293,14 @@ public class CrawlerProvider extends ContentProvider {
                 long _id = db.insert(CrawlerContract.ExplorerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = CrawlerContract.ExplorerEntry.buildExplorerUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case CATEGORIES: {
+                long _id = db.insert(CrawlerContract.CategoryEntry.TABLE_NAME, null, values);
+                if (_id > 0)
+                    returnUri = CrawlerContract.CategoryEntry.buildCategoriesUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -339,6 +368,23 @@ public class CrawlerProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
+            case CATEGORIES: {
+                db.beginTransaction();
+                int returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(CrawlerContract.CategoryEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+            }
             default:
                 return super.bulkInsert(uri, values);
         }
@@ -365,6 +411,10 @@ public class CrawlerProvider extends ContentProvider {
             case EXPLORERS:
                 rowsDeleted = db.delete(
                         CrawlerContract.ExplorerEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case CATEGORIES:
+                rowsDeleted = db.delete(
+                        CrawlerContract.CategoryEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -403,6 +453,10 @@ public class CrawlerProvider extends ContentProvider {
             case EXPLORERS:
                 rowsUpgraded = db.update(
                         CrawlerContract.ExplorerEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+            case CATEGORIES:
+                rowsUpgraded = db.update(
+                        CrawlerContract.CategoryEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

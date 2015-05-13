@@ -1,0 +1,100 @@
+package me.aerovulpe.crawler.request;
+
+import android.content.ContentProviderClient;
+import android.content.ContentValues;
+import android.content.Context;
+import android.os.AsyncTask;
+import android.os.RemoteException;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.util.Vector;
+
+import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.util.AccountsUtil;
+
+/**
+ * Created by Aaron on 13/05/2015.
+ */
+public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
+    public static final String BASE_SPOTLIGHT_URL = "https://www.tumblr.com/spotlight/";
+    private ContentProviderClient mProviderClient;
+    private Vector<ContentValues> mContentValues;
+    private final int CACHE_SIZE = 25;
+
+    public CategoriesRequest(Context context) {
+        mContentValues = new Vector<>(CACHE_SIZE);
+        mProviderClient = context.getContentResolver()
+                .acquireContentProviderClient(CrawlerContract.CategoryEntry.CONTENT_URI);
+    }
+
+    @Override
+    protected Void doInBackground(Void... params) {
+        Document document = null;
+        try {
+            document = Jsoup.connect(BASE_SPOTLIGHT_URL).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (document == null)
+            return null;
+
+        addCategories(document);
+        return null;
+    }
+
+    @Override
+    protected void onCancelled(Void aVoid) {
+        super.onCancelled(aVoid);
+        if (!mContentValues.isEmpty()) {
+            insertAndClearCache();
+        }
+        mProviderClient.release();
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        if (!mContentValues.isEmpty()) {
+            insertAndClearCache();
+        }
+        mProviderClient.release();
+    }
+
+    private void addCategories(Document document) {
+        Elements aElements = document.select("a");
+        int size = aElements.size();
+        for (int i = 0; i < size; i++) {
+            String category = aElements.get(i).attr("href");
+            if (category.startsWith("/spotlight/")) {
+                category = category.substring(11);
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
+                        AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                contentValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
+                        category);
+                addValues(contentValues);
+            }
+        }
+    }
+
+    private void addValues(ContentValues values) {
+       mContentValues.add(values);
+        if (mContentValues.size() >= CACHE_SIZE) {
+            insertAndClearCache();
+        }
+    }
+
+    private void insertAndClearCache() {
+        try {
+            mProviderClient.bulkInsert(CrawlerContract.CategoryEntry.CONTENT_URI,
+                    mContentValues.toArray(new ContentValues[mContentValues.size()]));
+            mContentValues.clear();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+}

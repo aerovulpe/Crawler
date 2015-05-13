@@ -28,7 +28,7 @@ public class CrawlerContract {
     public static final String PATH_ALBUMS = "albums";
     public static final String PATH_ACCOUNTS = "accounts";
     public static final String PATH_EXPLORERS = "explorers";
-    public static final String TAG = CrawlerContract.class.getSimpleName();
+    public static final String PATH_CATEGORIES = "categories";
 
     public static final class AccountEntry implements BaseColumns {
         // Table name
@@ -133,11 +133,13 @@ public class CrawlerContract {
 
         public static final String COLUMN_ACCOUNT_ID = "explorer_id";
         public static final String COLUMN_ACCOUNT_NAME = "explorer_name";
+        public static final String COLUMN_ACCOUNT_TITLE = "explorer_title";
         public static final String COLUMN_ACCOUNT_TYPE = "explorer_type";
         public static final String COLUMN_ACCOUNT_TIME = "explorer_time";
         public static final String COLUMN_ACCOUNT_PREVIEW_URL = "explorer_url";
         public static final String COLUMN_ACCOUNT_DESCRIPTION = "explorer_description";
-        public static final String COLUMN_ACCOUNT_CATEGORY = "explorer_category";
+        public static final String COLUMN_ACCOUNT_CATEGORY_KEY = "explorer_category_id";
+        public static final String COLUMN_ACCOUNT_NUM_OF_POSTS = "explorer_num_of_posts";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_EXPLORERS).build();
@@ -150,12 +152,31 @@ public class CrawlerContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        public static Uri buildAccountsUriWithAccountType(int accountType) {
-            return CONTENT_URI.buildUpon().appendPath(String.valueOf(accountType)).build();
+        public static Uri buildAccountsUriWithCategory(String category) {
+            return CONTENT_URI.buildUpon().appendPath(category).build();
         }
 
-        public static String getAccountTypeFromUri(Uri uri) {
+        public static String getCategoryFromUri(Uri uri) {
             return uri.getPathSegments().get(1);
+        }
+    }
+
+    public static final class CategoryEntry implements BaseColumns {
+        // Table name
+        public static final String TABLE_NAME = "category";
+
+        public static final String COLUMN_ACCOUNT_TYPE = "category_type";
+        public static final String COLUMN_CATEGORY_ID = "category_id";
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_CATEGORIES).build();
+        public static final String CONTENT_TYPE =
+                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
+        public static final String CONTENT_ITEM_TYPE =
+                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
+
+        public static Uri buildCategoriesUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
         }
     }
 }

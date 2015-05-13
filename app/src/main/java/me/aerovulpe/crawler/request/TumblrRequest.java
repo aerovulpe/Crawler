@@ -19,9 +19,9 @@ import me.aerovulpe.crawler.util.AccountsUtil;
  * Created by Aaron on 01/05/2015.
  */
 public class TumblrRequest extends Request {
-    private static final String API_KEY = "ujy0hO8xWocXZDPLHG5okpA2K0wKGk0nZbw6hFIuENpxYp1JxF";
-    private static final String TUMBLR_API_BASE_URI = "http://api.tumblr.com/v2/blog";
-    private static final String API_KEY_PARAM = "api_key";
+    public static final String API_KEY = "ujy0hO8xWocXZDPLHG5okpA2K0wKGk0nZbw6hFIuENpxYp1JxF";
+    public static final String TUMBLR_API_BASE_URI = "http://api.tumblr.com/v2/blog";
+    public static final String API_KEY_PARAM = "api_key";
     private static final String LIMIT_PARAM = "limit";
     private static final String OFFSET_PARAM = "offset";
     private static final String LOG_TAG = TumblrRequest.class.getSimpleName();

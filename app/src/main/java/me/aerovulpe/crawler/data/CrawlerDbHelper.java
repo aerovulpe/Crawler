@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import static me.aerovulpe.crawler.data.CrawlerContract.AccountEntry;
 import static me.aerovulpe.crawler.data.CrawlerContract.AlbumEntry;
+import static me.aerovulpe.crawler.data.CrawlerContract.CategoryEntry;
 import static me.aerovulpe.crawler.data.CrawlerContract.ExplorerEntry;
 import static me.aerovulpe.crawler.data.CrawlerContract.PhotoEntry;
 
@@ -88,16 +89,33 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 ExplorerEntry.COLUMN_ACCOUNT_ID + " TEXT NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_NAME + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_TITLE + " TEXT, " +
                 ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL + " TEXT NOT NULL, " +
-                ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION + " TEXT NOT NULL, " +
-                ExplorerEntry.COLUMN_ACCOUNT_CATEGORY + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION + " TEXT, " +
+                ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY + " TEXT NOT NULL, " +
+                ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS + " TEXT NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
                 ExplorerEntry.COLUMN_ACCOUNT_TIME + " INTEGER NOT NULL, " +
 
+                // Set up the category column as a foreign key to the categories table.
+                " FOREIGN KEY (" + ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY + ") REFERENCES " +
+                CategoryEntry.TABLE_NAME + " (" + CategoryEntry.COLUMN_CATEGORY_ID + "), " +
+
                 // To assure the application has just one account explorer entry per id
-                // per type, it's created a UNIQUE constraint with REPLACE strategy
+                // per category, it's created a UNIQUE constraint with IGNORE strategy
                 "UNIQUE (" + ExplorerEntry.COLUMN_ACCOUNT_ID + ", " +
-                ExplorerEntry.COLUMN_ACCOUNT_TYPE + ") ON CONFLICT REPLACE);";
+                ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY + ") ON CONFLICT IGNORE);";
+
+        final String SQL_CREATE_CATEGORY_TABLE = "CREATE TABLE " + CategoryEntry.TABLE_NAME + " (" +
+                CategoryEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+
+                CategoryEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
+                CategoryEntry.COLUMN_CATEGORY_ID + " TEXT NOT NULL, " +
+
+                // To assure the application has just one category entry
+                // per type, it's created a UNIQUE constraint with IGNORE strategy
+                "UNIQUE (" + CategoryEntry.COLUMN_CATEGORY_ID + ", " +
+                CategoryEntry.COLUMN_ACCOUNT_TYPE + ") ON CONFLICT IGNORE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);
@@ -105,6 +123,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_INDEX);
         sqLiteDatabase.execSQL(SQL_CREATE_EXPLORERS_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_CATEGORY_TABLE);
     }
 
     @Override
@@ -113,6 +132,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PhotoEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ExplorerEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + CategoryEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }
