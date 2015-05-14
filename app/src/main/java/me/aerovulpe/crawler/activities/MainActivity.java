@@ -145,8 +145,14 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
+                        createPhotoListInstance(AccountsUtil.ACCOUNT_TYPE_TUMBLR, intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_NAME),
+                                intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
+                                intent.getExtras()
+                                        .getString(AccountsActivity.ARG_ACCOUNT_ID), false);
+                        break;
                     case AccountsUtil.ACCOUNT_TYPE_FLICKR:
-                        createPhotoListInstance(intent.getExtras()
+                        createPhotoListInstance(AccountsUtil.ACCOUNT_TYPE_FLICKR, intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_NAME),
                                 intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
                                 intent.getExtras()
@@ -184,10 +190,10 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public void createPhotoListInstance(String albumTitle, String albumID, String photoDataUrl,
+    public void createPhotoListInstance(int accountType, String albumTitle, String albumID, String photoDataUrl,
                                         boolean addToBackstack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(albumTitle,
+        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(accountType, albumTitle,
                 albumID, photoDataUrl), albumTitle);
         if (addToBackstack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();

@@ -47,6 +47,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_LIST.album_title";
     public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_LIST.album_id";
     public static final String ARG_PHOTO_DATA_URL = "me.aerovulpe.crawler.PHOTO_LIST.photo_data_url";
+    public static final String ARG_TYPE = "me.aerovulpe.crawler.PHOTO_LIST.type";
 
     public static final int COL_PHOTO_NAME = 1;
     public static final int COL_PHOTO_TITLE = 2;
@@ -71,6 +72,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private boolean mIsRequesting = true;
     private boolean mIsLoading = true;
     private boolean mHasDisplayedPhotos;
+    private int mType;
     // For getting confirmation from the service
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
@@ -110,13 +112,14 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         // Required empty public constructor
     }
 
-    public static PhotoListFragment newInstance(String albumTitle, String albumID,
+    public static PhotoListFragment newInstance(int accountType, String albumTitle, String albumID,
                                                 String photoDataUrl) {
         PhotoListFragment fragment = new PhotoListFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
         args.putString(ARG_ALBUM_ID, albumID);
         args.putString(ARG_PHOTO_DATA_URL, photoDataUrl);
+        args.putInt(ARG_TYPE, accountType);
         fragment.setArguments(args);
         Log.d(TAG, "PhotoListFragment created: " + albumTitle + " " + albumID + " " + photoDataUrl);
         return fragment;
@@ -130,6 +133,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
             mAlbumID = args.getString(ARG_ALBUM_ID);
             mPhotoDataUrl = args.getString(ARG_PHOTO_DATA_URL);
+            mType = args.getInt(ARG_TYPE);
         }
         mRequestData = true;
         setRetainInstance(true);
@@ -162,9 +166,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 displayPhoto(cursor, position, false);
             }
         });
-            AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
         return rootView;
     }
 
@@ -264,11 +268,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     private void doPhotosRequest() {
         Intent intent = new Intent(getActivity(), RequestService.class);
         intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
-        if (mPhotoDataUrl.contains(AccountsUtil.PICASA_BASE)) {
+        if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
-        } else if (mPhotoDataUrl.contains(AccountsUtil.TUMBLR_BASE_SUFFIX)) {
+        } else if (mType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-        } else if (mPhotoDataUrl.contains(AccountsUtil.FLICKR_BASE)) {
+        } else if (mType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
             intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
         }
         getActivity().startService(intent);

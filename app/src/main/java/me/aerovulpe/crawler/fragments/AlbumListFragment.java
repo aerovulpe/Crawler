@@ -144,7 +144,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private void showPhotos(String albumTitle, String albumID, String photoDataUrl) {
         Log.d(TAG, "SHOW PHOTOS()");
         PhotoManager managerActivity = (PhotoManager) getActivity();
-        managerActivity.createPhotoListInstance(albumTitle, albumID, photoDataUrl, true);
+        managerActivity.createPhotoListInstance(mAccountType, albumTitle, albumID, photoDataUrl, true);
     }
 
     @Override
