@@ -9,7 +9,6 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
@@ -20,14 +19,15 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ExplorerTabAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int COL_ACCOUNT_TYPE = 1;
     public static final int COL_CATEGORY_NAME = 2;
     public static final String ARG_SPINNER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.spinner_selection";
-    public int mPos;
+    public static final String ARG_VIEWPAGER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.viewpager_selection";
+    public int mSpinnerPos;
+    public int mViewPagerPos;
 
     private Spinner mSpinner;
     private static final int CATEGORIES_LOADER = 0;
@@ -45,7 +45,11 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         setContentView(R.layout.activity_explorer);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setOffscreenPageLimit(3);
         mViewPager.setAdapter(new ExplorerTabAdapter(getFragmentManager()));
+        mSpinner = (Spinner) findViewById(R.id.spinner_nav);
+        mSpinner.setVisibility(View.INVISIBLE);
+
         // Bind the tabs to the ViewPager
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         tabs.setIndicatorColorResource(R.color.crawlerBackgroundAccent);
@@ -60,12 +64,8 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
             @Override
             public void onPageSelected(int position) {
                 if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-                    mSpinner.setAnimation(AnimationUtils.loadAnimation(getApplicationContext(),
-                            android.R.anim.fade_in));
                     mSpinner.setVisibility(View.VISIBLE);
                 } else {
-                    mSpinner.setAnimation(AnimationUtils.loadAnimation(getApplicationContext(),
-                            android.R.anim.fade_out));
                     mSpinner.setVisibility(View.INVISIBLE);
                 }
             }
@@ -76,10 +76,6 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
             }
         });
 
-        mSpinner = (Spinner) findViewById(R.id.spinner_nav);
-        if (savedInstanceState == null) {
-            new CategoriesRequest(this).execute();
-        }
         getLoaderManager().initLoader(CATEGORIES_LOADER, null, this);
 
 //        AdView mAdView = (AdView) findViewById(R.id.adView);
@@ -91,18 +87,23 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_SPINNER_SELECTION, mSpinner.getSelectedItemPosition());
+        outState.putInt(ARG_VIEWPAGER_SELECTION, mViewPager.getCurrentItem());
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mPos = savedInstanceState.getInt(ARG_SPINNER_SELECTION);
+        mSpinnerPos = savedInstanceState.getInt(ARG_SPINNER_SELECTION);
+        mViewPagerPos = savedInstanceState.getInt(ARG_VIEWPAGER_SELECTION);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(CATEGORIES_LOADER, null, this);
+        if (mViewPagerPos == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+            mSpinner.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -140,10 +141,8 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         mSpinner.setAdapter(new SimpleCursorAdapter(this, R.layout.nav_spinner_text, data,
                 new String[]{CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID},
                 new int[]{R.id.textview_category}, 0));
-        mSpinner.setAnimation(AnimationUtils.loadAnimation(getApplicationContext(),
-                android.R.anim.fade_in));
-        mSpinner.setVisibility(View.VISIBLE);
-        mSpinner.setSelection(mPos, false);
+        data.moveToPosition(0);
+        mSpinner.setSelection(mSpinnerPos, false);
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -163,6 +162,6 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        //mSpinner.setAdapter(null);
+        mSpinner.setAdapter(null);
     }
 }

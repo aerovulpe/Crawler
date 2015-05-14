@@ -14,6 +14,8 @@ import java.net.URL;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 
+import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
+
 public class PicasaAlbumsRequest extends RequestAsyncTask {
 
     /* UI Thread */

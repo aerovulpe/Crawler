@@ -70,7 +70,7 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
         for (int i = 0; i < size; i++) {
             String category = aElements.get(i).attr("href");
             if (category.startsWith("/spotlight/")) {
-                category = category.substring(11);
+                category = category.substring(11).replace('+', ' ');
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
                         AccountsUtil.ACCOUNT_TYPE_TUMBLR);

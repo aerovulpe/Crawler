@@ -28,6 +28,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
+import me.aerovulpe.crawler.request.CategoriesRequest;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -58,6 +59,10 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accounts);
+
+        if (savedInstanceState == null) {
+            new CategoriesRequest(this).execute();
+        }
 
         ListView mainList = (ListView) findViewById(R.id.accounts_list);
         adapter = new AccountsAdapter(this, null, 0);

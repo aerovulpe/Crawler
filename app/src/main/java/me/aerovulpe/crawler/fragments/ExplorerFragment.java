@@ -1,24 +1,50 @@
 package me.aerovulpe.crawler.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
+import android.content.ContentProviderClient;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Vector;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.TumblrExplorerRequest;
+import me.aerovulpe.crawler.request.CategoriesRequest;
+import me.aerovulpe.crawler.request.TumblrRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
+
+import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
 
 /**
  * Created by Aaron on 07/05/2015.
@@ -26,6 +52,8 @@ import me.aerovulpe.crawler.util.AccountsUtil;
 public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
     public static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
+    public static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
+    public static final String ARG_IS_LOADING = "me.aerovulpe.crawler.EXPLORER.is_loading";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_PREVIEW_URL = 3;
@@ -45,6 +73,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     private RecyclerView mRecyclerView;
     private int mIndex;
     private String mCategory;
+    private ProgressDialog mProgressDialog;
+    private boolean mIsLoading;
 
     public ExplorerFragment() {
         // Required empty public constructor
@@ -67,7 +97,11 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
             mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
             mCategory = args.getString(ARG_CATEGORY_NAME);
         }
-        setRetainInstance(true);
+        if (savedInstanceState != null) {
+            mIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
+            mIsLoading = savedInstanceState.getBoolean(ARG_IS_LOADING);
+        }
+        //setRetainInstance(true);
     }
 
     @Override
@@ -89,15 +123,14 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                         }
                     }
                 });
+        if (savedInstanceState == null)
+            new ExplorerRequest().execute();
         return rootView;
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (savedInstanceState == null && mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-            new TumblrExplorerRequest(getActivity()).execute(mCategory);
-        }
         getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
     }
 
@@ -112,6 +145,10 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
+        // If is loading, show progress dialog.
+        if (mIsLoading) {
+//            mProgressDialog = makeProgressDialog();
+        }
     }
 
     @Override
@@ -120,15 +157,44 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
                 .findFirstCompletelyVisibleItemPosition();
+        // Dismiss/remove dialog if showing to prevent window leaks.
+        dismissDialog();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_CURRENT_INDEX, mIndex);
+        outState.putBoolean(ARG_IS_LOADING, mIsLoading);
+    }
+
+    // ProgressDialog method to inform the user of the asynchronous
+    // processing
+    private ProgressDialog makeProgressDialog() {
+        ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Explore");
+        progressDialog.setMessage(getResources().getString(R.string.loading_blogs));
+        progressDialog.show();
+        return progressDialog;
+    }
+
+    // Method to dismiss progress dialogs.
+    private void dismissDialog() {
+        try {
+            if (mProgressDialog != null && mProgressDialog.isShowing())
+                mProgressDialog.dismiss();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } finally {
+            mProgressDialog = null;
+        }
     }
 
     public void setCategory(String category) {
         if (mCategory.equals(category)) return;
         mCategory = category;
-        new TumblrExplorerRequest(getActivity()).execute(mCategory);
-        LoaderManager loaderManager = getLoaderManager();
-        loaderManager.destroyLoader(EXPLORER_LOADER);
-        loaderManager.initLoader(EXPLORER_LOADER, null, this);
+        new ExplorerRequest().execute();
+        getLoaderManager().restartLoader(EXPLORER_LOADER, null, this);
     }
 
     @Override
@@ -141,10 +207,147 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
+        if (data.getCount() > 0)
+            dismissDialog();
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
+    }
+
+    private class ExplorerRequest extends AsyncTask<Void, Void, Void> {
+        private static final int CACHE_SIZE = 25;
+        private final String LOG_TAG = ExplorerRequest.class.getSimpleName();
+        private ContentProviderClient mProvider;
+        private Vector<ContentValues> mContentCache;
+        private final DateFormat mDateFormat;
+
+        public ExplorerRequest() {
+            Activity activity = getActivity();
+            mProvider = activity.getContentResolver()
+                    .acquireContentProviderClient(CrawlerContract.ExplorerEntry.CONTENT_URI);
+            mContentCache = new Vector<>(CACHE_SIZE);
+            mDateFormat = DateFormat.getDateTimeInstance();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mProgressDialog = makeProgressDialog();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mCategory;
+            List<String> urls = new ArrayList<>();
+            Log.d(LOG_TAG, categoryUrl);
+            try {
+                Document categoryDoc = Jsoup.connect(categoryUrl).get();
+                Element cards = categoryDoc.getElementById("cards");
+                Elements blogUrls = cards.getElementsByAttribute("href");
+                int size = blogUrls.size();
+                for (int i = 0; i < size; i++) {
+                    String url = blogUrls.get(i).attr("href");
+                    url = url.substring(0, url.length() - 1);
+                    urls.add(url);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            parseResult(mCategory, urls);
+            return null;
+        }
+
+        private void parseResult(String category, List<String> urls) {
+            for (String url : urls) {
+                String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
+                String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
+                        .appendPath(blog)
+                        .appendPath("info")
+                        .appendQueryParameter(TumblrRequest.API_KEY_PARAM, TumblrRequest.API_KEY)
+                        .build().toString();
+                Log.d(LOG_TAG, "Url: " + url);
+                try {
+                    String stringFromServer = getStringFromServer(new URL(uri));
+                    if (stringFromServer == null)
+                        continue;
+
+                    JSONObject rootObject = new JSONObject(stringFromServer);
+                    JSONObject responseObject = rootObject.getJSONObject("response");
+                    if (responseObject == null)
+                        continue;
+
+                    JSONObject blogObject = responseObject.getJSONObject("blog");
+                    if (blogObject == null)
+                        continue;
+
+                    ContentValues values = new ContentValues();
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
+                            AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, url);
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
+                            blogObject.getString("name"));
+                    String previewUrl = TumblrRequest.TUMBLR_API_BASE_URI + "/" + blog +
+                            "/avatar/512";
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
+                            new JSONObject(getStringFromServer(new URL(previewUrl)))
+                                    .getJSONObject("response").getString("avatar_url"));
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
+                            Jsoup.parse(blogObject.getString("description") +
+                                    "\nLast updated on: " + mDateFormat.format(new Date(blogObject
+                                    .getLong("updated") * 1000))).text());
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
+                            System.currentTimeMillis());
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
+                            blogObject.getString("title"));
+                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
+                            blogObject.getInt("posts"));
+                    addValues(values);
+                } catch (JSONException | MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            }
+            Log.d(LOG_TAG, "Size: " + urls.size());
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if (!mContentCache.isEmpty()) {
+                insertAndClearCache();
+            }
+            mProvider.release();
+            dismissDialog();
+        }
+
+        @Override
+        protected void onCancelled(Void aVoid) {
+            super.onCancelled(aVoid);
+            if (!mContentCache.isEmpty()) {
+                insertAndClearCache();
+            }
+            mProvider.release();
+            dismissDialog();
+        }
+
+        private void addValues(ContentValues values) {
+            mContentCache.add(values);
+            if (mContentCache.size() >= CACHE_SIZE) {
+                insertAndClearCache();
+            }
+        }
+
+        private void insertAndClearCache() {
+            try {
+                mProvider.bulkInsert(CrawlerContract.ExplorerEntry.CONTENT_URI,
+                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
+                mContentCache.clear();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
