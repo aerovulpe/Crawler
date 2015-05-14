@@ -50,23 +50,27 @@ import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
  * Created by Aaron on 07/05/2015.
  */
 public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
-    public static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
-    public static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
-    public static final String ARG_IS_LOADING = "me.aerovulpe.crawler.EXPLORER.is_loading";
+    private static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
+    private static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
+    private static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
+    private static final String ARG_IS_LOADING = "me.aerovulpe.crawler.EXPLORER.is_loading";
     public static final int COL_ACCOUNT_ID = 1;
-    public static final int COL_ACCOUNT_NAME = 2;
-    public static final int COL_ACCOUNT_PREVIEW_URL = 3;
-    public static final int COL_ACCOUNT_DESCRIPTION = 4;
+    public static final int COL_ACCOUNT_TITLE = 2;
+    public static final int COL_ACCOUNT_NAME = 3;
+    public static final int COL_ACCOUNT_PREVIEW_URL = 4;
+    public static final int COL_ACCOUNT_DESCRIPTION = 5;
+    public static final int COL_NUM_OF_POSTS = 6;
 
     private static final int EXPLORER_LOADER = 5;
 
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.ExplorerEntry.TABLE_NAME + "." + CrawlerContract.ExplorerEntry._ID,
             CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
+            CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
             CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
             CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
-            CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION
+            CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
+            CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS
     };
 
     private int mAccountType;
@@ -105,7 +109,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_explorer_grid, container, false);
@@ -119,7 +123,15 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                     public void onItemClick(View view, int position) {
                         Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
                         if (cursor != null && cursor.moveToPosition(position)) {
-                            // TODO show detail fragment
+                            ExplorerDetailFragment dialog = ExplorerDetailFragment
+                                    .newInstance(cursor.getString(COL_ACCOUNT_ID),
+                                            cursor.getString(COL_ACCOUNT_TITLE),
+                                            cursor.getString(COL_ACCOUNT_NAME),
+                                            cursor.getString(COL_ACCOUNT_PREVIEW_URL),
+                                            cursor.getString(COL_ACCOUNT_DESCRIPTION),
+                                            cursor.getInt(COL_NUM_OF_POSTS),
+                                            mAccountType);
+                            dialog.show(getFragmentManager(), "explorerDetailFragment");
                         }
                     }
                 });

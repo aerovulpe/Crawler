@@ -46,6 +46,7 @@
     <string name="loading_albums">Loading albums…</string>
     <string name="loading_blogs">Loading blogs…</string>
     <string name="task_working">Downloading page %1$d</string>
+    <string name="num_of_posts">Number of posts: %d</string>
     <string name="title_activity_explorer">Explore</string>
 
     <string name="hello_world">Hello world!</string>
