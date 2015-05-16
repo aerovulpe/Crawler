@@ -18,16 +18,16 @@ import me.aerovulpe.crawler.util.AccountsUtil;
  * Created by Aaron on 26/04/2015.
  */
 public class FlickrRequest extends Request {
-    private static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
-    private static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
-    private static final String API_KEY_PARAM = "api_key";
+    public static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
+    public static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
+    public static final String API_KEY_PARAM = "api_key";
     private static final String URL_PARAM = "url";
-    private static final String USER_ID_PARAM = "user_id";
-    private static final String FORMAT_PARAM = "format";
-    private static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
-    private static final String PER_PAGE_PARAM = "per_page";
+    public static final String USER_ID_PARAM = "user_id";
+    public static final String FORMAT_PARAM = "format";
+    public static final String NOJSONCALLBACK_PARAM = "nojsoncallback";
+    public static final String PER_PAGE_PARAM = "per_page";
     private static final String PAGE_PARAM = "page";
-    private static final String METHOD_PARAM = "method";
+    public static final String METHOD_PARAM = "method";
     private static final String LOG_TAG = FlickrRequest.class.getSimpleName();
 
     public FlickrRequest(RequestService requestService, String albumId) {

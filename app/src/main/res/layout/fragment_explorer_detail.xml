@@ -14,20 +14,17 @@
             android:id="@+id/textview_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Large Text"
             android:textAppearance="?android:attr/textAppearanceLarge"/>
 
         <TextView
             android:id="@+id/textview_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Medium Text"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
 
         <ImageView
             android:id="@+id/imageview_thumbnail"
             android:layout_width="185dp"
-            android:layout_height="wrap_content"
             android:layout_weight="0.48"
             android:src="@drawable/tumblr"/>
 
@@ -35,21 +32,19 @@
             android:id="@+id/textview_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Small Text"
+            android:layout_marginTop="10dp"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         <TextView
             android:id="@+id/textview_num_of_posts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Number of posts:"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         <TextView
             android:id="@+id/textview_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="url"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
 
 
@@ -59,7 +54,6 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="35dp"
             android:gravity="center"
-            android:text="Add to Accounts?"
             android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         <LinearLayout

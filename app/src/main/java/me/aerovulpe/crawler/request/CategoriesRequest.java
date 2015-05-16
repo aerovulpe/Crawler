@@ -79,6 +79,12 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
                 addValues(contentValues);
             }
         }
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
+                AccountsUtil.ACCOUNT_TYPE_FLICKR);
+        contentValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
+                FlickrRequest.class.getName());
+        addValues(contentValues);
     }
 
     private void addValues(ContentValues values) {

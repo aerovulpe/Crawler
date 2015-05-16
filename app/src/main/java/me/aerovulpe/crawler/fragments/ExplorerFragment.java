@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -41,6 +42,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.CategoriesRequest;
+import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.TumblrRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
 
@@ -136,7 +138,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                     }
                 });
         if (savedInstanceState == null)
-            new ExplorerRequest().execute();
+            new ExplorerRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         return rootView;
     }
 
@@ -205,7 +207,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     public void setCategory(String category) {
         if (mCategory.equals(category)) return;
         mCategory = category;
-        new ExplorerRequest().execute();
+        new ExplorerRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         getLoaderManager().restartLoader(EXPLORER_LOADER, null, this);
     }
 
@@ -251,96 +253,157 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         @Override
         protected Void doInBackground(Void... params) {
 
-            String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mCategory;
+            Log.d(LOG_TAG, "Requesting: " + mAccountType + mCategory);
             List<String> urls = new ArrayList<>();
-            Log.d(LOG_TAG, categoryUrl);
-            try {
-                Document categoryDoc = Jsoup.connect(categoryUrl).get();
-                Element cards = categoryDoc.getElementById("cards");
-                Elements blogUrls = cards.getElementsByAttribute("href");
-                int size = blogUrls.size();
-                for (int i = 0; i < size; i++) {
-                    String url = blogUrls.get(i).attr("href");
-                    url = url.substring(0, url.length() - 1);
-                    urls.add(url);
+            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mCategory;
+                Log.d(LOG_TAG, categoryUrl);
+                try {
+                    Document categoryDoc = Jsoup.connect(categoryUrl).get();
+                    Element cards = categoryDoc.getElementById("cards");
+                    Elements blogUrls = cards.getElementsByAttribute("href");
+                    int size = blogUrls.size();
+                    for (int i = 0; i < size; i++) {
+                        String url = blogUrls.get(i).attr("href");
+                        url = url.substring(0, url.length() - 1);
+                        urls.add(url);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+                Uri uri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
+                        .appendQueryParameter(FlickrRequest.API_KEY_PARAM, FlickrRequest.API_KEY)
+                        .appendQueryParameter(FlickrRequest.METHOD_PARAM, "flickr.interestingness.getList")
+                        .appendQueryParameter(FlickrRequest.PER_PAGE_PARAM, "500")
+                        .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
+                        .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
+                urls.add(uri.toString());
             }
             parseResult(mCategory, urls);
+            if (!mContentCache.isEmpty()) {
+                insertAndClearCache();
+            }
+            mProvider.release();
             return null;
         }
 
         private void parseResult(String category, List<String> urls) {
-            for (String url : urls) {
-                String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
-                String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
-                        .appendPath(blog)
-                        .appendPath("info")
-                        .appendQueryParameter(TumblrRequest.API_KEY_PARAM, TumblrRequest.API_KEY)
-                        .build().toString();
-                Log.d(LOG_TAG, "Url: " + url);
+            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                for (String url : urls) {
+                    String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
+                    String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
+                            .appendPath(blog)
+                            .appendPath("info")
+                            .appendQueryParameter(TumblrRequest.API_KEY_PARAM, TumblrRequest.API_KEY)
+                            .build().toString();
+                    Log.d(LOG_TAG, "Url: " + url);
+                    try {
+                        String stringFromServer = getStringFromServer(new URL(uri));
+                        if (stringFromServer == null)
+                            continue;
+
+                        JSONObject rootObject = new JSONObject(stringFromServer);
+                        JSONObject responseObject = rootObject.getJSONObject("response");
+                        if (responseObject == null)
+                            continue;
+
+                        JSONObject blogObject = responseObject.getJSONObject("blog");
+                        if (blogObject == null)
+                            continue;
+
+                        ContentValues values = new ContentValues();
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
+                                AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, url);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
+                                blogObject.getString("name"));
+                        String previewUrl = TumblrRequest.TUMBLR_API_BASE_URI + "/" + blog +
+                                "/avatar/512";
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
+                                new JSONObject(getStringFromServer(new URL(previewUrl)))
+                                        .getJSONObject("response").getString("avatar_url"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
+                                Jsoup.parse(blogObject.getString("description") +
+                                        "\nLast updated on: " + mDateFormat.format(new Date(blogObject
+                                        .getLong("updated") * 1000))).text());
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
+                                System.currentTimeMillis());
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
+                                blogObject.getString("title"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
+                                blogObject.getInt("posts"));
+                        addValues(values);
+                    } catch (JSONException | MalformedURLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                Log.d(LOG_TAG, "Size: " + urls.size());
+            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
                 try {
-                    String stringFromServer = getStringFromServer(new URL(uri));
-                    if (stringFromServer == null)
-                        continue;
+                    JSONObject rootObject = new JSONObject(getStringFromServer(new URL(urls.get(0))))
+                            .getJSONObject("photos");
+                    JSONArray photosArray = rootObject.getJSONArray("photo");
+                    Log.d(LOG_TAG, photosArray.toString());
+                    if (photosArray == null) return;
 
-                    JSONObject rootObject = new JSONObject(stringFromServer);
-                    JSONObject responseObject = rootObject.getJSONObject("response");
-                    if (responseObject == null)
-                        continue;
-
-                    JSONObject blogObject = responseObject.getJSONObject("blog");
-                    if (blogObject == null)
-                        continue;
-
-                    ContentValues values = new ContentValues();
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                            AccountsUtil.ACCOUNT_TYPE_TUMBLR);
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, url);
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
-                            blogObject.getString("name"));
-                    String previewUrl = TumblrRequest.TUMBLR_API_BASE_URI + "/" + blog +
-                            "/avatar/512";
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
-                            new JSONObject(getStringFromServer(new URL(previewUrl)))
-                                    .getJSONObject("response").getString("avatar_url"));
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
-                            Jsoup.parse(blogObject.getString("description") +
-                                    "\nLast updated on: " + mDateFormat.format(new Date(blogObject
-                                    .getLong("updated") * 1000))).text());
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
-                            System.currentTimeMillis());
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
-                            blogObject.getString("title"));
-                    values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
-                            blogObject.getInt("posts"));
-                    addValues(values);
-                } catch (JSONException | MalformedURLException e) {
+                    for (int i = 0; i < photosArray.length(); i++) {
+                        JSONObject photoObject = photosArray.getJSONObject(i);
+                        ContentValues values = new ContentValues();
+                        String id = photoObject.getString("id");
+                        String owner = photoObject.getString("owner");
+                        String previewUrl = "https://farm" + photoObject.getInt("farm") +
+                                ".staticflickr.com/" + photoObject.getString("server") +
+                                "/" + id + "_" + photoObject.getString("secret") + ".jpg";
+                        Uri ownerUri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
+                                .appendQueryParameter(FlickrRequest.API_KEY_PARAM, FlickrRequest.API_KEY)
+                                .appendQueryParameter(FlickrRequest.METHOD_PARAM, "flickr.people.getInfo")
+                                .appendQueryParameter(FlickrRequest.USER_ID_PARAM, owner)
+                                .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
+                                .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
+                        JSONObject ownerObject = new JSONObject(
+                                getStringFromServer(new URL(ownerUri.toString())))
+                                .getJSONObject("person");
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
+                                AccountsUtil.ACCOUNT_TYPE_FLICKR);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, Jsoup.parse(ownerObject
+                                .getJSONObject("photosurl").getString("_content")).text());
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
+                                ownerObject.getJSONObject("username").getString("_content"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
+                                previewUrl);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
+                                Jsoup.parse(ownerObject.getJSONObject("description")
+                                        .getString("_content")).text());
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
+                                System.currentTimeMillis());
+                        JSONObject titleObject = ownerObject.optJSONObject("realname");
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
+                                (titleObject != null) ? titleObject.getString("_content")
+                                        : ownerObject.getJSONObject("username")
+                                        .getString("_content"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
+                                ownerObject.getJSONObject("photos").getJSONObject("count")
+                                        .getString("_content"));
+                        addValues(values);
+                    }
+                } catch (JSONException | NullPointerException | MalformedURLException e) {
                     e.printStackTrace();
                 }
             }
-            Log.d(LOG_TAG, "Size: " + urls.size());
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            if (!mContentCache.isEmpty()) {
-                insertAndClearCache();
-            }
-            mProvider.release();
             dismissDialog();
         }
 
         @Override
         protected void onCancelled(Void aVoid) {
             super.onCancelled(aVoid);
-            if (!mContentCache.isEmpty()) {
-                insertAndClearCache();
-            }
-            mProvider.release();
             dismissDialog();
         }
 

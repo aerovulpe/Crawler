@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="fill_parent"
-             android:layout_height="fill_parent"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
              android:background="@color/crawlerBackgroundColor"
              android:orientation="vertical">
 
@@ -21,7 +21,7 @@
 
     <LinearLayout
         android:id="@+id/photo_album_name_background"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#77000000"
         android:gravity="center_horizontal"
@@ -41,21 +41,16 @@
     <LinearLayout
         android:id="@+id/photo_text_background"
         android:layout_width="match_parent"
-        android:layout_height="75dip"
+        android:layout_height="65dip"
         android:layout_gravity="center_horizontal|bottom"
         android:background="@drawable/text_background"
-        android:orientation="vertical"
-        android:paddingBottom="10dip"
-        android:paddingEnd="50dp"
-        android:paddingLeft="20dip"
-        android:paddingRight="50dip"
-        android:paddingStart="20dp"
-        android:paddingTop="0dip">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/photo_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
             android:maxLines="1"
             android:textColor="@color/md_white_1000"
             android:textSize="@dimen/title_font_size"
@@ -64,15 +59,17 @@
 
         <TextSwitcher
             android:id="@+id/photo_description_switcher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
             android:textSize="@dimen/description_font_size">
 
             <TextView
                 android:id="@+id/photo_description_anim1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:singleLine="false"
                 android:textColor="@color/md_white_1000"
                 android:textSize="@dimen/description_font_size"/>
@@ -81,7 +78,7 @@
                 android:id="@+id/photo_description_anim2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:singleLine="false"
                 android:textColor="@color/md_white_1000"
                 android:textSize="@dimen/description_font_size"/>
