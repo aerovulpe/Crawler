@@ -20,7 +20,6 @@ public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        mCurrentPosition = position;
         return ExplorerFragment.newInstance(position, mCategories[position]);
     }
 
