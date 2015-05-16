@@ -39,6 +39,7 @@ import java.util.Vector;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.adapter.ExplorerTabAdapter;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.CategoriesRequest;
@@ -247,7 +248,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
         @Override
         protected void onPreExecute() {
-            mProgressDialog = makeProgressDialog();
+            if (ExplorerTabAdapter.mCurrentPosition == mAccountType)
+                mProgressDialog = makeProgressDialog();
         }
 
         @Override

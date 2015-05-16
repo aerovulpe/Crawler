@@ -12,6 +12,7 @@ import me.aerovulpe.crawler.request.FlickrRequest;
 public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
     private static final String[] mTabNames = {"Tumblr", "Flickr", "Picasa"};
     private static final String[] mCategories = {"accessories", FlickrRequest.class.getName(), "Picasa"};
+    public static int mCurrentPosition;
 
     public ExplorerTabAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);
@@ -19,6 +20,7 @@ public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
+        mCurrentPosition = position;
         return ExplorerFragment.newInstance(position, mCategories[position]);
     }
 
