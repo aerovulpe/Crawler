@@ -232,7 +232,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private class ExplorerRequest extends AsyncTask<Void, Void, Void> {
-        private static final int CACHE_SIZE = 25;
+        private int mCacheSize = 25;
         private final String LOG_TAG = ExplorerRequest.class.getSimpleName();
         private ContentProviderClient mProvider;
         private Vector<ContentValues> mContentCache;
@@ -242,7 +242,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
             Activity activity = getActivity();
             mProvider = activity.getContentResolver()
                     .acquireContentProviderClient(CrawlerContract.ExplorerEntry.CONTENT_URI);
-            mContentCache = new Vector<>(CACHE_SIZE);
+            mContentCache = new Vector<>(mCacheSize);
             mDateFormat = DateFormat.getDateTimeInstance();
         }
 
@@ -299,7 +299,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                             .appendPath("info")
                             .appendQueryParameter(TumblrRequest.API_KEY_PARAM, TumblrRequest.API_KEY)
                             .build().toString();
-                    Log.d(LOG_TAG, "Url: " + url);
                     try {
                         String stringFromServer = getStringFromServer(new URL(uri));
                         if (stringFromServer == null)
@@ -411,8 +410,9 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
         private void addValues(ContentValues values) {
             mContentCache.add(values);
-            if (mContentCache.size() >= CACHE_SIZE) {
+            if (mContentCache.size() >= mCacheSize) {
                 insertAndClearCache();
+                mCacheSize = mCacheSize * 2;
             }
         }
 
