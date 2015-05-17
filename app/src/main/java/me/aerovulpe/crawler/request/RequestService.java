@@ -90,7 +90,7 @@ public class RequestService extends Service {
         Log.d(LOG_TAG, "registry size: " + mRequestRegistry.size());
 
         if (mRequestRegistry.isEmpty())
-            stopForeground(true);
+            stopSelf();
     }
 
     public synchronized void startForeground() {
