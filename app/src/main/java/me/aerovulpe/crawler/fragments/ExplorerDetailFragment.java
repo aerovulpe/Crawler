@@ -82,9 +82,15 @@ public class ExplorerDetailFragment extends DialogFragment {
         ((TextView) rootView.findViewById(R.id.textview_name)).setText(mName);
         ImageLoader.getInstance().displayImage(mThumbnail, (ImageView)
                 rootView.findViewById(R.id.imageview_thumbnail));
-        ((TextView) rootView.findViewById(R.id.textview_description)).setText(mDescription);
-        ((TextView) rootView.findViewById(R.id.textview_num_of_posts))
-                .setText(String.format(getResources().getString(R.string.num_of_posts), mNumOfPosts));
+        if (!mDescription.equals(""))
+            ((TextView) rootView.findViewById(R.id.textview_description)).setText(mDescription);
+        else
+            rootView.findViewById(R.id.textview_description).setVisibility(View.GONE);
+        if (mNumOfPosts != -1)
+            ((TextView) rootView.findViewById(R.id.textview_num_of_posts))
+                    .setText(String.format(getResources().getString(R.string.num_of_posts), mNumOfPosts));
+        else
+            rootView.findViewById(R.id.textview_num_of_posts).setVisibility(View.GONE);
         rootView.findViewById(R.id.button_ok).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

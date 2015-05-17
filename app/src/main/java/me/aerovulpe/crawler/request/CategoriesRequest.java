@@ -79,16 +79,24 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
                 addValues(contentValues);
             }
         }
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
+        ContentValues flickrValues = new ContentValues();
+        flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
                 AccountsUtil.ACCOUNT_TYPE_FLICKR);
-        contentValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
+        flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
                 FlickrRequest.class.getName());
-        addValues(contentValues);
+
+        ContentValues picasaValues = new ContentValues();
+        picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
+                AccountsUtil.ACCOUNT_TYPE_PICASA);
+        picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
+                PicasaAlbumsRequest.class.getName());
+
+        addValues(flickrValues);
+        addValues(picasaValues);
     }
 
     private void addValues(ContentValues values) {
-       mContentValues.add(values);
+        mContentValues.add(values);
         if (mContentValues.size() >= CACHE_SIZE) {
             insertAndClearCache();
         }

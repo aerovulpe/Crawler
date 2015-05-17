@@ -5,13 +5,15 @@ import android.app.FragmentManager;
 
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
 import me.aerovulpe.crawler.request.FlickrRequest;
+import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
 
 /**
  * Created by Aaron on 12/05/2015.
  */
 public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
     private static final String[] mTabNames = {"Tumblr", "Flickr", "Picasa"};
-    private static final String[] mCategories = {"accessories", FlickrRequest.class.getName(), "Picasa"};
+    private static final String[] mCategories = {"accessories", FlickrRequest.class.getName(),
+            PicasaAlbumsRequest.class.getName()};
     public static int mCurrentPosition;
 
     public ExplorerTabAdapter(FragmentManager fragmentManager) {

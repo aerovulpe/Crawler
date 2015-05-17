@@ -281,6 +281,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                         .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
                         .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
                 urls.add(uri.toString());
+            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                urls.add("https://picasaweb.google.com/data/feed/api/all?&max-results=500&alt=json");
             }
             parseResult(mCategory, urls);
             if (!mContentCache.isEmpty()) {
@@ -391,6 +393,37 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                         addValues(values);
                     }
                 } catch (JSONException | NullPointerException | MalformedURLException e) {
+                    e.printStackTrace();
+                }
+            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                try {
+                    JSONArray entryArray = new JSONObject(getStringFromServer(new URL(urls.get(0))))
+                            .getJSONObject("feed").getJSONArray("entry");
+                    for (int i = 0; i < entryArray.length(); i++) {
+                        ContentValues values = new ContentValues();
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
+                                AccountsUtil.ACCOUNT_TYPE_PICASA);
+                        JSONObject ownerObject = entryArray.getJSONObject(i).getJSONArray("author")
+                                .getJSONObject(0);
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
+                                AccountsUtil.urlFromUser(ownerObject.getJSONObject("gphoto$user")
+                                        .getString("$t"), AccountsUtil.ACCOUNT_TYPE_PICASA));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
+                                ownerObject.getJSONObject("name").getString("$t"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
+                                ownerObject.getJSONObject("gphoto$thumbnail").getString("$t")
+                                        .replace("s32-c", "o"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION, "");
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
+                                System.currentTimeMillis());
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
+                                ownerObject.getJSONObject("gphoto$nickname").getString("$t"));
+                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
+                                -1);
+                        addValues(values);
+                    }
+                } catch (JSONException | MalformedURLException e) {
                     e.printStackTrace();
                 }
             }
