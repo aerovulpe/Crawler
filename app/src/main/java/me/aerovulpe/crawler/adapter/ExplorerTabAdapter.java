@@ -14,7 +14,6 @@ public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
     private static final String[] mTabNames = {"Tumblr", "Flickr", "Picasa"};
     private static final String[] mCategories = {"accessories", FlickrRequest.class.getName(),
             PicasaAlbumsRequest.class.getName()};
-    public static int mCurrentPosition;
 
     public ExplorerTabAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);

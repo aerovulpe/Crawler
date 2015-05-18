@@ -138,7 +138,7 @@ public final class NetworkUtil {
         void onNetworkStatusReceived(boolean doesExist);
     }
 
-    public static String getStringFromServer(URL url) {
+    public static String getStringFromServer(URL url) throws IOException {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
         try {
@@ -157,8 +157,6 @@ public final class NetworkUtil {
             }
 
             return buffer.toString();
-        } catch (IOException e) {
-            return null;
         } finally {
             if (urlConnection != null)
                 urlConnection.disconnect();

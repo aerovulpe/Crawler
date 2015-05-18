@@ -4,56 +4,32 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.app.ProgressDialog;
-import android.content.ContentProviderClient;
-import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.ExplorerTabAdapter;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.CategoriesRequest;
-import me.aerovulpe.crawler.request.FlickrRequest;
-import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.util.AccountsUtil;
-
-import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
+import me.aerovulpe.crawler.request.ExplorerRequest;
+import me.aerovulpe.crawler.request.ExplorerRequestManager;
+import me.aerovulpe.crawler.request.ExplorerRequestObserver;
 
 /**
  * Created by Aaron on 07/05/2015.
  */
-public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, ExplorerRequestObserver {
     private static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
     private static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
     private static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
@@ -149,8 +125,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                         }
                     }
                 });
-        if (savedInstanceState == null)
-            new ExplorerRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         return rootView;
     }
 
@@ -173,8 +147,10 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         });
         // If is loading, show progress dialog.
         if (mIsLoading) {
-//            mProgressDialog = makeProgressDialog();
+            mProgressDialog = makeProgressDialog();
         }
+        ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
+                mCategory, mAccountType), this);
     }
 
     @Override
@@ -184,7 +160,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
                 .findFirstCompletelyVisibleItemPosition();
         // Dismiss/remove dialog if showing to prevent window leaks.
-        dismissDialog();
+        dismissDialog(true);
     }
 
     @Override
@@ -201,6 +177,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     // ProgressDialog method to inform the user of the asynchronous
     // processing
     private ProgressDialog makeProgressDialog() {
+        mIsLoading = true;
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Explore");
         progressDialog.setMessage(getResources().getString(R.string.loading_blogs));
@@ -209,7 +186,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     // Method to dismiss progress dialogs.
-    private void dismissDialog() {
+    private void dismissDialog(boolean isLoading) {
         try {
             if (mProgressDialog != null && mProgressDialog.isShowing())
                 mProgressDialog.dismiss();
@@ -218,13 +195,16 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         } finally {
             mProgressDialog = null;
         }
+        mIsLoading = isLoading;
     }
 
     public void setCategory(String category) {
         if (mCategory.equals(category)) return;
         mCategory = category;
-        new ExplorerRequest().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        getLoaderManager().restartLoader(EXPLORER_LOADER, null, this);
+        ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
+                mCategory, mAccountType), this);
+        getLoaderManager().destroyLoader(EXPLORER_LOADER);
+        getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
     }
 
     @Override
@@ -238,7 +218,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (data.getCount() > 0)
-            dismissDialog();
+            dismissDialog(false);
     }
 
     @Override
@@ -246,231 +226,18 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
     }
 
-    private class ExplorerRequest extends AsyncTask<Void, Void, Void> {
-        private int mCacheSize = 25;
-        private final String LOG_TAG = ExplorerRequest.class.getSimpleName();
-        private ContentProviderClient mProvider;
-        private Vector<ContentValues> mContentCache;
-        private final DateFormat mDateFormat;
+    @Override
+    public void onRequestStarted() {
+        if (isResumed())
+            mProgressDialog = makeProgressDialog();
+    }
 
-        public ExplorerRequest() {
-            Activity activity = getActivity();
-            mProvider = activity.getContentResolver()
-                    .acquireContentProviderClient(CrawlerContract.ExplorerEntry.CONTENT_URI);
-            mContentCache = new Vector<>(mCacheSize);
-            mDateFormat = DateFormat.getDateTimeInstance();
+    @Override
+    public void onRequestFinished(ExplorerRequest request, boolean wasSuccessful) {
+        dismissDialog(false);
+        Activity activity = getActivity();
+        if (!wasSuccessful && activity != null) {
+            Toast.makeText(activity, "Download failed", Toast.LENGTH_SHORT).show();
         }
-
-        @Override
-        protected void onPreExecute() {
-            if (ExplorerTabAdapter.mCurrentPosition == mAccountType)
-                mProgressDialog = makeProgressDialog();
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-
-            Log.d(LOG_TAG, "Requesting: " + mAccountType + mCategory);
-            List<String> urls = new ArrayList<>();
-            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-                String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mCategory;
-                Log.d(LOG_TAG, categoryUrl);
-                try {
-                    Document categoryDoc = Jsoup.connect(categoryUrl).get();
-                    Element cards = categoryDoc.getElementById("cards");
-                    Elements blogUrls = cards.getElementsByAttribute("href");
-                    int size = blogUrls.size();
-                    for (int i = 0; i < size; i++) {
-                        String url = blogUrls.get(i).attr("href");
-                        url = url.substring(0, url.length() - 1);
-                        urls.add(url);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
-                Uri uri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
-                        .appendQueryParameter(FlickrRequest.API_KEY_PARAM, FlickrRequest.API_KEY)
-                        .appendQueryParameter(FlickrRequest.METHOD_PARAM, "flickr.interestingness.getList")
-                        .appendQueryParameter(FlickrRequest.PER_PAGE_PARAM, "500")
-                        .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
-                        .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
-                urls.add(uri.toString());
-            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-                urls.add("https://picasaweb.google.com/data/feed/api/all?&max-results=500&alt=json");
-            }
-            parseResult(mCategory, urls);
-            if (!mContentCache.isEmpty()) {
-                insertAndClearCache();
-            }
-            mProvider.release();
-            return null;
-        }
-
-        private void parseResult(String category, List<String> urls) {
-            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-                for (String url : urls) {
-                    String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
-                    String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
-                            .appendPath(blog)
-                            .appendPath("info")
-                            .appendQueryParameter(TumblrRequest.API_KEY_PARAM, TumblrRequest.API_KEY)
-                            .build().toString();
-                    try {
-                        String stringFromServer = getStringFromServer(new URL(uri));
-                        if (stringFromServer == null)
-                            continue;
-
-                        JSONObject rootObject = new JSONObject(stringFromServer);
-                        JSONObject responseObject = rootObject.getJSONObject("response");
-                        if (responseObject == null)
-                            continue;
-
-                        JSONObject blogObject = responseObject.getJSONObject("blog");
-                        if (blogObject == null)
-                            continue;
-
-                        ContentValues values = new ContentValues();
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                                AccountsUtil.ACCOUNT_TYPE_TUMBLR);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, url);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
-                                blogObject.getString("name"));
-                        String previewUrl = TumblrRequest.TUMBLR_API_BASE_URI + "/" + blog +
-                                "/avatar/512";
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
-                                new JSONObject(getStringFromServer(new URL(previewUrl)))
-                                        .getJSONObject("response").getString("avatar_url"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
-                                Jsoup.parse(blogObject.getString("description") +
-                                        "\nLast updated on: " + mDateFormat.format(new Date(blogObject
-                                        .getLong("updated") * 1000))).text());
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
-                                System.currentTimeMillis());
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
-                                blogObject.getString("title"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
-                                blogObject.getInt("posts"));
-                        addValues(values);
-                    } catch (JSONException | MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Log.d(LOG_TAG, "Size: " + urls.size());
-            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
-                try {
-                    JSONObject rootObject = new JSONObject(getStringFromServer(new URL(urls.get(0))))
-                            .getJSONObject("photos");
-                    JSONArray photosArray = rootObject.getJSONArray("photo");
-
-                    for (int i = 0; i < photosArray.length(); i++) {
-                        JSONObject photoObject = photosArray.getJSONObject(i);
-                        ContentValues values = new ContentValues();
-                        String id = photoObject.getString("id");
-                        String owner = photoObject.getString("owner");
-                        String previewUrl = "https://farm" + photoObject.getInt("farm") +
-                                ".staticflickr.com/" + photoObject.getString("server") +
-                                "/" + id + "_" + photoObject.getString("secret") + ".jpg";
-                        Uri ownerUri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
-                                .appendQueryParameter(FlickrRequest.API_KEY_PARAM, FlickrRequest.API_KEY)
-                                .appendQueryParameter(FlickrRequest.METHOD_PARAM, "flickr.people.getInfo")
-                                .appendQueryParameter(FlickrRequest.USER_ID_PARAM, owner)
-                                .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
-                                .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
-                        JSONObject ownerObject = new JSONObject(
-                                getStringFromServer(new URL(ownerUri.toString())))
-                                .getJSONObject("person");
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                                AccountsUtil.ACCOUNT_TYPE_FLICKR);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, Jsoup.parse(ownerObject
-                                .getJSONObject("photosurl").getString("_content")).text());
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
-                                ownerObject.getJSONObject("username").getString("_content"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
-                                previewUrl);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION,
-                                Jsoup.parse(ownerObject.getJSONObject("description")
-                                        .getString("_content")).text());
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
-                                System.currentTimeMillis());
-                        JSONObject titleObject = ownerObject.optJSONObject("realname");
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
-                                (titleObject != null) ? titleObject.getString("_content")
-                                        : ownerObject.getJSONObject("username")
-                                        .getString("_content"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
-                                ownerObject.getJSONObject("photos").getJSONObject("count")
-                                        .getString("_content"));
-                        addValues(values);
-                    }
-                } catch (JSONException | NullPointerException | MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            } else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-                try {
-                    JSONArray entryArray = new JSONObject(getStringFromServer(new URL(urls.get(0))))
-                            .getJSONObject("feed").getJSONArray("entry");
-                    for (int i = 0; i < entryArray.length(); i++) {
-                        ContentValues values = new ContentValues();
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                                AccountsUtil.ACCOUNT_TYPE_PICASA);
-                        JSONObject ownerObject = entryArray.getJSONObject(i).getJSONArray("author")
-                                .getJSONObject(0);
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
-                                AccountsUtil.urlFromUser(ownerObject.getJSONObject("gphoto$user")
-                                        .getString("$t"), AccountsUtil.ACCOUNT_TYPE_PICASA));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
-                                ownerObject.getJSONObject("name").getString("$t"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,
-                                ownerObject.getJSONObject("gphoto$thumbnail").getString("$t")
-                                        .replace("s32-c", "o"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_DESCRIPTION, "");
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TIME,
-                                System.currentTimeMillis());
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TITLE,
-                                ownerObject.getJSONObject("gphoto$nickname").getString("$t"));
-                        values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
-                                -1);
-                        addValues(values);
-                    }
-                } catch (JSONException | MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            dismissDialog();
-        }
-
-        @Override
-        protected void onCancelled(Void aVoid) {
-            super.onCancelled(aVoid);
-            dismissDialog();
-        }
-
-        private void addValues(ContentValues values) {
-            mContentCache.add(values);
-            if (mContentCache.size() >= mCacheSize) {
-                insertAndClearCache();
-                mCacheSize = mCacheSize * 2;
-            }
-        }
-
-        private void insertAndClearCache() {
-            try {
-                mProvider.bulkInsert(CrawlerContract.ExplorerEntry.CONTENT_URI,
-                        mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                mContentCache.clear();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
     }
 }

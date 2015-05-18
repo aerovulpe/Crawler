@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -83,7 +84,10 @@ public class ExplorerDetailFragment extends DialogFragment {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View rootView = inflater.inflate(R.layout.fragment_explorer_detail, container, false);
-        ((TextView) rootView.findViewById(R.id.textview_title)).setText(mTitle);
+        if (!(mTitle == null || mTitle.equals("")))
+            ((TextView) rootView.findViewById(R.id.textview_title)).setText(mTitle);
+        else
+            rootView.findViewById(R.id.textview_title).setVisibility(View.GONE);
         ((TextView) rootView.findViewById(R.id.textview_id)).setText(mId);
         ((TextView) rootView.findViewById(R.id.textview_name)).setText(mName);
         ImageLoader.getInstance().displayImage(mThumbnail, (ImageView)
@@ -129,5 +133,19 @@ public class ExplorerDetailFragment extends DialogFragment {
             }
         });
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // safety check
+        if (getDialog() == null) {
+            return;
+        }
+
+        int dialogWidth = LinearLayout.LayoutParams.MATCH_PARENT;
+        int dialogHeight = LinearLayout.LayoutParams.WRAP_CONTENT;
+        getDialog().getWindow().setLayout(dialogWidth, dialogHeight);
     }
 }

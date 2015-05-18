@@ -63,7 +63,6 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
             @Override
             public void onPageSelected(int position) {
-                ExplorerTabAdapter.mCurrentPosition = position;
                 if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
                     mSpinner.setVisibility(View.VISIBLE);
                 } else {

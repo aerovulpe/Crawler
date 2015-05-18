@@ -8,7 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 
 import me.aerovulpe.crawler.R;
@@ -29,7 +29,7 @@ public class PicasaAlbumsRequest extends RequestAsyncTask {
         try {
             parseResult(getStringFromServer(new URL(Uri.parse(params[0]).buildUpon()
                     .appendQueryParameter("alt", "json").build().toString())));
-        } catch (MalformedURLException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
