@@ -151,6 +151,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         }
         ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
                 mCategory, mAccountType), this);
+        mProgressDialog = makeProgressDialog();
     }
 
     @Override
@@ -203,6 +204,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         mCategory = category;
         ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
                 mCategory, mAccountType), this);
+        mProgressDialog = makeProgressDialog();
         getLoaderManager().destroyLoader(EXPLORER_LOADER);
         getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
     }
@@ -228,8 +230,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onRequestStarted() {
-        if (isResumed())
-            mProgressDialog = makeProgressDialog();
     }
 
     @Override
