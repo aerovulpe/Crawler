@@ -55,6 +55,12 @@ public class ExplorerDetailFragment extends DialogFragment {
         return fragment;
     }
 
+    public static ExplorerDetailFragment newInstance(Bundle args) {
+        ExplorerDetailFragment fragment = new ExplorerDetailFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

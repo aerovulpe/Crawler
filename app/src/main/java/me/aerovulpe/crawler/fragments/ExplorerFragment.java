@@ -29,6 +29,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
@@ -56,6 +57,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     private static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
     private static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
     private static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
+    private static final String ARG_DETAIL_FRAGMENT = "me.aerovulpe.crawler.EXPLORER.detail_fragment";
     private static final String ARG_IS_LOADING = "me.aerovulpe.crawler.EXPLORER.is_loading";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_TITLE = 2;
@@ -82,6 +84,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     private String mCategory;
     private ProgressDialog mProgressDialog;
     private boolean mIsLoading;
+    private WeakReference<ExplorerDetailFragment> mLastDetailFragment;
 
     public ExplorerFragment() {
         // Required empty public constructor
@@ -107,6 +110,13 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         if (savedInstanceState != null) {
             mIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
             mIsLoading = savedInstanceState.getBoolean(ARG_IS_LOADING);
+            Bundle detailArgs = savedInstanceState.getBundle(ARG_DETAIL_FRAGMENT);
+            if (detailArgs != null) {
+                ExplorerDetailFragment detailFragment = ExplorerDetailFragment
+                        .newInstance(detailArgs);
+                mLastDetailFragment = new WeakReference<>(detailFragment);
+                detailFragment.show(getFragmentManager(), "explorerDetailFragment");
+            }
         }
         //setRetainInstance(true);
     }
@@ -126,7 +136,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                     public void onItemClick(View view, int position) {
                         Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
                         if (cursor != null && cursor.moveToPosition(position)) {
-                            ExplorerDetailFragment dialog = ExplorerDetailFragment
+                            ExplorerDetailFragment detailFragment = ExplorerDetailFragment
                                     .newInstance(cursor.getString(COL_ACCOUNT_ID),
                                             cursor.getString(COL_ACCOUNT_TITLE),
                                             cursor.getString(COL_ACCOUNT_NAME),
@@ -134,7 +144,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                                             cursor.getString(COL_ACCOUNT_DESCRIPTION),
                                             cursor.getInt(COL_NUM_OF_POSTS),
                                             mAccountType);
-                            dialog.show(getFragmentManager(), "explorerDetailFragment");
+                            mLastDetailFragment = new WeakReference<>(detailFragment);
+                            detailFragment.show(getFragmentManager(), "explorerDetailFragment");
                         }
                     }
                 });
@@ -181,6 +192,10 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_CURRENT_INDEX, mIndex);
         outState.putBoolean(ARG_IS_LOADING, mIsLoading);
+        ExplorerDetailFragment detailFragment = (mLastDetailFragment != null) ?
+                mLastDetailFragment.get() : null;
+        if (detailFragment != null && detailFragment.isVisible())
+            outState.putBundle(ARG_DETAIL_FRAGMENT, detailFragment.getArguments());
     }
 
     // ProgressDialog method to inform the user of the asynchronous
@@ -348,8 +363,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                     JSONObject rootObject = new JSONObject(getStringFromServer(new URL(urls.get(0))))
                             .getJSONObject("photos");
                     JSONArray photosArray = rootObject.getJSONArray("photo");
-                    Log.d(LOG_TAG, photosArray.toString());
-                    if (photosArray == null) return;
 
                     for (int i = 0; i < photosArray.length(); i++) {
                         JSONObject photoObject = photosArray.getJSONObject(i);
