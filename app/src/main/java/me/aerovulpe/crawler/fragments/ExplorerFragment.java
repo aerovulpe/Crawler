@@ -160,7 +160,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
                 .findFirstCompletelyVisibleItemPosition();
         // Dismiss/remove dialog if showing to prevent window leaks.
-        dismissDialog(true);
+        dismissDialog(mIsLoading);
     }
 
     @Override
@@ -177,7 +177,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     // ProgressDialog method to inform the user of the asynchronous
     // processing
     private ProgressDialog makeProgressDialog() {
-        mIsLoading = true;
+        dismissDialog(true);
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Explore");
         progressDialog.setMessage(getResources().getString(R.string.loading_blogs));
