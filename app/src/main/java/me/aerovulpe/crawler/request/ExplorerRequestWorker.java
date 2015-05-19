@@ -261,7 +261,8 @@ public class ExplorerRequestWorker implements Runnable {
 
     private void insertAndClearCache() {
         try {
-            mProvider.bulkInsert(CrawlerContract.ExplorerEntry.CONTENT_URI,
+            mProvider.bulkInsert(CrawlerContract.ExplorerEntry
+                            .buildAccountsUriWithCategory(mRequest.getCategory()),
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
             mContentCache.clear();
         } catch (RemoteException e) {

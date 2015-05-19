@@ -317,7 +317,8 @@ public class CrawlerProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         switch (match) {
-            case PHOTOS: {
+            case PHOTOS:
+            case PHOTOS_WITH_ALBUM: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
@@ -334,7 +335,8 @@ public class CrawlerProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case ALBUMS: {
+            case ALBUMS:
+            case ALBUMS_WITH_ACCOUNT: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {
@@ -351,7 +353,8 @@ public class CrawlerProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case EXPLORERS: {
+            case EXPLORERS:
+            case EXPLORER_ACCOUNTS_WITH_CATEGORY: {
                 db.beginTransaction();
                 int returnCount = 0;
                 try {

@@ -42,7 +42,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_ACCOUNT_DESCRIPTION = 5;
     public static final int COL_NUM_OF_POSTS = 6;
 
-    private static final int EXPLORER_LOADER = 5;
+    //private static final int EXPLORER_LOADER = 5;
 
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.ExplorerEntry.TABLE_NAME + "." + CrawlerContract.ExplorerEntry._ID,
@@ -131,13 +131,13 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
+        getLoaderManager().initLoader(mCategory.hashCode(), null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(EXPLORER_LOADER, null, this);
+        getLoaderManager().restartLoader(mCategory.hashCode(), null, this);
         if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
             @Override
@@ -201,12 +201,12 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void setCategory(String category) {
         if (mCategory.equals(category)) return;
+        getLoaderManager().destroyLoader(mCategory.hashCode());
         mCategory = category;
         ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
                 mCategory, mAccountType), this);
         mProgressDialog = makeProgressDialog();
-        getLoaderManager().destroyLoader(EXPLORER_LOADER);
-        getLoaderManager().initLoader(EXPLORER_LOADER, null, this);
+        getLoaderManager().initLoader(mCategory.hashCode(), null, this);
     }
 
     @Override
@@ -218,7 +218,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
+        if (loader.getId() == mCategory.hashCode())
+            ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (data.getCount() > 0)
             dismissDialog(false);
     }

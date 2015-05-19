@@ -119,7 +119,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
         mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
-        mViewPager.setPageTransformer(true, new ZoomOutTranformer());
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         return rootView;
@@ -164,6 +163,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         setUpScrollingOfDescription();
         setUpSlideShowTask();
         ((PhotoManager) getActivity()).setFullScreen(mIsFullscreen, true);
+        mViewPager.setPageTransformer(true, new ZoomOutTranformer());
     }
 
     @Override

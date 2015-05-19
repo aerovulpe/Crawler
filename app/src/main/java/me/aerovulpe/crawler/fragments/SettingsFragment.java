@@ -74,7 +74,7 @@ public class SettingsFragment extends PreferenceFragment {
 
         //hide this option from non-phone devices such as GoogleTV
         if (!AndroidUtils.hasTelephony(getActivity())) {
-            mPreferenceScreen.removePreference(mDownloadOffWifiPref);
+            otherCategory.removePreference(mDownloadOffWifiPref);
         }
         return super.onCreateView(inflater, container, savedInstanceState);
     }

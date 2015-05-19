@@ -65,7 +65,8 @@ public abstract class Request implements Runnable {
         mContentCache = new Vector<>(CACHE_SIZE);
         mAlbumID = albumId;
         mProvider = requestService.getContentResolver()
-                .acquireContentProviderClient(CrawlerContract.PhotoEntry.CONTENT_URI);
+                .acquireContentProviderClient(CrawlerContract.PhotoEntry
+                        .buildPhotosUriWithAlbumID(mAlbumID));
         mViews = new RemoteViews(requestService.getPackageName(), R.layout.notification);
         mBuilder = new NotificationCompat.Builder(requestService);
         mNotifyManager = (NotificationManager) requestService
@@ -105,7 +106,7 @@ public abstract class Request implements Runnable {
         mIsRunning = false;
         if (!mContentCache.isEmpty()) {
             try {
-                mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+                mProvider.bulkInsert(CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID),
                         mContentCache.toArray(new ContentValues[mContentCache.size()]));
                 Log.d(LOG_TAG, mContentCache.size() + " inserted.");
             } catch (RemoteException e) {
@@ -212,7 +213,8 @@ public abstract class Request implements Runnable {
         int rowsInserted = 0;
 
         try {
-            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry.CONTENT_URI,
+            rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry
+                            .buildPhotosUriWithAlbumID(mAlbumID),
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
             Log.d(LOG_TAG, rowsInserted + " inserted.");
             mContentCache.clear();
