@@ -11,6 +11,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -23,12 +25,15 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
     public static final String BASE_SPOTLIGHT_URL = "https://www.tumblr.com/spotlight/";
     private ContentProviderClient mProviderClient;
     private Vector<ContentValues> mContentValues;
+    private final Context mContext;
     private final int CACHE_SIZE = 25;
+    private List<ExplorerRequest> mRequests;
 
     public CategoriesRequest(Context context) {
         mContentValues = new Vector<>(CACHE_SIZE);
         mProviderClient = context.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.CategoryEntry.CONTENT_URI);
+        mContext = context;
     }
 
     @Override
@@ -62,9 +67,17 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
             insertAndClearCache();
         }
         mProviderClient.release();
+        for (ExplorerRequest request : mRequests) {
+            ExplorerRequestManager.getInstance().request(request, null);
+        }
     }
 
     private void addCategories(Document document) {
+        mRequests = new ArrayList<>();
+        mRequests.add(new ExplorerRequest(mContext, FlickrRequest.class.getName(),
+                AccountsUtil.ACCOUNT_TYPE_FLICKR));
+        mRequests.add(new ExplorerRequest(mContext, PicasaAlbumsRequest.class.getName(),
+                AccountsUtil.ACCOUNT_TYPE_PICASA));
         Elements aElements = document.select("a");
         int size = aElements.size();
         for (int i = 0; i < size; i++) {
@@ -77,6 +90,8 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
                 contentValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
                         category);
                 addValues(contentValues);
+                mRequests.add(new ExplorerRequest(mContext, category,
+                        AccountsUtil.ACCOUNT_TYPE_TUMBLR));
             }
         }
         ContentValues flickrValues = new ContentValues();

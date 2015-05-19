@@ -3,7 +3,8 @@ package me.aerovulpe.crawler.request;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -32,7 +33,7 @@ import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
 /**
  * Created by Aaron on 18/05/2015.
  */
-public class ExplorerRequestWorker extends AsyncTask<Void, Void, Boolean> {
+public class ExplorerRequestWorker implements Runnable {
     private int mCacheSize = 25;
     private final String LOG_TAG = ExplorerRequestWorker.class.getSimpleName();
     private ContentProviderClient mProvider;
@@ -51,13 +52,13 @@ public class ExplorerRequestWorker extends AsyncTask<Void, Void, Boolean> {
     }
 
     @Override
-    protected void onPreExecute() {
-        mObserver.onRequestStarted();
-    }
-
-    @Override
-    protected Boolean doInBackground(Void... params) {
-
+    public void run() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                mObserver.onRequestStarted();
+            }
+        });
         Log.d(LOG_TAG, "Requesting: " + mRequest.getAccountType() + ":" + mRequest.getCategory());
         List<String> urls = new ArrayList<>();
         if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
@@ -78,7 +79,8 @@ public class ExplorerRequestWorker extends AsyncTask<Void, Void, Boolean> {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                return false;
+                onPostExecute(false);
+                return;
             }
         } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
             Uri uri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
@@ -95,13 +97,14 @@ public class ExplorerRequestWorker extends AsyncTask<Void, Void, Boolean> {
             parseResult(mRequest.getCategory(), urls);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            onPostExecute(false);
+            return;
         }
         if (!mContentCache.isEmpty()) {
             insertAndClearCache();
         }
         mProvider.release();
-        return true;
+        onPostExecute(true);
     }
 
     private void parseResult(String category, List<String> urls) throws IOException {
@@ -239,14 +242,13 @@ public class ExplorerRequestWorker extends AsyncTask<Void, Void, Boolean> {
         }
     }
 
-    @Override
-    protected void onPostExecute(Boolean wasSuccessful) {
-        mObserver.onRequestFinished(mRequest, wasSuccessful);
-    }
-
-    @Override
-    protected void onCancelled(Boolean wasSuccessful) {
-        mObserver.onRequestFinished(mRequest, wasSuccessful);
+    private void onPostExecute(final Boolean wasSuccessful) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                mObserver.onRequestFinished(mRequest, wasSuccessful);
+            }
+        });
     }
 
     private void addValues(ContentValues values) {
