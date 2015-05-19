@@ -55,7 +55,7 @@ public class ExplorerRequestManager implements ExplorerRequestObserver {
     }
 
     protected synchronized void requestInBackground(ExplorerRequest request) {
-        mBackgroundExecutor.execute(new ExplorerRequestWorker(request, null));
+        mBackgroundExecutor.execute(new ExplorerRequestWorker(request, this));
     }
 
     public void setObserver(ExplorerRequestObserver observer) {
@@ -64,8 +64,7 @@ public class ExplorerRequestManager implements ExplorerRequestObserver {
 
     @Override
     public void onRequestStarted() {
-        ExplorerRequestObserver observer = (mObserver != null) ? mObserver.get() :
-                null;
+        ExplorerRequestObserver observer = (mObserver != null) ? mObserver.get() : null;
         if (observer != null) {
             observer.onRequestStarted();
         }
@@ -73,7 +72,7 @@ public class ExplorerRequestManager implements ExplorerRequestObserver {
 
     @Override
     public void onRequestFinished(ExplorerRequest request, boolean wasSuccessful) {
-        ExplorerRequestObserver observer = mObserver.get();
+        ExplorerRequestObserver observer = (mObserver != null) ? mObserver.get() : null;
         if (observer != null) {
             observer.onRequestFinished(request, wasSuccessful);
         }

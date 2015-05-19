@@ -28,6 +28,7 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
@@ -117,8 +118,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         View rootView = inflater.inflate(R.layout.fragment_photo_viewer, container, false);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
-        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
+        mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
+        mViewPager.setPageTransformer(true, new ZoomOutTranformer());
+        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
+                Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
         return rootView;
     }
 

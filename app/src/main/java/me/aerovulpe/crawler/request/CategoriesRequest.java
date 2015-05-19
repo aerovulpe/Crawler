@@ -68,7 +68,7 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
         }
         mProviderClient.release();
         for (ExplorerRequest request : mRequests) {
-            ExplorerRequestManager.getInstance().request(request, null);
+            ExplorerRequestManager.getInstance().requestInBackground(request);
         }
     }
 
