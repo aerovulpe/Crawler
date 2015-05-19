@@ -8,9 +8,9 @@
         android:id="@+id/app_bar"
         layout="@layout/toolbar"/>
 
-    <FrameLayout
-        android:id="@+id/content_wrapper"
+    <fragment
+        android:id="@+id/settings"
+        android:name="me.aerovulpe.crawler.fragments.SettingsFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_height="match_parent"/>
 </LinearLayout>

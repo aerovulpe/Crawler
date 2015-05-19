@@ -3,23 +3,53 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orderingFromXml="true"
     android:title="Crawler Settings">
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="threeGLoading"
-        android:summary="When disabled, data is only fetched via WiFi."
-        android:title="3G data"/>
-    <EditTextPreference
-        android:defaultValue="400"
-        android:dialogMessage="Recommended are at least 200MB"
-        android:dialogTitle="Cache Size (MB)"
-        android:key="cacheSize"
-        android:numeric="integer"
-        android:summary="Set the maximum size for the cache."
-        android:title="Cache Size"/>
+   <EditTextPreference
+       android:defaultValue="5"
+       android:title="Slideshow Interval"
+       android:summary="Number of seconds to display each photo"
+       android:key="slideshowInterval"
+       android:numeric="integer"
+       android:dialogTitle="Slideshow Interval Duration (In seconds)"/>
 
-    <PreferenceCategory android:title="Foo Bar Category">
-        <Preference
-            android:key="foobar"
-            android:title="FooBar"/>
+    <ListPreference
+        android:defaultValue="DEFAULT"
+        android:title="Photo Transition"
+        android:dialogTitle="Select Transition"
+        android:key="photoTransition"
+        android:entries="@array/pref_transition_types_text"
+        android:entryValues="@array/pref_transition_types_values"/>
+
+    <EditTextPreference
+        android:defaultValue="5"
+        android:title="Description Switcher Interval"
+        android:summary="Number of seconds to display each line of a photo description"
+        android:key="descSwitcherInterval"
+        android:numeric="integer"
+        android:dialogTitle="Description Line Duration (In seconds)"/>
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:title="Disable Download Notifications"
+        android:key="disableNotifications"
+        android:summary="Disable showing notifications of ongoing downloads in the background"/>
+
+    <PreferenceCategory
+        android:title="Other Settings"
+        android:key="otherSettings">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:title="Download Photos Without WiFi"
+            android:key="downloadOffWifi"
+            android:summary="Allow usage of 3G or similar connections to download photos. (Not recommended)"/>
+
+        <EditTextPreference
+            android:defaultValue="400"
+            android:dialogMessage="At least 200MB is recommended"
+            android:dialogTitle="Cache Size (MB)"
+            android:key="cacheSize"
+            android:numeric="integer"
+            android:summary="Set the maximum size for the cache."
+            android:title="Cache Size"/>
+
     </PreferenceCategory>
 </PreferenceScreen>

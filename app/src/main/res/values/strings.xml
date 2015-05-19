@@ -49,7 +49,41 @@
     <string name="num_of_posts">Number of posts: %d</string>
     <string name="title_activity_explorer">Explore</string>
 
-    <string name="hello_world">Hello world!</string>
-
+    <string-array name="pref_transition_types_text">
+        <item>Default</item>
+        <item>Accordion</item>
+        <item>Background to Foreground</item>
+        <item>Cube In</item>
+        <item>Cube Out</item>
+        <item>Depth Page</item>
+        <item>Flip Horizontal</item>
+        <item>Foreground To Background</item>
+        <item>Rotate Down</item>
+        <item>Rotate Up</item>
+        <item>Scale In Out</item>
+        <item>Stack</item>
+        <item>Tablet</item>
+        <item>Zoom In</item>
+        <item>Zoom Out Slide</item>
+        <item>Zoom Out</item>
+    </string-array>
+    <string-array name="pref_transition_types_values">
+        <item>DEFAULT</item>
+        <item>ACCORDION</item>
+        <item>BACKGROUND_TO_FOREGROUND</item>
+        <item>CUBE_IN</item>
+        <item>CUBE_OUT</item>
+        <item>DEPTH_PAGE</item>
+        <item>FLIP_HORIZONTAL</item>
+        <item>FOREGROUND_TO_BACKGROUND</item>
+        <item>ROTATE_DOWN</item>
+        <item>ROTATE_UP</item>
+        <item>SCALE_IN_OUT</item>
+        <item>STACK</item>
+        <item>TABLET</item>
+        <item>ZOOM_IN</item>
+        <item>ZOOM_OUT_SLIDE</item>
+        <item>ZOOM_OUT</item>
+    </string-array>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 </resources>
