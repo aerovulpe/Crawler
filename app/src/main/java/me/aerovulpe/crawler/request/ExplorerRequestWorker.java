@@ -45,7 +45,8 @@ public class ExplorerRequestWorker implements Runnable {
     protected ExplorerRequestWorker(ExplorerRequest request, ExplorerRequestObserver observer) {
         mRequest = request;
         mProvider = request.getContext().getContentResolver()
-                .acquireContentProviderClient(CrawlerContract.ExplorerEntry.CONTENT_URI);
+                .acquireContentProviderClient(CrawlerContract.ExplorerEntry
+                        .buildAccountsUriWithCategory(mRequest.getCategory()));
         mContentCache = new Vector<>(mCacheSize);
         mDateFormat = DateFormat.getDateTimeInstance();
         mObserver = observer;

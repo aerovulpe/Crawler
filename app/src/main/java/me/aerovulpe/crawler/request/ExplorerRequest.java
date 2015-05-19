@@ -6,9 +6,9 @@ import android.content.Context;
  * Created by Aaron on 18/05/2015.
  */
 public class ExplorerRequest {
-    Context mContext;
-    String mCategory;
-    int mAccountType;
+    private Context mContext;
+    private String mCategory;
+    private int mAccountType;
 
     public ExplorerRequest(Context context, String category, int accountType) {
         mContext = context;
