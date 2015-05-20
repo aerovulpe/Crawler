@@ -20,6 +20,7 @@ import java.lang.ref.WeakReference;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.ExplorerActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.ExplorerRequest;
@@ -178,8 +179,13 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     // ProgressDialog method to inform the user of the asynchronous
     // processing
     private ProgressDialog makeProgressDialog() {
+        ExplorerActivity activity = (ExplorerActivity) getActivity();
+        if (!activity.isExplorerVisible(this))
+            return null;
+
         dismissDialog(true);
-        ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        mIsLoading = true;
+        ProgressDialog progressDialog = new ProgressDialog(activity);
         progressDialog.setTitle("Explore");
         progressDialog.setMessage(getResources().getString(R.string.loading_blogs));
         progressDialog.show();
@@ -207,6 +213,10 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 mCategory, mAccountType), this);
         mProgressDialog = makeProgressDialog();
         getLoaderManager().initLoader(mCategory.hashCode(), null, this);
+    }
+
+    public int getAccountType() {
+        return mAccountType;
     }
 
     @Override

@@ -128,6 +128,11 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         return super.onOptionsItemSelected(item);
     }
 
+    public boolean isExplorerVisible(ExplorerFragment explorerFragment) {
+        return mViewPager != null && mViewPager.getCurrentItem() == explorerFragment
+                .getAccountType();
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder = CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID + " ASC";
