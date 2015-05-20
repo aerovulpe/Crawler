@@ -120,7 +120,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
         mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
-                Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, false));
+                Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, true));
         return rootView;
     }
 

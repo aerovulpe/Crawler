@@ -57,6 +57,7 @@ public class SettingsFragment extends PreferenceFragment {
     private static final int DEFAULT_VALUE_DESC_INTERVAL_INT = 5;
     private static final String DEFAULT_VALUE_DESC_INTERVAL
             = DEFAULT_VALUE_DESC_INTERVAL_INT + "";
+    public static final int MEGABYTE_TO_BYTE_FACTOR = 1048576;
 
     private int mOldCacheValue;
 
@@ -121,10 +122,12 @@ public class SettingsFragment extends PreferenceFragment {
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     } else if (currentCacheValue < mOldCacheValue) {
-                        CrawlerApplication.clearImageCache(getActivity());
+                        CrawlerApplication.clearImageCacheInit(getActivity(),
+                                currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
                         return true;
                     } else if (currentCacheValue > mOldCacheValue) {
-                        CrawlerApplication.initImageLoader(getActivity(), true);
+                        CrawlerApplication.initImageLoader(getActivity(),
+                                currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
                         return true;
                     }
                     return false;
@@ -252,6 +255,6 @@ public class SettingsFragment extends PreferenceFragment {
     }
 
     public static int getCurrentCacheValueInBytes(Context context) {
-        return getCurrentCacheValue(context) * 1048576;
+        return getCurrentCacheValue(context) * MEGABYTE_TO_BYTE_FACTOR;
     }
 }

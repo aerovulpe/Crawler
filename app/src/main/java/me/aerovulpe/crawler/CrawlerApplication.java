@@ -44,7 +44,22 @@ public class CrawlerApplication extends Application {
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
     public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
 
-    public static void initImageLoader(Context context, boolean forceInit) {
+    public static void initImageLoader(Context context) {
+        ImageLoaderConfiguration.Builder config = getConfig(context, SettingsFragment
+                .getCurrentCacheValueInBytes(context));
+        // Initialize ImageLoader with configuration.
+        ImageLoader.getInstance().init(config.build());
+    }
+
+    public static void initImageLoader(Context context, int cacheSize) {
+        ImageLoaderConfiguration.Builder config = getConfig(context, cacheSize);
+        // Initialize ImageLoader with configuration.
+        if (ImageLoader.getInstance().isInited())
+            ImageLoader.getInstance().destroy();
+        ImageLoader.getInstance().init(config.build());
+    }
+
+    private static ImageLoaderConfiguration.Builder getConfig(Context context, int cacheSize) {
         // This configuration tuning is custom. You can tune every option, you may tune some of them,
         // or you can create default configuration by
         //  ImageLoaderConfiguration.createDefault(this);
@@ -53,9 +68,8 @@ public class CrawlerApplication extends Application {
         config.threadPoolSize(5);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
-        int currentCacheValueInBytes = SettingsFragment.getCurrentCacheValueInBytes(context);
-        Log.d("CACHE", "Current cache size in bytes: " + currentCacheValueInBytes);
-        config.diskCacheSize(currentCacheValueInBytes);
+        Log.d("CACHE", "Current cache size in bytes: " + cacheSize);
+        config.diskCacheSize(cacheSize);
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
 
         DisplayImageOptions options = new DisplayImageOptions.Builder()
@@ -66,18 +80,12 @@ public class CrawlerApplication extends Application {
                 .considerExifParams(true)
                 .build();
         config.defaultDisplayImageOptions(options);
-
-        // Initialize ImageLoader with configuration.
-        if (forceInit)
-            if (ImageLoader.getInstance().isInited())
-                ImageLoader.getInstance().destroy();
-        ImageLoader.getInstance().init(config.build());
+        return config;
     }
 
-    public static void clearImageCache(Context context) {
+    public static void clearImageCacheInit(Context context, int cacheSize) {
         ImageLoader.getInstance().clearDiskCache();
-        ImageLoader.getInstance().destroy();
-        initImageLoader(context, true);
+        initImageLoader(context, cacheSize);
     }
 
     public static int getColumnsPerRow(Context context) {
@@ -95,6 +103,6 @@ public class CrawlerApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        initImageLoader(this, false);
+        initImageLoader(this);
     }
 }
