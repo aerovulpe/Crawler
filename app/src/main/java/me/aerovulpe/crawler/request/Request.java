@@ -33,6 +33,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.activities.MainActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.fragments.SettingsFragment;
 
 /**
  * Created by Aaron on 07/04/2015.
@@ -87,8 +88,11 @@ public abstract class Request implements Runnable {
                         }
                     });
                 } else if ((mAlbumID + ".SHOW").equals(intent.getAction())) {
-                    mRequestService.unregisterReceiver(mReceiver);
-                    mShowNotification = true;
+                    if (mIsFirstNotification)
+                        mRequestService.unregisterReceiver(mReceiver);
+                    mShowNotification = !SettingsFragment.disableNotifications(mRequestService);
+                } else if ((mAlbumID + ".NOT_SHOW").equals(intent.getAction())) {
+                    mShowNotification = false;
                 }
             }
         };
@@ -279,7 +283,8 @@ public abstract class Request implements Runnable {
             return;
 
         if (mIsFirstNotification) {
-            mRequestService.startForeground();
+            //mRequestService.startForeground();
+            mIsFirstNotification = false;
             Intent intent = new Intent(mRequestService, MainActivity.class);
             intent.setAction(mAlbumID);
             intent.putExtra(AccountsActivity.ARG_ACCOUNT_ID, mAlbumID);
@@ -293,16 +298,18 @@ public abstract class Request implements Runnable {
             IntentFilter filter = new IntentFilter();
             filter.addAction(mAlbumID + ".CANCEL");
             filter.addAction(mAlbumID + ".SHOW");
+            filter.addAction(mAlbumID + ".NOT_SHOW");
             mRequestService.registerReceiver(mReceiver, filter);
             mBuilder.setSmallIcon(R.drawable.ic_download)
                     .setAutoCancel(true)
-                    .setContentIntent(pendingIntent);
+                    .setContentIntent(pendingIntent)
+                    .setDeleteIntent(PendingIntent.getBroadcast(mRequestService, 0,
+                            new Intent(mAlbumID + ".NOT_SHOW"), 0));
             mViews.setTextViewText(R.id.title, "Downloading from " + mAlbumName);
             PendingIntent pi = PendingIntent.getBroadcast(mRequestService, 0,
                     new Intent(mAlbumID + ".CANCEL"), 0);
             mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
             mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
-            mIsFirstNotification = false;
         }
         mViews.setTextViewText(R.id.detail, "Downloading page " + mCurrentPage +
                 " of " + mNumOfPages);

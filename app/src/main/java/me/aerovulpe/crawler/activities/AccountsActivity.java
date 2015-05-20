@@ -141,7 +141,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 });
                 return true;
             case MENU_PREFERENCES:
-                startActivity(new Intent(this, PreferencesActivity.class));
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
         }
         return super.onOptionsItemSelected(item);

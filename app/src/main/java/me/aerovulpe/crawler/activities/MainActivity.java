@@ -305,7 +305,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         // Handle your other action bar items...
 
         if (item.getItemId() == R.id.action_settings) {
-            Intent intent = new Intent(this, PreferencesActivity.class);
+            Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
         }

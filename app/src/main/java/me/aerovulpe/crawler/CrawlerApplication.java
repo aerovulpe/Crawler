@@ -19,6 +19,7 @@ package me.aerovulpe.crawler;
 import android.app.Application;
 import android.content.Context;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -28,7 +29,7 @@ import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 import java.util.Random;
 
-import me.aerovulpe.crawler.activities.PreferencesActivity;
+import me.aerovulpe.crawler.fragments.SettingsFragment;
 
 public class CrawlerApplication extends Application {
 
@@ -52,7 +53,9 @@ public class CrawlerApplication extends Application {
         config.threadPoolSize(5);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
-        config.diskCacheSize(PreferencesActivity.getCurrentCacheValueInBytes(context));
+        int currentCacheValueInBytes = SettingsFragment.getCurrentCacheValueInBytes(context);
+        Log.d("CACHE", "Current cache size in bytes: " + currentCacheValueInBytes);
+        config.diskCacheSize(currentCacheValueInBytes);
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
 
         DisplayImageOptions options = new DisplayImageOptions.Builder()
@@ -85,7 +88,7 @@ public class CrawlerApplication extends Application {
                 .floor(displayMetrics.widthPixels / thumbnailWithPx);
     }
 
-    public static boolean randomDraw(double odds){
+    public static boolean randomDraw(double odds) {
         return (odds > 0) && new Random().nextDouble() <= odds;
     }
 

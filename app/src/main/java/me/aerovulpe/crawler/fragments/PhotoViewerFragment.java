@@ -28,7 +28,6 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_VIEW.album_id";
     public static final String ARG_ALBUM_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
     public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
-    private static final long ANIM_SLIDESHOW_DELAY = 5000;
     private static final int PHOTOS_LOADER = 3;
     private static String[] PHOTOS_COLUMNS = {
             CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
@@ -77,6 +75,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private boolean isSlideShowRunning;
     private boolean mIsFullscreen;
     private Timer slideShowTimer;
+    private long mAnimSlideshowDelay = 5000;
+    private long mDescInterval = 5000;
 
     public PhotoViewerFragment() {
         // Required empty public constructor
@@ -160,10 +160,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 }
             });
         }
+        Activity activity = getActivity();
+        ((PhotoManager) activity).setFullScreen(mIsFullscreen, true);
+        mViewPager.setPageTransformer(true, SettingsFragment.getPageTransformer(activity));
+        mAnimSlideshowDelay = SettingsFragment.getSlideshowIntervalMS(activity);
+        mDescInterval = SettingsFragment.getDescIntervalMS(activity);
         setUpScrollingOfDescription();
         setUpSlideShowTask();
-        ((PhotoManager) getActivity()).setFullScreen(mIsFullscreen, true);
-        mViewPager.setPageTransformer(true, new ZoomOutTranformer());
     }
 
     @Override
@@ -260,7 +263,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
 
         final Activity activity = getActivity();
-        long msBetweenSwaps = 5000;
 
         //schedule this to
         timerDescriptionScrolling.scheduleAtFixedRate(
@@ -276,7 +278,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                             }
                         });
                     }
-                }, msBetweenSwaps, msBetweenSwaps);
+                }, mDescInterval, mDescInterval);
     }
 
     private void updateScrollingDescription(Photo currentPhoto, TextSwitcher switcherDescription) {
@@ -363,7 +365,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                                 }
                             });
                         }
-                    }, ANIM_SLIDESHOW_DELAY, ANIM_SLIDESHOW_DELAY);
+                    }, mAnimSlideshowDelay, mAnimSlideshowDelay);
         } else {
             slideShowTimer = null;
             activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
