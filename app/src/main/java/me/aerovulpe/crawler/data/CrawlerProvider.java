@@ -332,7 +332,8 @@ public class CrawlerProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
+                if (returnCount != 0)
+                    getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
             case ALBUMS:
@@ -350,7 +351,8 @@ public class CrawlerProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
+                if (returnCount != 0)
+                    getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
             case EXPLORERS:
@@ -368,7 +370,8 @@ public class CrawlerProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
+                if (returnCount != 0)
+                    getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
             case CATEGORIES: {
@@ -385,7 +388,8 @@ public class CrawlerProvider extends ContentProvider {
                 } finally {
                     db.endTransaction();
                 }
-                getContext().getContentResolver().notifyChange(uri, null);
+                if (returnCount != 0)
+                    getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
             default:
