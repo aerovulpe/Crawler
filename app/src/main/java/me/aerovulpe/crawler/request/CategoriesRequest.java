@@ -27,13 +27,14 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
     private Vector<ContentValues> mContentValues;
     private final Context mContext;
     private final int CACHE_SIZE = 25;
-    private List<ExplorerRequest> mRequests;
+    private volatile List<ExplorerRequest> mRequests;
 
     public CategoriesRequest(Context context) {
         mContentValues = new Vector<>(CACHE_SIZE);
         mProviderClient = context.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.CategoryEntry.CONTENT_URI);
         mContext = context;
+        mRequests = new ArrayList<>();
     }
 
     @Override
@@ -73,7 +74,6 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
     }
 
     private void addCategories(Document document) {
-        mRequests = new ArrayList<>();
         mRequests.add(new ExplorerRequest(mContext, FlickrRequest.class.getName(),
                 AccountsUtil.ACCOUNT_TYPE_FLICKR));
         mRequests.add(new ExplorerRequest(mContext, PicasaAlbumsRequest.class.getName(),
