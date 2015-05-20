@@ -66,7 +66,7 @@ public class AndroidUtils {
         return mobile != null && mobile.isConnected() && mobile.isRoaming();
     }
 
-    public static String savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
+    public static Uri savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
                                      String description) {
         OutputStream outputStream;
         String strDirectory = Environment
@@ -106,7 +106,7 @@ public class AndroidUtils {
             values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
 
             context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            return file.getAbsolutePath();
+            return Uri.parse("file://" + file.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
             return null;

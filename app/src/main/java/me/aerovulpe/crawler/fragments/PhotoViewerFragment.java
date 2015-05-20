@@ -393,10 +393,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         shareIntent.setAction(Intent.ACTION_SEND);
         //we assume the type is image/jpg
         shareIntent.setType("image/jpg");
-        String sharedText = photo.getName() + ": " + photo.getDescription();
+        String sharedText = photo.getTitle() + "\n\n" + photo.getDescription();
         shareIntent.putExtra(Intent.EXTRA_STREAM, savePhoto(photo));
         shareIntent.putExtra(Intent.EXTRA_TEXT, sharedText);
-
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, photo.getTitle());
 
         //Start the actual sharing activity
@@ -419,7 +418,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
     }
 
-    public String savePhoto(Photo photo) {
+    public Uri savePhoto(Photo photo) {
         Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photo.getImageUrl());
         return bitmap != null ? AndroidUtils.savePicture(getActivity(),
                 bitmap, photo.getName(),
@@ -430,7 +429,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_ATTACH_DATA);
         String mimeType = "image/jpg";
-        Uri uri = Uri.parse(savePhoto(photo));
+        Uri uri = savePhoto(photo);
 
         intent.setDataAndType(uri, mimeType);
         intent.putExtra("mimeType", mimeType);
