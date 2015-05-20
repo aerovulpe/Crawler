@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
@@ -237,6 +238,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             case PhotoViewerFragment.MENU_ITEM_SAVE:
                 if (savePhoto(getPhoto(getCurrentPhotoIndex())) != null)
                     Toast.makeText(getActivity(), "Photo saved.", Toast.LENGTH_LONG).show();
+                else
+                    Toast.makeText(getActivity(), "Failed to save photo.", Toast.LENGTH_LONG).show();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SHARE:
                 sharePhoto(getPhoto(getCurrentPhotoIndex()));
@@ -417,9 +420,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public String savePhoto(Photo photo) {
-        return AndroidUtils.savePicture(getActivity(),
-                ImageLoader.getInstance().loadImageSync(photo.getImageUrl()), photo.getName(),
-                photo.getTitle(), photo.getDescription());
+        Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photo.getImageUrl());
+        return bitmap != null ? AndroidUtils.savePicture(getActivity(),
+                bitmap, photo.getName(),
+                photo.getTitle(), photo.getDescription()) : null;
     }
 
     public void setAsWallpaper(Photo photo) {
