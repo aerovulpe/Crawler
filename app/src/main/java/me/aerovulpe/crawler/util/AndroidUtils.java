@@ -1,9 +1,22 @@
 package me.aerovulpe.crawler.util;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 public class AndroidUtils {
 
@@ -53,5 +66,50 @@ public class AndroidUtils {
         return mobile != null && mobile.isConnected() && mobile.isRoaming();
     }
 
+    public static String savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
+                                     String description) {
+        OutputStream outputStream;
+        String strDirectory = Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 
+        File file = new File(strDirectory, imgName);
+
+        try {
+            if (file.exists())
+                if (file.delete()) {
+                    if (Build.VERSION.SDK_INT < 19) {
+                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
+                                Uri.parse("file://" + strDirectory)));
+                    } else {
+                        MediaScannerConnection.scanFile(context, new String[]{strDirectory},
+                                null, new MediaScannerConnection.OnScanCompletedListener() {
+                                    public void onScanCompleted(String path, Uri uri) {
+                                        Log.i("ExternalStorage", "Scanned " + path + ":");
+                                        Log.i("ExternalStorage", "-> uri=" + uri);
+                                    }
+                                });
+                    }
+                }
+
+            outputStream = new FileOutputStream(file);
+
+            /**Compress image**/
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+            values.put(MediaStore.Images.Media.TITLE, imgTitle);
+            values.put(MediaStore.Images.Media.DESCRIPTION, description);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
+
+            context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -13,7 +13,6 @@ import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -42,6 +41,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener,
         LoaderManager.LoaderCallbacks<Cursor> {
@@ -417,9 +417,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public String savePhoto(Photo photo) {
-        return MediaStore.Images.Media.insertImage(getActivity().getContentResolver(),
-                ImageLoader.getInstance().loadImageSync(photo.getImageUrl()), photo.getTitle(),
-                photo.getDescription());
+        return AndroidUtils.savePicture(getActivity(),
+                ImageLoader.getInstance().loadImageSync(photo.getImageUrl()), photo.getName(),
+                photo.getTitle(), photo.getDescription());
     }
 
     public void setAsWallpaper(Photo photo) {
