@@ -24,12 +24,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Scroller;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -120,6 +122,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
         mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
+        changePagerScroller();
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, true));
         return rootView;
@@ -372,6 +375,30 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         } else {
             slideShowTimer = null;
             activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    private void changePagerScroller() {
+        try {
+            Field mScroller;
+            mScroller = ViewPager.class.getDeclaredField("mScroller");
+            mScroller.setAccessible(true);
+            mScroller.set(mViewPager, new Scroller(getActivity()) {
+                private int mScrollDuration = 600;// Thanks Jerry!
+
+                @Override
+                public void startScroll(int startX, int startY, int dx, int dy, int duration) {
+                    super.startScroll(startX, startY, dx, dy, mScrollDuration);
+                }
+
+                @Override
+                public void startScroll(int startX, int startY, int dx, int dy) {
+                    super.startScroll(startX, startY, dx, dy, mScrollDuration);
+                }
+
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
