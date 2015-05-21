@@ -100,12 +100,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
     }
 
-    @Override
-    protected void showAddAccountDialog() {
-        AddEditAccountFragment dialog = AddEditAccountFragment.newInstance();
-        dialog.show(getFragmentManager(), "accountAddDialog");
-    }
-
     private void showEditAccountDialog(int accountType, String id, String name) {
         AddEditAccountFragment dialog = AddEditAccountFragment.newInstance(accountType, id, name);
         dialog.show(getFragmentManager(), "accountEditDialog");

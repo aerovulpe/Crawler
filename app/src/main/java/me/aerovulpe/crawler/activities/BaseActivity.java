@@ -62,7 +62,7 @@ public class BaseActivity extends ActionBarActivity {
      * Shows the dialog for adding a new account.
      */
     protected void showAddAccountDialog() {
-        AddEditAccountFragment dialog = new AddEditAccountFragment();
+        AddEditAccountFragment dialog = AddEditAccountFragment.newInstance();
         dialog.show(getFragmentManager(), "accountAddDialog");
     }
 
