@@ -36,7 +36,6 @@ import android.widget.TextView;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.util.AccountsUtil;
 import me.aerovulpe.crawler.util.NetworkUtil;
 
@@ -168,35 +167,31 @@ public class AddEditAccountFragment extends DialogFragment {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ContentValues values = new ContentValues();
-                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
-                                            finalName);
-                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
-                                            System.currentTimeMillis());
                                     Activity activity = getActivity();
                                     if (activity != null) {
                                         ContentResolver contentResolver = activity
                                                 .getContentResolver();
+                                        ContentValues values = new ContentValues();
                                         if (mFragmentType == EDIT_ACCOUNT) {
-                                            contentResolver.delete(CrawlerContract.AccountEntry
-                                                            .CONTENT_URI, CrawlerContract
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+                                                    finalName);
+                                            contentResolver.update(CrawlerContract.AccountEntry
+                                                            .CONTENT_URI, values, CrawlerContract
                                                             .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
                                                     new String[]{mID});
-                                            Request.removeAlbumRequestData(activity, mID);
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
-                                                    mID);
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
-                                                    mAccountType);
                                         } else {
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+                                                    finalName);
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
+                                                    System.currentTimeMillis());
                                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
                                                     finalId);
                                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
                                                     type);
+                                            contentResolver
+                                                    .insert(CrawlerContract.AccountEntry.CONTENT_URI,
+                                                            values);
                                         }
-
-                                        contentResolver
-                                                .insert(CrawlerContract.AccountEntry.CONTENT_URI,
-                                                        values);
                                     }
                                 }
                             }).start();

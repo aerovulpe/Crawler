@@ -55,7 +55,8 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the account column as a foreign key to the accounts table.
                 " FOREIGN KEY (" + AlbumEntry.COLUMN_ACCOUNT_KEY + ") REFERENCES " +
-                AccountEntry.TABLE_NAME + " (" + AccountEntry.COLUMN_ACCOUNT_ID + ") ON DELETE CASCADE, " +
+                AccountEntry.TABLE_NAME + " (" + AccountEntry.COLUMN_ACCOUNT_ID + ") " +
+                "ON UPDATE CASCADE ON DELETE CASCADE, " +
 
                 // To assure the application has just one album entry per album id
                 // it's created a UNIQUE constraint with IGNORE strategy
@@ -77,7 +78,8 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the album column as a foreign key to the albums table.
                 " FOREIGN KEY (" + PhotoEntry.COLUMN_ALBUM_KEY + ") REFERENCES " +
-                AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + ") ON DELETE CASCADE, " +
+                AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + ") " +
+                "ON UPDATE CASCADE ON DELETE CASCADE, " +
 
                 // To assure the application has just one photo entry per unique id
                 // per album, it's created a UNIQUE constraint with IGNORE strategy
@@ -102,7 +104,8 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the category column as a foreign key to the categories table.
                 " FOREIGN KEY (" + ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY + ") REFERENCES " +
-                CategoryEntry.TABLE_NAME + " (" + CategoryEntry.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE, " +
+                CategoryEntry.TABLE_NAME + " (" + CategoryEntry.COLUMN_CATEGORY_ID + ") " +
+                "ON UPDATE CASCADE ON DELETE CASCADE, " +
 
                 // To assure the application has just one account explorer entry per id
                 // per category, it's created a UNIQUE constraint with IGNORE strategy
