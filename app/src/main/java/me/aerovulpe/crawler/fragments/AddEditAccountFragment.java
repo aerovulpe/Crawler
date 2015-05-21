@@ -171,8 +171,6 @@ public class AddEditAccountFragment extends DialogFragment {
                                     ContentValues values = new ContentValues();
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                                             finalName);
-                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
-                                            type);
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
                                             System.currentTimeMillis());
                                     Activity activity = getActivity();
@@ -184,12 +182,17 @@ public class AddEditAccountFragment extends DialogFragment {
                                                             .CONTENT_URI, CrawlerContract
                                                             .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
                                                     new String[]{mID});
-                                            Request.removeAlbumRequestData(getActivity(), mID);
+                                            Request.removeAlbumRequestData(activity, mID);
                                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
                                                     mID);
-                                        } else
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
+                                                    mAccountType);
+                                        } else {
                                             values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
                                                     finalId);
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
+                                                    type);
+                                        }
 
                                         contentResolver
                                                 .insert(CrawlerContract.AccountEntry.CONTENT_URI,
