@@ -49,6 +49,7 @@
     <string name="task_working">Downloading page %1$d</string>
     <string name="num_of_posts">Number of posts: %d</string>
     <string name="title_activity_explorer">Explore</string>
+    <string name="title_activity_settings">Settings</string>
 
     <string-array name="pref_transition_types_text">
         <item>Default</item>
