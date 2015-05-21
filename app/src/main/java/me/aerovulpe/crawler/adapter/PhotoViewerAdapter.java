@@ -108,12 +108,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
             txtPhotoTitle.setText(currentPhoto.getTitle());
             txtAlbumName.setText(mAlbumTitle);
 
-            if (mPhotos.length > (position + 1)) {
-                Photo photo = mPhotos[position + 1];
-                if (photo != null) {
-                    mImageLoader.loadImage(photo.getImageUrl(), null);
-                }
-            }
+            bufferLoad(position, position + 1);
 
             Animation inAnim = AnimationUtils.loadAnimation(mContext,
                     R.anim.slide_in_up);
@@ -158,6 +153,16 @@ public class PhotoViewerAdapter extends PagerAdapter {
         }
     }
 
+    private void bufferLoad(int startPos, int currentPos) {
+        if (currentPos - startPos <= 5 && currentPos < mPhotos.length) {
+            Photo photo = mPhotos[currentPos];
+            if (photo != null) {
+                mImageLoader.loadImage(photo.getImageUrl(), null);
+                bufferLoad(startPos, currentPos + 1);
+            }
+        }
+    }
+
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((View) object);
@@ -171,10 +176,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
     public void swapPhotos(Photo[] newPhotos) {
         mPhotos = newPhotos;
         notifyDataSetChanged();
-    }
-
-    public boolean isShowText() {
-        return mShowText;
     }
 
     public void setShowText(boolean showText) {
