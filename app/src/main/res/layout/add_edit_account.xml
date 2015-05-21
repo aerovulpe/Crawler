@@ -15,7 +15,8 @@
             <TextView
                 style="@style/account_dialog_label"
                 android:layout_column="1"
-                android:text="@string/account_type" />
+                android:text="@string/account_type"
+                android:id="@+id/account_type_title"/>
 
             <Spinner
                 android:id="@+id/account_type"
@@ -27,7 +28,8 @@
             <TextView
                 style="@style/account_dialog_label"
                 android:layout_column="1"
-                android:text="@string/account_id" />
+                android:text="@string/account_id"
+                android:id="@+id/account_id_title"/>
 
             <EditText
                 android:id="@+id/account_id"
@@ -40,7 +42,8 @@
                 style="@style/account_dialog_label"
                 android:layout_column="1"
                 android:text="@string/account_name"
-                android:textStyle="italic" />
+                android:textStyle="italic"
+                android:id="@+id/account_name_title"/>
 
             <EditText
                 android:id="@+id/account_name"

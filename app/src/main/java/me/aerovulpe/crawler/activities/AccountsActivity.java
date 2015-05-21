@@ -102,8 +102,13 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
 
     @Override
     protected void showAddAccountDialog() {
-        AddEditAccountFragment dialog = new AddEditAccountFragment();
+        AddEditAccountFragment dialog = AddEditAccountFragment.newInstance();
         dialog.show(getFragmentManager(), "accountAddDialog");
+    }
+
+    private void showEditAccountDialog(int accountType, String id, String name) {
+        AddEditAccountFragment dialog = AddEditAccountFragment.newInstance(accountType, id, name);
+        dialog.show(getFragmentManager(), "accountEditDialog");
     }
 
     @Override
@@ -173,6 +178,10 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
 
         switch (item.getItemId()) {
             case CONTEXT_MENU_EDIT:
+                if (cursor != null && cursor.moveToPosition(info.position))
+                    showEditAccountDialog(cursor.getInt(COL_ACCOUNT_TYPE),
+                            cursor.getString(COL_ACCOUNT_ID),
+                            cursor.getString(COL_ACCOUNT_NAME));
                 return true;
             case CONTEXT_MENU_DELETE:
                 if (cursor != null && cursor.moveToPosition(info.position))

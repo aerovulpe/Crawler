@@ -15,6 +15,7 @@
 
     <!--  Add/Edit Accounts Dialog -->
     <string name="account_add_title">Add account</string>
+    <string name="account_edit_title">Edit account</string>
     <string name="account_type">Type:</string>
     <string name="account_id">ID:</string>
     <string name="account_name">Name:</string>

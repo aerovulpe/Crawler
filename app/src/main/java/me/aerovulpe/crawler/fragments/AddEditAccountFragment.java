@@ -19,6 +19,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.Bundle;
@@ -30,30 +31,72 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.util.AccountsUtil;
 import me.aerovulpe.crawler.util.NetworkUtil;
 
 
 public class AddEditAccountFragment extends DialogFragment {
+    private static final String ARG_FRAGMENT_TYPE = AddEditAccountFragment.class.getName() + "arg_fragment_type";
+    private static final String ARG_ACCOUNT_TYPE = AddEditAccountFragment.class.getName() + "arg_account_type";
+    private static final String ARG_ID = AddEditAccountFragment.class.getName() + "arg_id";
+    private static final String ARG_NAME = AddEditAccountFragment.class.getName() + "arg_name";
+    public static int ADD_ACCOUNT = 0;
+    public static int EDIT_ACCOUNT = 1;
+
+    private int mFragmentType;
+    private int mAccountType;
+    private String mID;
+    private String mName;
 
     public AddEditAccountFragment() {
         // Required empty public constructor
     }
 
+    public static AddEditAccountFragment newInstance() {
+        Bundle args = new Bundle();
+        args.putInt(ARG_FRAGMENT_TYPE, ADD_ACCOUNT);
+        AddEditAccountFragment fragment = new AddEditAccountFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static AddEditAccountFragment newInstance(int accountType, String id, String name) {
+        Bundle args = new Bundle();
+        args.putInt(ARG_FRAGMENT_TYPE, EDIT_ACCOUNT);
+        args.putInt(ARG_ACCOUNT_TYPE, accountType);
+        args.putString(ARG_ID, id);
+        args.putString(ARG_NAME, name);
+        AddEditAccountFragment fragment = new AddEditAccountFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle args = getArguments();
+        mFragmentType = args.getInt(ARG_FRAGMENT_TYPE);
+        if (mFragmentType == EDIT_ACCOUNT) {
+            mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
+            mID = args.getString(ARG_ID);
+            mName = args.getString(ARG_NAME);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Set dialog title.
-        getDialog().setTitle(R.string.account_add_title);
+        if (mFragmentType == ADD_ACCOUNT)
+            getDialog().setTitle(R.string.account_add_title);
+        else
+            getDialog().setTitle(R.string.account_edit_title);
 
         // Inflate the view we're using for the dialog.
         View view = inflater.inflate(R.layout.add_edit_account, container, false);
@@ -68,7 +111,7 @@ public class AddEditAccountFragment extends DialogFragment {
         spinner.setAdapter(adapter);
 
         // Add listeners to buttons and other UI elements if needed.
-        addListeners(view);
+        prepareViews(view);
 
         return view;
     }
@@ -76,11 +119,30 @@ public class AddEditAccountFragment extends DialogFragment {
     /**
      * Adds the UI listeners to the view.
      */
-    private void addListeners(View view) {
+    private void prepareViews(View view) {
         final Spinner accountType = (Spinner) view.findViewById(R.id.account_type);
         final EditText accountId = (EditText) view.findViewById(R.id.account_id);
         final EditText accountName = (EditText) view
                 .findViewById(R.id.account_name);
+
+        if (mFragmentType == EDIT_ACCOUNT) {
+            ViewGroup accountTypeParent = (ViewGroup) accountType.getParent();
+            int accountTypeIndex = accountTypeParent.indexOfChild(accountType);
+            accountTypeParent.removeView(accountType);
+            TextView accountTypeText = new TextView(getActivity());
+            accountTypeText.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            accountTypeText.setText(new AccountsUtil(getResources()).typeIdToName(mAccountType));
+            accountTypeParent.addView(accountTypeText, accountTypeIndex);
+
+            ViewGroup accountIdParent = (ViewGroup) accountId.getParent();
+            int accountIdIndex = accountIdParent.indexOfChild(accountId);
+            accountIdParent.removeView(accountId);
+            TextView accountIdText = new TextView(getActivity());
+            accountIdText.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            accountIdText.setText(AccountsUtil.userFromUrl(mID, mAccountType));
+            accountIdParent.addView(accountIdText, accountIdIndex);
+            accountName.setText(mName);
+        }
 
         Button okButton = (Button) view.findViewById(R.id.ok);
         okButton.setOnClickListener(new OnClickListener() {
@@ -107,8 +169,6 @@ public class AddEditAccountFragment extends DialogFragment {
                                 @Override
                                 public void run() {
                                     ContentValues values = new ContentValues();
-                                    values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
-                                            finalId);
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                                             finalName);
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
@@ -116,10 +176,25 @@ public class AddEditAccountFragment extends DialogFragment {
                                     values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
                                             System.currentTimeMillis());
                                     Activity activity = getActivity();
-                                    if (activity != null)
-                                        activity.getContentResolver()
+                                    if (activity != null) {
+                                        ContentResolver contentResolver = activity
+                                                .getContentResolver();
+                                        if (mFragmentType == EDIT_ACCOUNT) {
+                                            contentResolver.delete(CrawlerContract.AccountEntry
+                                                            .CONTENT_URI, CrawlerContract
+                                                            .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                                                    new String[]{mID});
+                                            Request.removeAlbumRequestData(getActivity(), mID);
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+                                                    mID);
+                                        } else
+                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+                                                    finalId);
+
+                                        contentResolver
                                                 .insert(CrawlerContract.AccountEntry.CONTENT_URI,
                                                         values);
+                                    }
                                 }
                             }).start();
                             dismiss();

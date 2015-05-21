@@ -52,6 +52,22 @@ public final class AccountsUtil {
         }
     }
 
+    public static String userFromUrl(String url, int type) {
+        switch (type) {
+            case ACCOUNT_TYPE_TUMBLR: {
+                return url.replace("http://", "").replace(TUMBLR_BASE_SUFFIX, "");
+            }
+            case ACCOUNT_TYPE_FLICKR: {
+                return url.replace(FLICKR_BASE, "");
+            }
+            case ACCOUNT_TYPE_PICASA: {
+                return url.replace(PICASA_BASE, "");
+            }
+            default:
+                return null;
+        }
+    }
+
     public String typeIdToName(int typeId) {
         return typeNames[typeId];
     }
