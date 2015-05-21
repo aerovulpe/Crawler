@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.fragments.SettingsFragment;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 /**
  * Created by Aaron on 13/05/2015.
@@ -68,9 +70,14 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
             insertAndClearCache();
         }
         mProviderClient.release();
-        for (ExplorerRequest request : mRequests) {
-            ExplorerRequestManager.getInstance().requestInBackground(request);
-        }
+        boolean connectOn3G = SettingsFragment.downloadOffWifi(mContext);
+        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(mContext);
+        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(mContext);
+
+        if ((isConnectedToWifi || isConnectedToWired) || connectOn3G)
+            for (ExplorerRequest request : mRequests) {
+                ExplorerRequestManager.getInstance().requestInBackground(request);
+            }
     }
 
     private void addCategories(Document document) {

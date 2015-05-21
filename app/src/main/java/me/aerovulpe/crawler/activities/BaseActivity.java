@@ -2,7 +2,8 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import me.aerovulpe.crawler.CrawlerApplication;
@@ -12,7 +13,7 @@ import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 /**
  * Created by Aaron on 28/02/2015.
  */
-public class BaseActivity extends ActionBarActivity {
+public abstract class BaseActivity extends AppCompatActivity {
     private Toolbar mToolbar;
 
     @Override
@@ -38,7 +39,10 @@ public class BaseActivity extends ActionBarActivity {
 
     protected Toolbar activateToolbarWithHome(boolean isOn) {
         activateToolbar();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(isOn);
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayHomeAsUpEnabled(isOn);
+        }
         return mToolbar;
     }
 

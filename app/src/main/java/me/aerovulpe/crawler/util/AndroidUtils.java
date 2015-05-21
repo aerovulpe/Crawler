@@ -52,7 +52,7 @@ public class AndroidUtils {
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         //ConnectivityManager.TYPE_ETHERNET == 9 , but only from API 13
 
-        NetworkInfo ethernet = connectionManager.getNetworkInfo(9);
+        NetworkInfo ethernet = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
 
         return ethernet != null && ethernet.isConnected();
 

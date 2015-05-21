@@ -21,10 +21,12 @@ import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
+import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -85,19 +87,19 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_ALBUMS));
         ((ThumbnailAdapter) mRecyclerView.getAdapter())
                 .setItemClickListener(new ThumbnailAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
-                if (cursor != null && cursor.moveToPosition(position)) {
-                    showPhotos(cursor.getString(COL_ALBUM_NAME),
-                            cursor.getString(COL_ALBUM_ID),
-                            cursor.getString(COL_ALBUM_PHOTO_DATA));
-                }
-            }
-        });
-            AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        Cursor cursor = ((ThumbnailAdapter) mRecyclerView.getAdapter()).getCursor();
+                        if (cursor != null && cursor.moveToPosition(position)) {
+                            showPhotos(cursor.getString(COL_ALBUM_NAME),
+                                    cursor.getString(COL_ALBUM_ID),
+                                    cursor.getString(COL_ALBUM_PHOTO_DATA));
+                        }
+                    }
+                });
+        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
         return rootView;
     }
 
@@ -136,8 +138,34 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
      * Loads the albums for the given user.
      */
     private void doAlbumsRequest() {
-        if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-            new PicasaAlbumsRequest(getActivity()).execute(mAccountID);
+        BaseActivity activity = (BaseActivity) getActivity();
+
+        if (AndroidUtils.isConnectedRoaming(activity)) {
+            activity.showError("Connected to roaming network", "You are currently connected with a " +
+                    "roaming mobile connection. Therefore, we will not download any photos as this " +
+                    "can incur significant costs", false);
+            return;
+        }
+
+        boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
+        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
+        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+
+        if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
+            if (AndroidUtils.isGoogleTV(activity)) {
+                isConnectedToWifi = true;
+            } else {
+                activity.showError("Not connected to WiFi",
+                        "You are currently connected with a mobile non-wifi connection. " +
+                                "In order to download photos, change the relevant setting", false);
+            }
+
+        }
+
+        if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                new PicasaAlbumsRequest(activity).execute(mAccountID);
+            }
         }
     }
 

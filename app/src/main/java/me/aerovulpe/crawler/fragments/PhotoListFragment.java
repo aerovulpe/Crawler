@@ -33,6 +33,7 @@ import java.util.List;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
@@ -41,6 +42,7 @@ import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -266,17 +268,45 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void doPhotosRequest() {
-        Intent intent = new Intent(getActivity(), RequestService.class);
-        intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
-        if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-            intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
-        } else if (mType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-            intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-        } else if (mType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
-            intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
+        BaseActivity activity = (BaseActivity) getActivity();
+
+        if (AndroidUtils.isConnectedRoaming(activity)) {
+            dismissDialog();
+            activity.showError("Connected to roaming network", "You are currently connected with a " +
+                    "roaming mobile connection. Therefore, we will not download any photos as this " +
+                    "can incur significant costs", false);
+            return;
         }
-        getActivity().startService(intent);
-        doBindService();
+
+        boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
+        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
+        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+
+        if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
+            if (AndroidUtils.isGoogleTV(activity)) {
+                isConnectedToWifi = true;
+            } else {
+                dismissDialog();
+                activity.showError("Not connected to WiFi",
+                        "You are currently connected with a mobile non-wifi connection. " +
+                                "In order to download photos, change the relevant setting", false);
+            }
+
+        }
+
+        if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            Intent intent = new Intent(getActivity(), RequestService.class);
+            intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
+            if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
+            } else if (mType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
+            } else if (mType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+                intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
+            }
+            getActivity().startService(intent);
+            doBindService();
+        }
     }
 
     void doBindService() {

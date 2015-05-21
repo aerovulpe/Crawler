@@ -16,10 +16,12 @@ import android.os.RemoteException;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.fragments.SettingsFragment;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 
 /**
@@ -151,40 +153,46 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-        String url = extras.getString(SYNC_URL);
-        if (url == null) {
-            try {
-                Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
-                        new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
-                                AccountsUtil.ACCOUNT_TYPE_TUMBLR, null, null);
-                accountsCursor.moveToPosition(-1);
-                while (accountsCursor.moveToNext()) {
-                    Intent intent = new Intent(getContext(), RequestService.class);
-                    intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
-                    intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-                    getContext().startService(intent);
+        boolean connectOn3G = SettingsFragment.downloadOffWifi(getContext());
+        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
+        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
+
+        if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            String url = extras.getString(SYNC_URL);
+            if (url == null) {
+                try {
+                    Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
+                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
+                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
+                                    AccountsUtil.ACCOUNT_TYPE_TUMBLR, null, null);
+                    accountsCursor.moveToPosition(-1);
+                    while (accountsCursor.moveToNext()) {
+                        Intent intent = new Intent(getContext(), RequestService.class);
+                        intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                        intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
+                        getContext().startService(intent);
+                    }
+                    accountsCursor.close();
+                    accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
+                            new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
+                            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
+                                    AccountsUtil.ACCOUNT_TYPE_FLICKR, null, null);
+                    accountsCursor.moveToPosition(-1);
+                    while (accountsCursor.moveToNext()) {
+                        Intent intent = new Intent(getContext(), RequestService.class);
+                        intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
+                        intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
+                        getContext().startService(intent);
+                    }
+                    accountsCursor.close();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-                accountsCursor.close();
-                accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
-                        new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
-                                AccountsUtil.ACCOUNT_TYPE_FLICKR, null, null);
-                accountsCursor.moveToPosition(-1);
-                while (accountsCursor.moveToNext()) {
-                    Intent intent = new Intent(getContext(), RequestService.class);
-                    intent.putExtra(RequestService.ARG_RAW_URL, accountsCursor.getString(0));
-                    intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
-                    getContext().startService(intent);
-                }
-                accountsCursor.close();
-            } catch (RemoteException e) {
-                e.printStackTrace();
+            } else {
+                Intent intent = new Intent(getContext(), RequestService.class);
+                intent.putExtra(RequestService.ARG_RAW_URL, url);
+                getContext().startService(intent);
             }
-        } else {
-            Intent intent = new Intent(getContext(), RequestService.class);
-            intent.putExtra(RequestService.ARG_RAW_URL, url);
-            getContext().startService(intent);
         }
     }
 }

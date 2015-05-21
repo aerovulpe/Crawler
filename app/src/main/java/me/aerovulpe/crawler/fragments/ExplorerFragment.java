@@ -26,6 +26,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.ExplorerRequest;
 import me.aerovulpe.crawler.request.ExplorerRequestManager;
 import me.aerovulpe.crawler.request.ExplorerRequestObserver;
+import me.aerovulpe.crawler.util.AndroidUtils;
 
 /**
  * Created by Aaron on 07/05/2015.
@@ -150,9 +151,42 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         if (mIsLoading) {
             mProgressDialog = makeProgressDialog();
         }
-        ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
-                mCategory, mAccountType), this);
-        mProgressDialog = makeProgressDialog();
+        doExplorerRequest();
+    }
+
+    private void doExplorerRequest() {
+        ExplorerActivity activity = (ExplorerActivity) getActivity();
+        boolean showDialogs = activity.isExplorerVisible(this);
+
+        if (AndroidUtils.isConnectedRoaming(activity)) {
+            if (showDialogs)
+                activity.showError("Connected to roaming network", "You are currently connected with a " +
+                        "roaming mobile connection. Therefore, we will not download any photos as this " +
+                        "can incur significant costs", false);
+            return;
+        }
+
+        boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
+        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
+        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+
+        if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
+            if (AndroidUtils.isGoogleTV(activity)) {
+                isConnectedToWifi = true;
+            } else {
+                if (showDialogs)
+                    activity.showError("Not connected to WiFi",
+                            "You are currently connected with a mobile non-wifi connection. " +
+                                    "In order to download photos, change the relevant setting", false);
+            }
+
+        }
+
+        if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
+                    mCategory, mAccountType), this);
+            mProgressDialog = makeProgressDialog();
+        }
     }
 
     @Override
@@ -209,9 +243,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         if (mCategory.equals(category)) return;
         getLoaderManager().destroyLoader(mCategory.hashCode());
         mCategory = category;
-        ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
-                mCategory, mAccountType), this);
-        mProgressDialog = makeProgressDialog();
+        doExplorerRequest();
         getLoaderManager().initLoader(mCategory.hashCode(), null, this);
     }
 
