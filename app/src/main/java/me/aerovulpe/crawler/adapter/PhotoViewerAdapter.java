@@ -157,8 +157,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
         if (currentPos - startPos <= 5 && currentPos < mPhotos.length) {
             Photo photo = mPhotos[currentPos];
             if (photo != null) {
-                mImageLoader.loadImage(photo.getImageUrl(), null);
                 bufferLoad(startPos, currentPos + 1);
+                mImageLoader.loadImage(photo.getImageUrl(), null);
             }
         }
     }
