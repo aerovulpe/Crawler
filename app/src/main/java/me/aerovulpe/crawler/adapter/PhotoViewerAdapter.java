@@ -81,7 +81,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
         Photo currentPhoto = mPhotos[position];
 
-        if (position % 5 == 0)
+        if (position % 15 == 0)
             bufferLoad(position, position + 1);
 
         if (currentPhoto != null) {
@@ -155,7 +155,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
     }
 
     private void bufferLoad(int startPos, int currentPos) {
-        if (currentPos - startPos <= 5 && currentPos < mPhotos.length) {
+        if (currentPos - startPos <= 15 && currentPos < mPhotos.length) {
             Photo photo = mPhotos[currentPos];
             if (photo != null) {
                 bufferLoad(startPos, currentPos + 1);
