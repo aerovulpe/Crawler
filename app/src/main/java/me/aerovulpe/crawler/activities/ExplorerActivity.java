@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -120,8 +121,8 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 

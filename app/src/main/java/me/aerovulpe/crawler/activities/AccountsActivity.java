@@ -42,7 +42,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     private static final int MENU_ADD_ACCOUNT = 0;
     private static final int MENU_EXPLORE = 1;
     private static final int MENU_PREFERENCES = 2;
-    private static final int MENU_ABOUT = 3;
     // The order of these must match the array "account_actions" in strings.xml.
     private static final int CONTEXT_MENU_EDIT = 0;
     private static final int CONTEXT_MENU_DELETE = 1;
@@ -115,8 +114,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menu.add(0, MENU_PREFERENCES, 2, R.string.action_settings).setIcon(
                 android.R.drawable.ic_menu_manage);
-        menu.add(0, MENU_ABOUT, 3, R.string.about).setIcon(
-                android.R.drawable.ic_menu_info_details);
         return true;
     }
 

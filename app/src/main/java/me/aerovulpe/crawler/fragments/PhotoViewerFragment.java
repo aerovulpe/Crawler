@@ -408,6 +408,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 backupShareIntent.setType("text/plain");
                 String backupSharedText = photo.getImageUrl() + "\n\n" + sharedText;
                 backupShareIntent.putExtra(Intent.EXTRA_TEXT, backupSharedText);
+                backupShareIntent.putExtra(Intent.EXTRA_SUBJECT, photo.getTitle());
                 startActivity(backupShareIntent);
             } else {
                 startActivity(shareIntent);
