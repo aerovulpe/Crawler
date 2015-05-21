@@ -33,6 +33,7 @@ import me.aerovulpe.crawler.ui.TouchImageView;
 public class PhotoViewerAdapter extends PagerAdapter {
 
     private static final String LOG_PREFIX = PhotoViewerAdapter.class.getSimpleName();
+    public static final int LOAD_BUFFER_SIZE = 30;
     private final ImageLoader mImageLoader;
     DisplayImageOptions mOptions;
     private Context mContext;
@@ -81,7 +82,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
         Photo currentPhoto = mPhotos[position];
 
-        if (position % 15 == 0)
+        if (position % LOAD_BUFFER_SIZE == 0)
             bufferLoad(position, position + 1);
 
         if (currentPhoto != null) {
@@ -155,7 +156,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
     }
 
     private void bufferLoad(int startPos, int currentPos) {
-        if (currentPos - startPos <= 15 && currentPos < mPhotos.length) {
+        if (currentPos - startPos <= LOAD_BUFFER_SIZE && currentPos < mPhotos.length) {
             Photo photo = mPhotos[currentPos];
             if (photo != null) {
                 bufferLoad(startPos, currentPos + 1);
