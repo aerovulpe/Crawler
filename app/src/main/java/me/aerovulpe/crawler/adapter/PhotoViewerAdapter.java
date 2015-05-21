@@ -81,6 +81,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
         Photo currentPhoto = mPhotos[position];
 
+        bufferLoad(position, position + 1);
+
         if (currentPhoto != null) {
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                     new ImageLoadingListener() {
@@ -107,8 +109,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
                     });
             txtPhotoTitle.setText(currentPhoto.getTitle());
             txtAlbumName.setText(mAlbumTitle);
-
-            bufferLoad(position, position + 1);
 
             Animation inAnim = AnimationUtils.loadAnimation(mContext,
                     R.anim.slide_in_up);
