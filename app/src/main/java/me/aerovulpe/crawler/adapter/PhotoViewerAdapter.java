@@ -81,7 +81,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
         Photo currentPhoto = mPhotos[position];
 
-        bufferLoad(position, position + 1);
+        if (position % 5 == 0)
+            bufferLoad(position, position + 1);
 
         if (currentPhoto != null) {
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
