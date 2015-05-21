@@ -24,6 +24,12 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
     }
 
     @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
+    }
+
+    @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String SQL_CREATE_ACCOUNTS_TABLE = "CREATE TABLE " + AccountEntry.TABLE_NAME + " (" +
                 AccountEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -35,8 +41,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // To assure the application has just one account entry per id
                 // per type, it's created a UNIQUE constraint with REPLACE strategy
-                "UNIQUE (" + AccountEntry.COLUMN_ACCOUNT_ID + ", " +
-                AccountEntry.COLUMN_ACCOUNT_TYPE + ") ON CONFLICT REPLACE);";
+                "UNIQUE (" + AccountEntry.COLUMN_ACCOUNT_ID +") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_ALBUMS_TABLE = "CREATE TABLE " + AlbumEntry.TABLE_NAME + " (" +
                 AlbumEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -50,13 +55,11 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the account column as a foreign key to the accounts table.
                 " FOREIGN KEY (" + AlbumEntry.COLUMN_ACCOUNT_KEY + ") REFERENCES " +
-                AccountEntry.TABLE_NAME + " (" + AccountEntry.COLUMN_ACCOUNT_ID + "), " +
+                AccountEntry.TABLE_NAME + " (" + AccountEntry.COLUMN_ACCOUNT_ID + ") ON DELETE CASCADE, " +
 
-                // To assure the application has just one album entry per name
-                // per account per data, it's created a UNIQUE constraint with IGNORE strategy
-                "UNIQUE (" + AlbumEntry.COLUMN_ALBUM_NAME + ", " +
-                AlbumEntry.COLUMN_ACCOUNT_KEY + ", " + AlbumEntry.COLUMN_ALBUM_PHOTO_DATA +
-                ") ON CONFLICT IGNORE);";
+                // To assure the application has just one album entry per album id
+                // it's created a UNIQUE constraint with IGNORE strategy
+                "UNIQUE (" + AlbumEntry.COLUMN_ALBUM_ID + ") ON CONFLICT IGNORE);";
 
         final String SQL_CREATE_ALBUM_INDEX = "CREATE INDEX " + AlbumEntry.TABLE_NAME + "_index"
                 + " on " + AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + ");";
@@ -74,7 +77,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the album column as a foreign key to the albums table.
                 " FOREIGN KEY (" + PhotoEntry.COLUMN_ALBUM_KEY + ") REFERENCES " +
-                AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + "), " +
+                AlbumEntry.TABLE_NAME + " (" + AlbumEntry.COLUMN_ALBUM_ID + ") ON DELETE CASCADE, " +
 
                 // To assure the application has just one photo entry per unique id
                 // per album, it's created a UNIQUE constraint with IGNORE strategy
@@ -99,7 +102,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // Set up the category column as a foreign key to the categories table.
                 " FOREIGN KEY (" + ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY + ") REFERENCES " +
-                CategoryEntry.TABLE_NAME + " (" + CategoryEntry.COLUMN_CATEGORY_ID + "), " +
+                CategoryEntry.TABLE_NAME + " (" + CategoryEntry.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE, " +
 
                 // To assure the application has just one account explorer entry per id
                 // per category, it's created a UNIQUE constraint with IGNORE strategy
@@ -114,8 +117,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // To assure the application has just one category entry
                 // per type, it's created a UNIQUE constraint with IGNORE strategy
-                "UNIQUE (" + CategoryEntry.COLUMN_CATEGORY_ID + ", " +
-                CategoryEntry.COLUMN_ACCOUNT_TYPE + ") ON CONFLICT IGNORE);";
+                "UNIQUE (" + CategoryEntry.COLUMN_CATEGORY_ID + ") ON CONFLICT IGNORE);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);

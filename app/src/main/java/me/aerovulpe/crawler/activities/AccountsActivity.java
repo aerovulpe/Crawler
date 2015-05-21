@@ -29,6 +29,7 @@ import me.aerovulpe.crawler.adapter.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.request.CategoriesRequest;
+import me.aerovulpe.crawler.request.Request;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -191,6 +192,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
                         CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
                                 accountID + "'", null);
+                Request.removeAlbumRequestData(AccountsActivity.this, accountID);
             }
         });
         builder.create().show();

@@ -44,7 +44,7 @@ public abstract class Request implements Runnable {
     private static final String NUM_OF_PHOTOS_SUFFIX = ".NUM_OF_PHOTOS";
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";
     private static final String LOG_TAG = Request.class.getSimpleName();
-    protected int CACHE_SIZE = 3000;
+    private int mCacheSize = 3000;
     private final String mAlbumID;
     private final RequestService mRequestService;
     private final ContentProviderClient mProvider;
@@ -60,10 +60,11 @@ public abstract class Request implements Runnable {
     private BroadcastReceiver mReceiver;
     private String mAlbumName;
     private boolean mLastDownloadSuccessful;
+    private volatile boolean mSaveValues = true;
 
     public Request(RequestService requestService, String albumId) {
         mRequestService = requestService;
-        mContentCache = new Vector<>(CACHE_SIZE);
+        mContentCache = new Vector<>(mCacheSize);
         mAlbumID = albumId;
         mProvider = requestService.getContentResolver()
                 .acquireContentProviderClient(CrawlerContract.PhotoEntry
@@ -99,6 +100,16 @@ public abstract class Request implements Runnable {
         mRequestService.registerReceiver(mReceiver, new IntentFilter(mAlbumID + ".SHOW"));
     }
 
+    public static void removeAlbumRequestData(Context context, String albumID) {
+        context.getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE)
+                .edit()
+                .remove(albumID)
+                .remove(albumID + LAST_PHOTO_ID_SUFFIX)
+                .remove(albumID + NUM_OF_PHOTOS_SUFFIX)
+                .remove(albumID + INITIAL_PAGE_SUFFIX)
+                .apply();
+    }
+
     protected void onCancel() {
         Log.d(LOG_TAG, "onCancel");
         onFinished(false, false);
@@ -118,20 +129,23 @@ public abstract class Request implements Runnable {
             }
             mContentCache.clear();
         }
-        SharedPreferences.Editor editor = mRequestService
-                .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
 
-        // Download wasn't successful
-        if (!result[0] || !result[1]) {
-            editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, mCurrentPage - 1);
-            editor.putBoolean(mAlbumID, false);
-        } else {
-            // Was successful! Reset the initial page.
-            Log.d(LOG_TAG, "Reset initial page");
-            editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, 1);
-            editor.putBoolean(mAlbumID, true);
+        if (mSaveValues) {
+            SharedPreferences.Editor editor = mRequestService
+                    .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit();
+
+            // Download wasn't successful
+            if (!result[0] || !result[1]) {
+                editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, mCurrentPage - 1);
+                editor.putBoolean(mAlbumID, false);
+            } else {
+                // Was successful! Reset the initial page.
+                Log.d(LOG_TAG, "Reset initial page");
+                editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, 1);
+                editor.putBoolean(mAlbumID, true);
+            }
+            editor.apply();
         }
-        editor.apply();
 
         try {
             mProvider.release();
@@ -208,7 +222,7 @@ public abstract class Request implements Runnable {
 
     protected void addValues(ContentValues values) {
         mContentCache.add(values);
-        if (mContentCache.size() >= CACHE_SIZE) {
+        if (mContentCache.size() >= mCacheSize) {
             insertAndClearCache();
         }
     }
@@ -348,5 +362,11 @@ public abstract class Request implements Runnable {
         return wasNotUpdated;
     }
 
+    public void setSaveValues(boolean saveValues) {
+        mSaveValues = saveValues;
+    }
 
+    public void setCacheSize(int cacheSize) {
+        mCacheSize = cacheSize;
+    }
 }

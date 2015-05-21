@@ -28,7 +28,7 @@ public class TumblrRequest extends Request {
 
     public TumblrRequest(RequestService requestService, String albumId) {
         super(requestService, albumId);
-        CACHE_SIZE = 500;
+        setCacheSize(500);
     }
 
     @Override
