@@ -94,6 +94,7 @@ public abstract class Request implements Runnable {
                     mShowNotification = !SettingsFragment.disableNotifications(mRequestService);
                 } else if ((mAlbumID + ".NOT_SHOW").equals(intent.getAction())) {
                     mShowNotification = false;
+                    mNotifyManager.cancel(mAlbumID.hashCode());
                 }
             }
         };

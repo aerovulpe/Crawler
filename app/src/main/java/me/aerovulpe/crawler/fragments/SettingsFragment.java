@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
@@ -39,6 +40,7 @@ import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
+import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.util.AndroidUtils;
 
 /**
@@ -70,7 +72,7 @@ public class SettingsFragment extends PreferenceFragment {
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         EditTextPreference slideshowIntervalPref = (EditTextPreference) findPreference(SLIDESHOW_INTERVAL_KEY);
         slideshowIntervalPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -112,6 +114,18 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
         SwitchPreference disableNotificationsPref = (SwitchPreference) findPreference(DISABLE_NOTIFICATIONS_KEY);
+        disableNotificationsPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if ((Boolean) newValue) {
+                    Activity activity = getActivity();
+                    Intent intent = new Intent(activity, RequestService.class);
+                    intent.setAction(RequestService.ACTION_CLEAR_ALL_NOTIFICATIONS);
+                    activity.startService(intent);
+                }
+                return true;
+            }
+        });
         SwitchPreference downloadOffWifiPref = (SwitchPreference) findPreference(DOWNLOAD_OFF_WIFI_KEY);
         downloadOffWifiPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override

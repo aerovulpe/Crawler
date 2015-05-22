@@ -1,7 +1,5 @@
 package me.aerovulpe.crawler.request;
 
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -13,9 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.activities.AccountsActivity;
-
 /**
  * Created by Aaron on 14/04/2015.
  */
@@ -24,6 +19,8 @@ public class RequestService extends Service {
     public static final String ARG_REQUEST_TYPE = "me.aerovulpe.crawler.REQUEST_SERVICE.REQUEST_TYPE";
     public static final String ACTION_NOTIFY_PROGRESS =
             "me.aerovulpe.crawler.REQUEST_SERVICE.NOTIFY_PROGRESS";
+    public static final String ACTION_CLEAR_ALL_NOTIFICATIONS =
+            "me.aerovulpe.crawler.REQUEST_SERVICE.CLEAR_ALL_NOTIFICATIONS";
     private static final String LOG_TAG = RequestService.class.getSimpleName();
     private static final int KEEP_ALIVE_TIME = 5;
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
@@ -51,21 +48,25 @@ public class RequestService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String rawUrl = intent.getStringExtra(ARG_RAW_URL);
-            if (!mRequestRegistry.contains(rawUrl)) {
-                String requestExtra = intent.getStringExtra(ARG_REQUEST_TYPE);
-                if (TumblrRequest.class.getName()
-                        .equals(requestExtra))
-                    mLastRequest = new TumblrRequest(this, rawUrl);
-                else if (FlickrRequest.class.getName()
-                        .equals(requestExtra))
-                    mLastRequest = new FlickrRequest(this, rawUrl);
-                else if (PicasaPhotosRequest.class.getName()
-                        .equals(requestExtra))
-                    mLastRequest = new PicasaPhotosRequest(this, rawUrl);
-                mRequestThreadPool.execute(mLastRequest);
-                mRequestRegistry.add(rawUrl);
-                Log.d(LOG_TAG, "Request added: " + rawUrl);
+            if (rawUrl != null) {
+                if (!mRequestRegistry.contains(rawUrl)) {
+                    String requestExtra = intent.getStringExtra(ARG_REQUEST_TYPE);
+                    if (TumblrRequest.class.getName()
+                            .equals(requestExtra))
+                        mLastRequest = new TumblrRequest(this, rawUrl);
+                    else if (FlickrRequest.class.getName()
+                            .equals(requestExtra))
+                        mLastRequest = new FlickrRequest(this, rawUrl);
+                    else if (PicasaPhotosRequest.class.getName()
+                            .equals(requestExtra))
+                        mLastRequest = new PicasaPhotosRequest(this, rawUrl);
+                    mRequestThreadPool.execute(mLastRequest);
+                    mRequestRegistry.add(rawUrl);
+                    Log.d(LOG_TAG, "Request added: " + rawUrl);
+                }
             }
+            if (ACTION_CLEAR_ALL_NOTIFICATIONS.equals(intent.getAction()))
+                clearAllNotifications();
         }
         return START_REDELIVER_INTENT;
     }
@@ -93,18 +94,10 @@ public class RequestService extends Service {
             stopSelf();
     }
 
-    public synchronized void startForeground() {
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Loading photos")
-                .setContentText("Download in progress...")
-                .setContentIntent(PendingIntent.getActivity(
-                        this,
-                        0,
-                        new Intent(this, AccountsActivity.class),
-                        0))
-                .setPriority(Notification.PRIORITY_HIGH);
-        startForeground(123742, builder.build());
+    private void clearAllNotifications() {
+        for (String albumId : mRequestRegistry) {
+            sendBroadcast(new Intent(albumId + ".NOT_SHOW"));
+        }
     }
 
     /**

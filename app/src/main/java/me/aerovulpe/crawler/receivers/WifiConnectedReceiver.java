@@ -16,7 +16,8 @@ public class WifiConnectedReceiver extends BroadcastReceiver {
         final String action = intent.getAction();
         if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
             if (intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false)) {
-                ImageLoader.getInstance().denyNetworkDownloads(false);
+                if (ImageLoader.getInstance().isInited())
+                    ImageLoader.getInstance().denyNetworkDownloads(false);
             }
         }
     }
