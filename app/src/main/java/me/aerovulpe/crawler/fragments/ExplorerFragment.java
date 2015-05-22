@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import java.lang.ref.WeakReference;
 
 import me.aerovulpe.crawler.CrawlerApplication;
@@ -163,6 +165,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 activity.showError("Connected to roaming network", "You are currently connected with a " +
                         "roaming mobile connection. Therefore, we will not download any photos as this " +
                         "can incur significant costs", false);
+            ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
 
@@ -178,11 +181,13 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                     activity.showError("Not connected to WiFi",
                             "You are currently connected with a mobile non-wifi connection. " +
                                     "In order to download photos, change the relevant setting", false);
+                ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 
         }
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            ImageLoader.getInstance().denyNetworkDownloads(false);
             ExplorerRequestManager.getInstance().request(new ExplorerRequest(getActivity(),
                     mCategory, mAccountType), this);
             mProgressDialog = makeProgressDialog();

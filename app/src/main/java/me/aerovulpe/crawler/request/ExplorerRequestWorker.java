@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.request;
 
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
+import android.database.SQLException;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -61,6 +62,20 @@ public class ExplorerRequestWorker implements Runnable {
             }
         });
         Log.d(LOG_TAG, "Requesting: " + mRequest.getAccountType() + ":" + mRequest.getCategory());
+
+        ContentValues categoryStubValues = new ContentValues();
+        categoryStubValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
+                mRequest.getAccountType());
+        categoryStubValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
+                mRequest.getCategory());
+        try {
+            mProvider.insert(CrawlerContract.CategoryEntry.CONTENT_URI, categoryStubValues);
+        } catch (SQLException e) {
+            Log.d(LOG_TAG, "Category exists");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
         List<String> urls = new ArrayList<>();
         if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
             String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mRequest.getCategory();

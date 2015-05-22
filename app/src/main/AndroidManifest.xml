@@ -38,8 +38,9 @@
             android:label="@string/app_name"
             android:parentActivityName=".activities.AccountsActivity">
         </activity>
-        <activity android:name=".activities.SettingsActivity"
-                  android:label="@string/title_activity_settings"/>
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:label="@string/title_activity_settings"/>
 
         <!--Include the AdActivity configChanges and theme. -->
         <activity
@@ -87,6 +88,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="me.aerovulpe.crawler.activities.AccountsActivity"/>
         </activity>
+
+        <receiver android:name=".receivers.WifiConnectedReceiver">
+            <intent-filter>
+                <action android:name="android.net.wifi.supplicant.CONNECTION_CHANGE">
+                </action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

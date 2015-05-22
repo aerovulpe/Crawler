@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.melnykov.fab.FloatingActionButton;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.List;
 
@@ -275,6 +276,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             activity.showError("Connected to roaming network", "You are currently connected with a " +
                     "roaming mobile connection. Therefore, we will not download any photos as this " +
                     "can incur significant costs", false);
+            ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
 
@@ -290,11 +292,13 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 activity.showError("Not connected to WiFi",
                         "You are currently connected with a mobile non-wifi connection. " +
                                 "In order to download photos, change the relevant setting", false);
+                ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 
         }
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            ImageLoader.getInstance().denyNetworkDownloads(false);
             Intent intent = new Intent(getActivity(), RequestService.class);
             intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
             if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA) {

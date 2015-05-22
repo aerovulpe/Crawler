@@ -1,5 +1,6 @@
 package me.aerovulpe.crawler.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
+import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.util.AndroidUtils;
 
 /**
@@ -111,6 +113,26 @@ public class SettingsFragment extends PreferenceFragment {
         });
         SwitchPreference disableNotificationsPref = (SwitchPreference) findPreference(DISABLE_NOTIFICATIONS_KEY);
         SwitchPreference downloadOffWifiPref = (SwitchPreference) findPreference(DOWNLOAD_OFF_WIFI_KEY);
+        downloadOffWifiPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if (!((Boolean) newValue)) {
+                    Activity activity = getActivity();
+                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
+                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+
+                    if (!isConnectedToWifi && !isConnectedToWired) {
+                        if (!AndroidUtils.isGoogleTV(activity)) {
+                            ImageLoader.getInstance().denyNetworkDownloads(true);
+                        }
+                    }
+                } else {
+                    new CategoriesRequest(getActivity()).execute();
+                    ImageLoader.getInstance().denyNetworkDownloads(false);
+                }
+                return true;
+            }
+        });
         EditTextPreference cacheSizePref = (EditTextPreference) findPreference(CACHE_SIZE_KEY);
         cacheSizePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -164,9 +186,9 @@ public class SettingsFragment extends PreferenceFragment {
         otherCategory.addPreference(aboutPref);
 
         //hide this option from non-phone devices such as GoogleTV
-        if (!AndroidUtils.hasTelephony(getActivity())) {
-            otherCategory.removePreference(downloadOffWifiPref);
-        }
+//        if (!AndroidUtils.hasTelephony(getActivity())) {
+//            otherCategory.removePreference(downloadOffWifiPref);
+//        }
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 

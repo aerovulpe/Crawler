@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
@@ -144,6 +145,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             activity.showError("Connected to roaming network", "You are currently connected with a " +
                     "roaming mobile connection. Therefore, we will not download any photos as this " +
                     "can incur significant costs", false);
+            ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
 
@@ -158,11 +160,13 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                 activity.showError("Not connected to WiFi",
                         "You are currently connected with a mobile non-wifi connection. " +
                                 "In order to download photos, change the relevant setting", false);
+                ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 
         }
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
+            ImageLoader.getInstance().denyNetworkDownloads(false);
             if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
                 new PicasaAlbumsRequest(activity).execute(mAccountID);
             }
