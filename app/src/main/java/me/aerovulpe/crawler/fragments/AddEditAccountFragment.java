@@ -27,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -118,13 +119,21 @@ public class AddEditAccountFragment extends DialogFragment {
     /**
      * Adds the UI listeners to the view.
      */
-    private void prepareViews(View view) {
+    private void prepareViews(final View view) {
         final Spinner accountType = (Spinner) view.findViewById(R.id.account_type);
         final EditText accountId = (EditText) view.findViewById(R.id.account_id);
         final EditText accountName = (EditText) view
                 .findViewById(R.id.account_name);
 
         if (mFragmentType == EDIT_ACCOUNT) {
+            TextView idText = (TextView) view.findViewById(R.id.account_id_title);
+            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR)
+                idText.setText("Blog Name");
+            else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR)
+                idText.setText("Username");
+            else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+                idText.setText("User ID");
+
             ViewGroup accountTypeParent = (ViewGroup) accountType.getParent();
             int accountTypeIndex = accountTypeParent.indexOfChild(accountType);
             accountTypeParent.removeView(accountType);
@@ -143,6 +152,24 @@ public class AddEditAccountFragment extends DialogFragment {
             accountName.setText(mName);
         }
 
+        accountType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                TextView idText = (TextView) view.findViewById(R.id.account_id_title);
+                if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                    idText.setText("Blog Name");
+                } else if (position == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+                    idText.setText("Username");
+                } else if (position == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                    idText.setText("User ID");
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         Button okButton = (Button) view.findViewById(R.id.ok);
         okButton.setOnClickListener(new OnClickListener() {
             @Override
