@@ -18,13 +18,16 @@ package me.aerovulpe.crawler;
 
 import android.app.Application;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
 import java.util.Random;
@@ -74,6 +77,7 @@ public class CrawlerApplication extends Application {
         ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
         config.threadPoolSize(5);
         config.denyCacheImageMultipleSizesInMemory();
+        config.memoryCache(new WeakMemoryCache());
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         Log.d("CACHE", "Current cache size in bytes: " + cacheSize);
         config.diskCacheSize(cacheSize);
@@ -84,6 +88,8 @@ public class CrawlerApplication extends Application {
                 .showImageForEmptyUri(R.drawable.ic_empty)
                 .showImageOnFail(R.drawable.load_failed)
                 .cacheOnDisk(true)
+                .bitmapConfig(Bitmap.Config.RGB_565)
+                .imageScaleType(ImageScaleType.EXACTLY)
                 .considerExifParams(true)
                 .build();
         config.defaultDisplayImageOptions(options);
