@@ -18,5 +18,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         crawler:adSize="BANNER"
-        crawler:adUnitId="@string/banner_ad_unit_id"/>
+        crawler:adUnitId="@string/album_fragment_banner_ad_unit_id"/>
 </FrameLayout>

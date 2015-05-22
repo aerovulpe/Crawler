@@ -15,6 +15,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import com.astuetz.PagerSlidingTabStrip;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.ExplorerTabAdapter;
@@ -79,9 +81,9 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
         getLoaderManager().initLoader(CATEGORIES_LOADER, null, this);
 
-//        AdView mAdView = (AdView) findViewById(R.id.adView);
-//        AdRequest adRequest = new AdRequest.Builder().build();
-//        mAdView.loadAd(adRequest);
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     @Override

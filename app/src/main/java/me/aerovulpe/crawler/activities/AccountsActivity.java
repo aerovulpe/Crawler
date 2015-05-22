@@ -89,7 +89,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             mAdView.loadAd(adRequest);
         }
         mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        mInterstitialAd.setAdUnitId(getString(R.string.explorer_interstitial_ad_unit_id));
         requestNewInterstitial();
     }
 

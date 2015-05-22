@@ -87,5 +87,9 @@
         <item>ZOOM_OUT_SLIDE</item>
         <item>ZOOM_OUT</item>
     </string-array>
-    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="accounts_activity_banner_ad_unit_id">ca-app-pub-6288560652024835/3318177502</string>
+    <string name="album_fragment_banner_ad_unit_id">ca-app-pub-6288560652024835/7748377104</string>
+    <string name="explorer_banner_ad_unit_id">ca-app-pub-6288560652024835/3178576709</string>
+    <string name="explorer_interstitial_ad_unit_id">ca-app-pub-6288560652024835/6132043101</string>
+    <string name="photoList_banner_ad_unit_id">ca-app-pub-6288560652024835/9225110304</string>
 </resources>
