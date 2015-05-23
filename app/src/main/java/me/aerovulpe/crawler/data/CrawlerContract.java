@@ -38,6 +38,9 @@ public class CrawlerContract {
         public static final String COLUMN_ACCOUNT_NAME = "account_name";
         public static final String COLUMN_ACCOUNT_TYPE = "account_type";
         public static final String COLUMN_ACCOUNT_TIME = "account_time";
+        public static final String COLUMN_ACCOUNT_PREVIEW_URL = "account_preview_url";
+        public static final String COLUMN_ACCOUNT_DESCRIPTION = "account_description";
+        public static final String COLUMN_ACCOUNT_NUM_OF_POSTS = "account_num_of_posts";
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACCOUNTS).build();

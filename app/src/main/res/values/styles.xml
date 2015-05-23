@@ -41,7 +41,7 @@
     </style>
 
     <style name="account_dialog_label" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColor">@color/md_grey_700</item>
         <item name="android:textSize">18sp</item>
         <item name="android:gravity">right</item>
         <item name="android:padding">4dp</item>

@@ -17,6 +17,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.RequestInfo;
 
 /**
  * Created by Aaron on 14/05/2015.
@@ -121,6 +122,7 @@ public class ExplorerDetailFragment extends DialogFragment {
                             activity.getContentResolver()
                                     .insert(CrawlerContract.AccountEntry.CONTENT_URI,
                                             values);
+                        new RequestInfo(getActivity()).execute(mType, mId);
                     }
                 }).start();
                 dismiss();

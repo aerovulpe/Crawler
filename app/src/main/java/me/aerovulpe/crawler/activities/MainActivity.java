@@ -47,12 +47,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public static final int COL_ACCOUNT_TYPE = 3;
     private static final int ACCOUNTS_LOADER = 2;
     private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
-    private static String[] ACCOUNTS_COLUMNS = {
-            CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
-            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
-            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
-            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE
-    };
     private FragmentManager mManager;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -316,7 +310,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String sortOrder = CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME + " ASC";
-        return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI, ACCOUNTS_COLUMNS, null,
+        return new CursorLoader(this, CrawlerContract.AccountEntry.CONTENT_URI,
+                AccountsActivity.ACCOUNTS_COLUMNS, null,
                 null, sortOrder);
     }
 

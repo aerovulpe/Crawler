@@ -37,6 +37,7 @@ import android.widget.TextView;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.RequestInfo;
 import me.aerovulpe.crawler.util.AccountsUtil;
 import me.aerovulpe.crawler.util.NetworkUtil;
 
@@ -126,6 +127,7 @@ public class AddEditAccountFragment extends DialogFragment {
                 .findViewById(R.id.account_name);
 
         if (mFragmentType == EDIT_ACCOUNT) {
+            ((ViewGroup) accountName.getParent()).setVisibility(View.VISIBLE);
             TextView idText = (TextView) view.findViewById(R.id.account_id_title);
             if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR)
                 idText.setText("Blog Name");
@@ -177,8 +179,14 @@ public class AddEditAccountFragment extends DialogFragment {
                 final int type = accountType.getSelectedItemPosition();
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
+                if (mFragmentType == ADD_ACCOUNT && id.isEmpty())
+                    dismiss();
+
                 if (name.isEmpty()) name = id;
-                id = AccountsUtil.urlFromUser(id, type);
+
+                if (mFragmentType == ADD_ACCOUNT)
+                    id = AccountsUtil.urlFromUser(id, type);
+                else id = mID;
 
                 final String finalId = id;
                 final String finalName = name;
@@ -218,6 +226,7 @@ public class AddEditAccountFragment extends DialogFragment {
                                             contentResolver
                                                     .insert(CrawlerContract.AccountEntry.CONTENT_URI,
                                                             values);
+                                            new RequestInfo(getActivity()).execute(type, finalId);
                                         }
                                     }
                                 }
@@ -244,4 +253,5 @@ public class AddEditAccountFragment extends DialogFragment {
         ((BaseActivity) getActivity()).showError("Account Error",
                 "The account you created is invalid. Please check it again.", false);
     }
+
 }

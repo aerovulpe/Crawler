@@ -18,12 +18,17 @@ package me.aerovulpe.crawler.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
@@ -44,11 +49,37 @@ public class AccountsAdapter extends CursorAdapter {
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
+    public void bindView(View view, Context context, final Cursor cursor) {
         final ViewHolder holder = (ViewHolder) view.getTag();
 
-        holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
-                .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+        String previewUrl = cursor.getString(AccountsActivity.COL_ACCOUNT_PREVIEW_URL);
+        if (previewUrl != null && !previewUrl.isEmpty()) {
+            ImageLoader.getInstance().displayImage(previewUrl, holder.mServiceLogo, new ImageLoadingListener() {
+                @Override
+                public void onLoadingStarted(String imageUri, View view) {
+
+                }
+
+                @Override
+                public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                    holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
+                            .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+                }
+
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+
+                }
+
+                @Override
+                public void onLoadingCancelled(String imageUri, View view) {
+
+                }
+            });
+        } else {
+            holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
+                    .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+        }
         holder.mAccountID.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_ID));
         holder.mAccountName.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_NAME));
 

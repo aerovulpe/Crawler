@@ -38,6 +38,9 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 AccountEntry.COLUMN_ACCOUNT_NAME + " TEXT NOT NULL, " +
                 AccountEntry.COLUMN_ACCOUNT_TYPE + " INTEGER NOT NULL, " +
                 AccountEntry.COLUMN_ACCOUNT_TIME + " INTEGER NOT NULL, " +
+                AccountEntry.COLUMN_ACCOUNT_PREVIEW_URL + " TEXT, " +
+                AccountEntry.COLUMN_ACCOUNT_DESCRIPTION + " TEXT, " +
+                AccountEntry.COLUMN_ACCOUNT_NUM_OF_POSTS + " TEXT, " +
 
                 // To assure the application has just one account entry per id
                 // per type, it's created a UNIQUE constraint with REPLACE strategy

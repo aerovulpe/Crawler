@@ -21,7 +21,7 @@ public class FlickrRequest extends Request {
     public static final String API_KEY = "1f421188e1654ec699b8dbfb30bbef71";
     public static final String FLICKR_API_BASE_URI = "https://api.flickr.com/services/rest/";
     public static final String API_KEY_PARAM = "api_key";
-    private static final String URL_PARAM = "url";
+    public static final String URL_PARAM = "url";
     public static final String USER_ID_PARAM = "user_id";
     public static final String FORMAT_PARAM = "format";
     public static final String NOJSONCALLBACK_PARAM = "nojsoncallback";

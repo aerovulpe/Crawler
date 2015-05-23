@@ -1,6 +1,7 @@
 package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
@@ -8,20 +9,28 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
@@ -30,6 +39,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.Request;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -39,18 +49,25 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;
+    public static final int COL_ACCOUNT_PREVIEW_URL = 4;
+    public static final int COL_ACCOUNT_DESCRIPTION = 5;
+    public static final int COL_ACCOUNT_NUM_OF_POSTS = 6;
     private static final int MENU_ADD_ACCOUNT = 0;
     private static final int MENU_EXPLORE = 1;
     private static final int MENU_PREFERENCES = 2;
     // The order of these must match the array "account_actions" in strings.xml.
-    private static final int CONTEXT_MENU_EDIT = 0;
-    private static final int CONTEXT_MENU_DELETE = 1;
+    private static final int CONTEXT_MENU_INFO = 0;
+    private static final int CONTEXT_MENU_EDIT = 1;
+    private static final int CONTEXT_MENU_DELETE = 2;
     private static final int ACCOUNTS_LOADER = 1;
-    private static String[] ACCOUNTS_COLUMNS = {
+    public static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.AccountEntry.TABLE_NAME + "." + CrawlerContract.AccountEntry._ID,
             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
-            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_PREVIEW_URL,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_DESCRIPTION,
+            CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NUM_OF_POSTS
     };
     private AccountsAdapter adapter;
     private InterstitialAd mInterstitialAd;
@@ -151,8 +168,8 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             Cursor cursor = adapter.getCursor();
             AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
             if (cursor != null && cursor.moveToPosition(info.position))
-                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME) + " (" +
-                        cursor.getString(COL_ACCOUNT_ID) + ")");
+                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME) + "\n" +
+                        cursor.getString(COL_ACCOUNT_ID));
 
             String[] menuItems = getResources().getStringArray(R.array.account_actions);
             for (int i = 0; i < menuItems.length; i++) {
@@ -165,9 +182,72 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
                 .getMenuInfo();
-        Cursor cursor = adapter.getCursor();
+        final Cursor cursor = adapter.getCursor();
 
         switch (item.getItemId()) {
+            case CONTEXT_MENU_INFO:
+                if (cursor != null && cursor.moveToPosition(info.position)) {
+                    // custom dialog
+                    final Dialog dialog = new Dialog(this);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    dialog.setContentView(R.layout.info_dialog);
+
+                    // set the custom dialog components - description, image and button
+                    TextView title = (TextView) dialog.findViewById(R.id.textview_title);
+                    title.setText(cursor.getString(COL_ACCOUNT_NAME));
+                    TextView id = (TextView) dialog.findViewById(R.id.textview_id);
+                    id.setText(cursor.getString(COL_ACCOUNT_ID));
+                    TextView description = (TextView) dialog.findViewById(R.id.textview_description);
+                    description.setText(cursor.getString(COL_ACCOUNT_DESCRIPTION));
+                    TextView numOfPostsView = (TextView) dialog.findViewById(R.id.textview_num_of_posts);
+                    int numOfPosts = cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS);
+                    if (numOfPosts != -1) {
+                        numOfPostsView.setText(String.format(getResources()
+                                .getString(R.string.num_of_posts), numOfPosts));
+                    } else {
+                        numOfPostsView.setVisibility(View.GONE);
+                    }
+                    final ImageView avatarImage = (ImageView) dialog.findViewById(R.id.imageview_thumbnail);
+                    String previewUrl = cursor.getString(AccountsActivity.COL_ACCOUNT_PREVIEW_URL);
+                    if (previewUrl != null && !previewUrl.isEmpty()) {
+                        ImageLoader.getInstance().displayImage(previewUrl, avatarImage, new ImageLoadingListener() {
+                            @Override
+                            public void onLoadingStarted(String imageUri, View view) {
+
+                            }
+
+                            @Override
+                            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(cursor
+                                        .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+                            }
+
+                            @Override
+                            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+
+                            }
+
+                            @Override
+                            public void onLoadingCancelled(String imageUri, View view) {
+
+                            }
+                        });
+                    } else {
+                        avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(cursor
+                                .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+                    }
+
+                    Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
+                    // if button is clicked, close the custom dialog
+                    dialogButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.show();
+                }
+                return true;
             case CONTEXT_MENU_EDIT:
                 if (cursor != null && cursor.moveToPosition(info.position))
                     showEditAccountDialog(cursor.getInt(COL_ACCOUNT_TYPE),

@@ -27,6 +27,7 @@
     </string-array>
 
     <string-array name="account_actions">
+        <item>Info</item>
         <item>Edit</item>
         <item>Delete</item>
     </string-array>
