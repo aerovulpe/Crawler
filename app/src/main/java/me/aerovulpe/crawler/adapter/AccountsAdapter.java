@@ -53,6 +53,8 @@ public class AccountsAdapter extends CursorAdapter {
         final ViewHolder holder = (ViewHolder) view.getTag();
 
         String previewUrl = cursor.getString(AccountsActivity.COL_ACCOUNT_PREVIEW_URL);
+        final int accountType = cursor
+                .getInt(AccountsActivity.COL_ACCOUNT_TYPE);
         if (previewUrl != null && !previewUrl.isEmpty()) {
             ImageLoader.getInstance().displayImage(previewUrl, holder.mServiceLogo, new ImageLoadingListener() {
                 @Override
@@ -62,8 +64,7 @@ public class AccountsAdapter extends CursorAdapter {
 
                 @Override
                 public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                    holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
-                            .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+                    holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(accountType));
                 }
 
                 @Override
@@ -77,10 +78,13 @@ public class AccountsAdapter extends CursorAdapter {
                 }
             });
         } else {
-            holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(cursor
-                    .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
+            holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(accountType));
         }
-        holder.mAccountID.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_ID));
+        if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+            holder.mAccountID.setText(AccountsUtil
+                    .makePicasaPseudoID(cursor.getString(AccountsActivity.COL_ACCOUNT_ID)));
+        else
+            holder.mAccountID.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_ID));
         holder.mAccountName.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_NAME));
 
     }

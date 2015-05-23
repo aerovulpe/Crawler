@@ -190,44 +190,43 @@ public class AddEditAccountFragment extends DialogFragment {
 
                 final String finalId = id;
                 final String finalName = name;
+                // Get reference to Activity to prevent GC.
+                final Activity activity = getActivity();
                 NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
                     @Override
                     public Context getContext() {
-                        return getActivity();
+                        return activity;
                     }
 
                     @Override
                     public void onNetworkStatusReceived(boolean doesExist) {
-                        if (doesExist || !NetworkUtil.isNetworkAvailable(getActivity())) {
+                        if (doesExist || !NetworkUtil.isNetworkAvailable(activity)) {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Activity activity = getActivity();
-                                    if (activity != null) {
-                                        ContentResolver contentResolver = activity
-                                                .getContentResolver();
-                                        ContentValues values = new ContentValues();
-                                        if (mFragmentType == EDIT_ACCOUNT) {
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
-                                                    finalName);
-                                            contentResolver.update(CrawlerContract.AccountEntry
-                                                            .CONTENT_URI, values, CrawlerContract
-                                                            .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                                                    new String[]{mID});
-                                        } else {
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
-                                                    finalName);
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
-                                                    System.currentTimeMillis());
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
-                                                    finalId);
-                                            values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
-                                                    type);
-                                            contentResolver
-                                                    .insert(CrawlerContract.AccountEntry.CONTENT_URI,
-                                                            values);
-                                            new RequestInfo(getActivity()).execute(type, finalId);
-                                        }
+                                    ContentResolver contentResolver = activity
+                                            .getContentResolver();
+                                    ContentValues values = new ContentValues();
+                                    if (mFragmentType == EDIT_ACCOUNT) {
+                                        values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+                                                finalName);
+                                        contentResolver.update(CrawlerContract.AccountEntry
+                                                        .CONTENT_URI, values, CrawlerContract
+                                                        .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
+                                                new String[]{mID});
+                                    } else {
+                                        values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
+                                                finalName);
+                                        values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
+                                                System.currentTimeMillis());
+                                        values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID,
+                                                finalId);
+                                        values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE,
+                                                type);
+                                        contentResolver
+                                                .insert(CrawlerContract.AccountEntry.CONTENT_URI,
+                                                        values);
+                                        new RequestInfo(activity).execute(type, finalId);
                                     }
                                 }
                             }).start();

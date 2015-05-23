@@ -18,6 +18,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
+import me.aerovulpe.crawler.util.AccountsUtil;
 
 /**
  * Created by Aaron on 14/05/2015.
@@ -89,7 +90,11 @@ public class ExplorerDetailFragment extends DialogFragment {
             ((TextView) rootView.findViewById(R.id.textview_title)).setText(mTitle);
         else
             rootView.findViewById(R.id.textview_title).setVisibility(View.GONE);
-        ((TextView) rootView.findViewById(R.id.textview_id)).setText(mId);
+        if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+            ((TextView) rootView.findViewById(R.id.textview_id))
+                    .setText(AccountsUtil.makePicasaPseudoID(mId));
+        else
+            ((TextView) rootView.findViewById(R.id.textview_id)).setText(mId);
         ((TextView) rootView.findViewById(R.id.textview_name)).setText(mName);
         ImageLoader.getInstance().displayImage(mThumbnail, (ImageView)
                 rootView.findViewById(R.id.imageview_thumbnail));

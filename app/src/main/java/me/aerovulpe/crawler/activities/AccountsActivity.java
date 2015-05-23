@@ -200,7 +200,11 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                     TextView title = (TextView) dialog.findViewById(R.id.textview_title);
                     title.setText(cursor.getString(COL_ACCOUNT_NAME));
                     TextView id = (TextView) dialog.findViewById(R.id.textview_id);
-                    id.setText(cursor.getString(COL_ACCOUNT_ID));
+                    int accountType = cursor.getInt(COL_ACCOUNT_TYPE);
+                    if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+                        id.setText(AccountsUtil.makePicasaPseudoID(cursor.getString(COL_ACCOUNT_ID)));
+                    else
+                        id.setText(cursor.getString(COL_ACCOUNT_ID));
                     TextView description = (TextView) dialog.findViewById(R.id.textview_description);
                     description.setText(cursor.getString(COL_ACCOUNT_DESCRIPTION));
                     TextView numOfPostsView = (TextView) dialog.findViewById(R.id.textview_num_of_posts);
