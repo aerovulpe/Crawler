@@ -11,6 +11,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -277,10 +278,16 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         builder.setPositiveButton(R.string.yes, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                sendBroadcast(new Intent(accountID + ".CANCEL"));
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Request.removeAlbumRequestData(AccountsActivity.this, accountID);
+                    }
+                }, 5000);
                 getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
                         CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
                                 accountID + "'", null);
-                Request.removeAlbumRequestData(AccountsActivity.this, accountID);
             }
         });
         builder.create().show();
