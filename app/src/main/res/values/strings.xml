@@ -18,7 +18,7 @@
     <string name="account_edit_title">Edit account</string>
     <string name="account_type">Type:</string>
     <string name="account_id">ID:</string>
-    <string name="account_name">Name:</string>
+    <string name="account_name">Title:</string>
     <string name="choose_account_type">Choose account type</string>
     <string-array name="account_type_array">
         <item>Tumblr</item>

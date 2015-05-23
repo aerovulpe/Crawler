@@ -176,12 +176,12 @@ public abstract class Request implements Runnable {
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
             mViews.setTextViewText(R.id.detail, "Downloading finished");
             mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
+            mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         } else {
             mBuilder.setSmallIcon(android.R.drawable.ic_dialog_alert);
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
             mViews.setTextViewText(R.id.detail, "Downloading failed");
         }
-        mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         mBuilder.setContent(mViews);
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
     }

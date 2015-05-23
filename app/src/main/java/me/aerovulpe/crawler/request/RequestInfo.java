@@ -158,7 +158,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
                         .getJSONObject("feed");
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_PREVIEW_URL,
                         ownerObject.getJSONObject("gphoto$thumbnail").getString("$t")
-                                .replace("s32-c", "o"));
+                                .replace("s64-c", "o"));
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_DESCRIPTION, "");
                 String title = ownerObject.getJSONObject("gphoto$nickname").getString("$t");
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
