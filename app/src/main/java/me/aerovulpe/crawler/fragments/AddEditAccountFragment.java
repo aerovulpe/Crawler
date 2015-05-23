@@ -179,8 +179,10 @@ public class AddEditAccountFragment extends DialogFragment {
                 final int type = accountType.getSelectedItemPosition();
                 String id = accountId.getText().toString();
                 String name = accountName.getText().toString();
-                if (mFragmentType == ADD_ACCOUNT && id.isEmpty())
+                if (mFragmentType == ADD_ACCOUNT && id.isEmpty()) {
                     dismiss();
+                    return;
+                }
 
                 if (name.isEmpty()) name = id;
 

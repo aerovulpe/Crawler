@@ -9,7 +9,7 @@
        android:summary="Number of seconds to display each photo"
        android:key="slideshowInterval"
        android:numeric="integer"
-       android:dialogTitle="Slideshow Interval Duration (In seconds)"/>
+       android:dialogTitle="Slideshow Interval Duration (In Seconds)"/>
 
     <ListPreference
         android:defaultValue="DEFAULT"
@@ -25,7 +25,7 @@
         android:summary="Number of seconds to display each line of a photo description"
         android:key="descSwitcherInterval"
         android:numeric="integer"
-        android:dialogTitle="Description Line Duration (In seconds)"/>
+        android:dialogTitle="Description Line Duration (In Seconds)"/>
 
     <SwitchPreference
         android:defaultValue="false"
