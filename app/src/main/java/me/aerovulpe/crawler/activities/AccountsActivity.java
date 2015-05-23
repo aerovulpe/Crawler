@@ -20,6 +20,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -191,6 +192,9 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                     final Dialog dialog = new Dialog(this);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                     dialog.setContentView(R.layout.info_dialog);
+                    int dialogWidth = FrameLayout.LayoutParams.MATCH_PARENT;
+                    int dialogHeight = FrameLayout.LayoutParams.WRAP_CONTENT;
+                    dialog.getWindow().setLayout(dialogWidth, dialogHeight);
 
                     // set the custom dialog components - description, image and button
                     TextView title = (TextView) dialog.findViewById(R.id.textview_title);
