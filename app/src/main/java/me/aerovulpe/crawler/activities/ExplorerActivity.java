@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,8 +26,7 @@ import me.aerovulpe.crawler.fragments.ExplorerFragment;
 import me.aerovulpe.crawler.util.AccountsUtil;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final int COL_ACCOUNT_TYPE = 1;
-    public static final int COL_CATEGORY_NAME = 2;
+    public static final int COL_CATEGORY_NAME = 1;
     public static final String ARG_SPINNER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.spinner_selection";
     public static final String ARG_VIEWPAGER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.viewpager_selection";
     public int mSpinnerPos;
@@ -37,7 +37,6 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
     private static String[] CATEGORIES_COLUMNS = {
             CrawlerContract.CategoryEntry.TABLE_NAME + "." + CrawlerContract.CategoryEntry._ID,
-            CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
             CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID
     };
     private ViewPager mViewPager;
@@ -51,7 +50,6 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         mViewPager.setOffscreenPageLimit(3);
         mViewPager.setAdapter(new ExplorerTabAdapter(getFragmentManager()));
         mSpinner = (Spinner) findViewById(R.id.spinner_nav);
-        mSpinner.setVisibility(View.INVISIBLE);
 
         // Bind the tabs to the ViewPager
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
@@ -81,9 +79,9 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
         getLoaderManager().initLoader(CATEGORIES_LOADER, null, this);
 
-        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdView adView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        adView.loadAd(adRequest);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mSpinnerPos = savedInstanceState.getInt(ARG_SPINNER_SELECTION);
         mViewPagerPos = savedInstanceState.getInt(ARG_VIEWPAGER_SELECTION);

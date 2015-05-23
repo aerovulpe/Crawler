@@ -16,7 +16,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -73,7 +72,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
-    //private PhotoViewerAdapter mPhotoViewerAdapter;
     private boolean mShowText;
     private boolean isSlideShowRunning;
     private boolean mIsFullscreen;
@@ -108,8 +106,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             mPhotos = arrayList.toArray(new Photo[arrayList.size()]);
             mInitPhotoIndex = args.getInt(ARG_PHOTO_INDEX);
         }
-        mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE)
-                .getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
+        mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
+                Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
         setHasOptionsMenu(true);
         setRetainInstance(true);
     }
@@ -145,25 +143,24 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             mViewPager.setCurrentItem(mCurrentPhotoIndex);
         }
 
-        if (getView() != null) {
-            mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                }
+            }
 
-                @Override
-                public void onPageSelected(int position) {
+            @Override
+            public void onPageSelected(int position) {
 
-                }
+            }
 
-                @Override
-                public void onPageScrollStateChanged(int state) {
-                    if (isSlideShowRunning && state == ViewPager.SCROLL_STATE_DRAGGING)
-                        toggleSlideShow();
-                }
-            });
-        }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (isSlideShowRunning && state == ViewPager.SCROLL_STATE_DRAGGING)
+                    toggleSlideShow();
+            }
+        });
+
         Activity activity = getActivity();
         ((PhotoManager) activity).setFullScreen(mIsFullscreen, true);
         mViewPager.setPageTransformer(true, SettingsFragment.getPageTransformer(activity));
@@ -192,9 +189,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public void onStop() {
         super.onStop();
-        getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+        Activity activity = getActivity();
+        activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
                 .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText).apply();
-        getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+        activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
                 .putBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, mIsFullscreen).apply();
     }
 
@@ -208,23 +206,23 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        menu.add(0, MENU_ITEM_TOGGLE_SLIDESHOW, 0, "Start SlideShow")
+        menu.add(0, MENU_ITEM_TOGGLE_SLIDESHOW, 0, getString(R.string.start_slideshow))
                 .setIcon(android.R.drawable.ic_media_play)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        menu.add(0, MENU_ITEM_SHOW_DETAILS, 0, "Toggle photo details")
+        menu.add(0, MENU_ITEM_SHOW_DETAILS, 0, getString(R.string.toggle_photo_details))
                 .setIcon(android.R.drawable.ic_menu_info_details)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
 
-        menu.add(0, MENU_ITEM_SAVE, 0, "Save Photo")
+        menu.add(0, MENU_ITEM_SAVE, 0, getString(R.string.save_photo))
                 .setIcon(android.R.drawable.ic_menu_save)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        menu.add(0, MENU_ITEM_SHARE, 0, "Share Photo")
+        menu.add(0, MENU_ITEM_SHARE, 0, getString(R.string.share_photo))
                 .setIcon(android.R.drawable.ic_menu_share)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
-        menu.add(0, MENU_ITEM_MAKE_WALLPAPER, 0, "Make Wallpaper")
+        menu.add(0, MENU_ITEM_MAKE_WALLPAPER, 0, getString(R.string.make_wallpaper))
                 .setIcon(android.R.drawable.ic_menu_set_as)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     }
@@ -240,9 +238,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SAVE:
                 if (savePhoto(getPhoto(getCurrentPhotoIndex())) != null)
-                    Toast.makeText(getActivity(), "Photo saved.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), getString(R.string.photo_saved), Toast.LENGTH_LONG).show();
                 else
-                    Toast.makeText(getActivity(), "Failed to save photo.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), getString(R.string.photo_save_failed), Toast.LENGTH_LONG).show();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SHARE:
                 sharePhoto(getPhoto(getCurrentPhotoIndex()));
@@ -328,11 +326,11 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         isSlideShowRunning = !isSlideShowRunning;
         String message;
         if (isSlideShowRunning) {
-            message = "Slideshow Started";
+            message = getString(R.string.slideshow_started);
         } else {
             if (mViewPager.getCurrentItem() == 0)
-                message = "Slideshow Ended";
-            else message = "Slideshow Paused";
+                message = getString(R.string.slideshow_ended);
+            else message = getString(R.string.slideshow_paused);
         }
         setUpSlideShowTask();
         Activity activity = getActivity();
@@ -384,7 +382,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             mScroller = ViewPager.class.getDeclaredField("mScroller");
             mScroller.setAccessible(true);
             mScroller.set(mViewPager, new Scroller(getActivity()) {
-                private int mScrollDuration = 600;// Thanks Jerry!
+                private int mScrollDuration = 650;// Thanks Jerry!
 
                 @Override
                 public void startScroll(int startX, int startY, int dx, int dy, int duration) {
@@ -413,7 +411,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
 
     public void sharePhoto(Photo photo) {
         if (photo == null) {
-            Toast.makeText(getActivity(), "Unable to share photo", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
             return;
         }
         Intent shareIntent = new Intent();
@@ -429,7 +427,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         try {
             List<ResolveInfo> relevantActivities = getActivity().getPackageManager().queryIntentActivities(shareIntent, 0);
             if (relevantActivities == null || relevantActivities.size() == 0) {
-                Log.i(LOG_PREFIX, "No activity found that can handle image/jpg. Performing simple text share");
                 Intent backupShareIntent = new Intent();
                 backupShareIntent.setAction(Intent.ACTION_SEND);
                 backupShareIntent.setType("text/plain");
@@ -442,7 +439,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             }
 
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(getActivity(), "Unable to share photo", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -463,8 +460,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         intent.putExtra("mimeType", mimeType);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        Log.i(LOG_PREFIX, "Attempting to set photo as wallpaper uri:" + uri);
-        startActivity(Intent.createChooser(intent, "Set Photo As"));
+        startActivity(Intent.createChooser(intent, getString(R.string.set_photo_as)));
     }
 
     @Override
@@ -489,7 +485,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             PhotoViewerAdapter.setVisibilityOfPhotoText(view, true);
             setShowText(true);
         }
-        // Prevent following view from fucking up.
         int currentPosition = mViewPager.getCurrentItem();
         PagerAdapter adapter = mViewPager.getAdapter();
         mViewPager.setAdapter(adapter);
@@ -515,8 +510,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 mPhotos = photos;
                 ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
                 mViewPager.setCurrentItem(currentItem);
-                Log.d(PhotoViewerFragment.class.getSimpleName(), "Photos changed: size is " +
-                        mPhotos.length);
             }
         });
     }

@@ -86,7 +86,7 @@ public class ExplorerDetailFragment extends DialogFragment {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View rootView = inflater.inflate(R.layout.fragment_explorer_detail, container, false);
-        if (!(mTitle == null || mTitle.equals("")))
+        if (!(mTitle == null || mTitle.isEmpty()))
             ((TextView) rootView.findViewById(R.id.textview_title)).setText(mTitle);
         else
             rootView.findViewById(R.id.textview_title).setVisibility(View.GONE);
@@ -98,7 +98,7 @@ public class ExplorerDetailFragment extends DialogFragment {
         ((TextView) rootView.findViewById(R.id.textview_name)).setText(mName);
         ImageLoader.getInstance().displayImage(mThumbnail, (ImageView)
                 rootView.findViewById(R.id.imageview_thumbnail));
-        if (!mDescription.equals(""))
+        if (!mDescription.isEmpty())
             ((TextView) rootView.findViewById(R.id.textview_description)).setText(mDescription);
         else
             rootView.findViewById(R.id.textview_description).setVisibility(View.GONE);

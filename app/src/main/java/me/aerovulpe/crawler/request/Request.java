@@ -78,27 +78,40 @@ public abstract class Request implements Runnable {
                 .getBoolean(mAlbumID, false);
         mReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
-                if ((mAlbumID + ".CANCEL").equals(intent.getAction())) {
+            public void onReceive(final Context context, Intent intent) {
+                if (buildCancelAction(mAlbumID).equals(intent.getAction())) {
                     onCancel();
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(mRequestService, mAlbumName
-                                    + " download cancelled", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mRequestService, String.format(context
+                                            .getString(R.string.download_cancelled), mAlbumName),
+                                    Toast.LENGTH_SHORT).show();
                         }
                     });
-                } else if ((mAlbumID + ".SHOW").equals(intent.getAction())) {
+                } else if (buildShowAction(mAlbumID).equals(intent.getAction())) {
                     if (mIsFirstNotification)
                         mRequestService.unregisterReceiver(mReceiver);
                     mShowNotification = !SettingsFragment.disableNotifications(mRequestService);
-                } else if ((mAlbumID + ".NOT_SHOW").equals(intent.getAction())) {
+                } else if (buildNotShowAction(mAlbumID).equals(intent.getAction())) {
                     mShowNotification = false;
                     mNotifyManager.cancel(mAlbumID.hashCode());
                 }
             }
         };
-        mRequestService.registerReceiver(mReceiver, new IntentFilter(mAlbumID + ".SHOW"));
+        mRequestService.registerReceiver(mReceiver, new IntentFilter(buildShowAction(mAlbumID)));
+    }
+
+    public static String buildCancelAction(String albumID) {
+        return albumID + ".CANCEL";
+    }
+
+    public static String buildShowAction(String albumID) {
+        return albumID + ".SHOW";
+    }
+
+    public static String buildNotShowAction(String albumID) {
+        return albumID + ".NOT_SHOW";
     }
 
     public static void removeAlbumRequestData(Context context, String albumID) {
@@ -112,7 +125,6 @@ public abstract class Request implements Runnable {
     }
 
     protected void onCancel() {
-        Log.d(LOG_TAG, "onCancel");
         onFinished(false, false);
     }
 
@@ -124,7 +136,6 @@ public abstract class Request implements Runnable {
             try {
                 mProvider.bulkInsert(CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID),
                         mContentCache.toArray(new ContentValues[mContentCache.size()]));
-                Log.d(LOG_TAG, mContentCache.size() + " inserted.");
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -141,7 +152,6 @@ public abstract class Request implements Runnable {
                 editor.putBoolean(mAlbumID, false);
             } else {
                 // Was successful! Reset the initial page.
-                Log.d(LOG_TAG, "Reset initial page");
                 editor.putInt(mAlbumID + INITIAL_PAGE_SUFFIX, 1);
                 editor.putBoolean(mAlbumID, true);
             }
@@ -174,13 +184,13 @@ public abstract class Request implements Runnable {
         if (wasSuccess) {
             mBuilder.setSmallIcon(android.R.drawable.ic_dialog_info);
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_info);
-            mViews.setTextViewText(R.id.detail, "Downloading finished");
+            mViews.setTextViewText(R.id.detail, mRequestService.getString(R.string.download_finished));
             mViews.setProgressBar(R.id.status_progress, mNumOfPages, mNumOfPages, false);
             mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         } else {
             mBuilder.setSmallIcon(android.R.drawable.ic_dialog_alert);
             mViews.setImageViewResource(R.id.image, android.R.drawable.ic_dialog_alert);
-            mViews.setTextViewText(R.id.detail, "Downloading failed");
+            mViews.setTextViewText(R.id.detail, mRequestService.getString(R.string.downloading_failed));
         }
         mBuilder.setContent(mViews);
         mNotifyManager.notify(mAlbumID.hashCode(), mBuilder.build());
@@ -200,7 +210,7 @@ public abstract class Request implements Runnable {
         try {
             mProvider.insert(CrawlerContract.AlbumEntry.CONTENT_URI, albumStubValues);
         } catch (SQLException e) {
-            Log.d(LOG_TAG, "Album exists");
+            Log.i(LOG_TAG, "Album exists");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -235,7 +245,6 @@ public abstract class Request implements Runnable {
             rowsInserted = mProvider.bulkInsert(CrawlerContract.PhotoEntry
                             .buildPhotosUriWithAlbumID(mAlbumID),
                     mContentCache.toArray(new ContentValues[mContentCache.size()]));
-            Log.d(LOG_TAG, rowsInserted + " inserted.");
             mContentCache.clear();
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -243,13 +252,11 @@ public abstract class Request implements Runnable {
 
         if (rowsInserted == 0 && mLastDownloadSuccessful) {
             // Stop we're up to date!
-            Log.d(LOG_TAG, "DONE");
             onDownloadSuccess();
         }
     }
 
     protected void onDownloadSuccess() {
-        Log.d(LOG_TAG, "onDownloadSuccess");
         onFinished(true, true);
     }
 
@@ -289,7 +296,6 @@ public abstract class Request implements Runnable {
     }
 
     protected void onDownloadFailed() {
-        Log.d(LOG_TAG, "onDownloadFailed");
         onFinished(true, false);
     }
 
@@ -298,7 +304,6 @@ public abstract class Request implements Runnable {
             return;
 
         if (mIsFirstNotification) {
-            //mRequestService.startForeground();
             mIsFirstNotification = false;
             Intent intent = new Intent(mRequestService, MainActivity.class);
             intent.setAction(mAlbumID);
@@ -311,23 +316,24 @@ public abstract class Request implements Runnable {
             PendingIntent pendingIntent = stackBuilder
                     .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
             IntentFilter filter = new IntentFilter();
-            filter.addAction(mAlbumID + ".CANCEL");
-            filter.addAction(mAlbumID + ".SHOW");
-            filter.addAction(mAlbumID + ".NOT_SHOW");
+            filter.addAction(buildCancelAction(mAlbumID));
+            filter.addAction(buildShowAction(mAlbumID));
+            filter.addAction(buildNotShowAction(mAlbumID));
             mRequestService.registerReceiver(mReceiver, filter);
             mBuilder.setSmallIcon(R.drawable.ic_download)
                     .setAutoCancel(true)
                     .setContentIntent(pendingIntent)
                     .setDeleteIntent(PendingIntent.getBroadcast(mRequestService, 0,
-                            new Intent(mAlbumID + ".NOT_SHOW"), 0));
-            mViews.setTextViewText(R.id.title, "Downloading from " + mAlbumName);
+                            new Intent(buildNotShowAction(mAlbumID)), 0));
+            mViews.setTextViewText(R.id.title, String.format(mRequestService
+                    .getString(R.string.downloading_from), mAlbumName));
             PendingIntent pi = PendingIntent.getBroadcast(mRequestService, 0,
-                    new Intent(mAlbumID + ".CANCEL"), 0);
+                    new Intent(buildCancelAction(mAlbumID)), 0);
             mViews.setOnClickPendingIntent(R.id.button_cancel, pi);
             mViews.setImageViewResource(R.id.image, R.drawable.ic_download);
         }
-        mViews.setTextViewText(R.id.detail, "Downloading page " + mCurrentPage +
-                " of " + mNumOfPages);
+        mViews.setTextViewText(R.id.detail, String.format(mRequestService
+                .getString(R.string.downloading_page), mCurrentPage, mNumOfPages));
         mViews.setProgressBar(R.id.status_progress, mNumOfPages, mCurrentPage, false);
         mBuilder.setContent(mViews);
         if (mIsRunning)
@@ -348,19 +354,13 @@ public abstract class Request implements Runnable {
                 .getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE);
         int lastNumOfPhotos = preferences.getInt(mAlbumID + NUM_OF_PHOTOS_SUFFIX, -1);
         String lastPhotoId = preferences.getString(mAlbumID + LAST_PHOTO_ID_SUFFIX, "");
-        Log.d(Request.class.getSimpleName() + ".wasNotUpdated", numOfPhotos + "");
-        Log.d(Request.class.getSimpleName() + ".wasNotUpdated", lastNumOfPhotos + "");
-        Log.d(Request.class.getSimpleName() + ".wasNotUpdated", photoId);
-        Log.d(Request.class.getSimpleName() + ".wasNotUpdated", lastPhotoId);
 
         mRequestService.getSharedPreferences(REQUEST_PREF, Context.MODE_PRIVATE).edit()
                 .putInt(mAlbumID + NUM_OF_PHOTOS_SUFFIX, numOfPhotos)
                 .putString(mAlbumID + LAST_PHOTO_ID_SUFFIX, photoId).commit();
 
-        boolean wasNotUpdated = (numOfPhotos == lastNumOfPhotos) && photoId.equals(lastPhotoId) &&
+        return (numOfPhotos == lastNumOfPhotos) && photoId.equals(lastPhotoId) &&
                 mLastDownloadSuccessful;
-        Log.d("DEBUG", wasNotUpdated + "");
-        return wasNotUpdated;
     }
 
     public void setSaveValues(boolean saveValues) {

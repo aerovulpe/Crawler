@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.util.Log;
 
 import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -62,7 +61,6 @@ public class RequestService extends Service {
                         mLastRequest = new PicasaPhotosRequest(this, rawUrl);
                     mRequestThreadPool.execute(mLastRequest);
                     mRequestRegistry.add(rawUrl);
-                    Log.d(LOG_TAG, "Request added: " + rawUrl);
                 }
             }
             if (ACTION_CLEAR_ALL_NOTIFICATIONS.equals(intent.getAction()))
@@ -85,10 +83,7 @@ public class RequestService extends Service {
                 sendBroadcast(intent, "me.aerovulpe.crawler.permission.NOTIFY_PROGRESS");
                 mLastRequest = null;
             }
-            Log.d(LOG_TAG, "Request removed: " + result.getAlbumID());
         }
-
-        Log.d(LOG_TAG, "registry size: " + mRequestRegistry.size());
 
         if (mRequestRegistry.isEmpty())
             stopSelf();
@@ -96,7 +91,7 @@ public class RequestService extends Service {
 
     private void clearAllNotifications() {
         for (String albumId : mRequestRegistry) {
-            sendBroadcast(new Intent(albumId + ".NOT_SHOW"));
+            sendBroadcast(new Intent(Request.buildNotShowAction(albumId)));
         }
     }
 

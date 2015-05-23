@@ -126,29 +126,31 @@ public class AddEditAccountFragment extends DialogFragment {
         final EditText accountName = (EditText) view
                 .findViewById(R.id.account_name);
 
+        // Get reference to Activity to prevent GC.
+        final Activity activity = getActivity();
         if (mFragmentType == EDIT_ACCOUNT) {
             ((ViewGroup) accountName.getParent()).setVisibility(View.VISIBLE);
             TextView idText = (TextView) view.findViewById(R.id.account_id_title);
             if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR)
-                idText.setText("Blog Name");
+                idText.setText(activity.getString(R.string.blog_name));
             else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR)
-                idText.setText("Username");
+                idText.setText(activity.getString(R.string.username));
             else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
-                idText.setText("User ID");
+                idText.setText(activity.getString(R.string.user_id));
 
             ViewGroup accountTypeParent = (ViewGroup) accountType.getParent();
             int accountTypeIndex = accountTypeParent.indexOfChild(accountType);
             accountTypeParent.removeView(accountType);
-            TextView accountTypeText = new TextView(getActivity());
-            accountTypeText.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            TextView accountTypeText = new TextView(activity);
+            accountTypeText.setTextAppearance(activity, android.R.style.TextAppearance_Medium);
             accountTypeText.setText(new AccountsUtil(getResources()).typeIdToName(mAccountType));
             accountTypeParent.addView(accountTypeText, accountTypeIndex);
 
             ViewGroup accountIdParent = (ViewGroup) accountId.getParent();
             int accountIdIndex = accountIdParent.indexOfChild(accountId);
             accountIdParent.removeView(accountId);
-            TextView accountIdText = new TextView(getActivity());
-            accountIdText.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
+            TextView accountIdText = new TextView(activity);
+            accountIdText.setTextAppearance(activity, android.R.style.TextAppearance_Medium);
             accountIdText.setText(AccountsUtil.userFromUrl(mID, mAccountType));
             accountIdParent.addView(accountIdText, accountIdIndex);
             accountName.setText(mName);
@@ -159,11 +161,11 @@ public class AddEditAccountFragment extends DialogFragment {
             public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
                 TextView idText = (TextView) view.findViewById(R.id.account_id_title);
                 if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
-                    idText.setText("Blog Name");
+                    idText.setText(activity.getString(R.string.blog_name));
                 } else if (position == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
-                    idText.setText("Username");
+                    idText.setText(activity.getString(R.string.username));
                 } else if (position == AccountsUtil.ACCOUNT_TYPE_PICASA) {
-                    idText.setText("User ID");
+                    idText.setText(activity.getString(R.string.user_id));
                 }
             }
 
@@ -192,8 +194,7 @@ public class AddEditAccountFragment extends DialogFragment {
 
                 final String finalId = id;
                 final String finalName = name;
-                // Get reference to Activity to prevent GC.
-                final Activity activity = getActivity();
+
                 NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
                     @Override
                     public Context getContext() {
@@ -251,8 +252,8 @@ public class AddEditAccountFragment extends DialogFragment {
     }
 
     private void showInvalidAccountError() {
-        ((BaseActivity) getActivity()).showError("Account Error",
-                "The account you created is invalid. Please check it again.", false);
+        ((BaseActivity) getActivity()).showError(getString(R.string.account_error),
+                getString(R.string.account_invalid), false);
     }
 
 }

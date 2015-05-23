@@ -40,7 +40,7 @@ import android.widget.Scroller;
 
 public class TouchImageView extends ImageView {
 
-    private static final String DEBUG = "DEBUG";
+    private static final String DEBUG = TouchImageView.class.getSimpleName();
 
     //
     // SuperMin and SuperMax multipliers. Determine how much the image can be

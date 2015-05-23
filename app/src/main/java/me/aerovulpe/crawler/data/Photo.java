@@ -87,17 +87,17 @@ public class Photo implements Serializable, Parcelable {
         return new ArrayList<>(Arrays.asList(photoArray));
     }
 
-    public static Photo fromCursor(Cursor cursor, int pos) {
-        Photo photo = null;
-        if (cursor.moveToPosition(pos)) {
-            photo = new Photo();
-            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
-            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
-            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
-            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-        }
-        return photo;
-    }
+//    public static Photo fromCursor(Cursor cursor, int pos) {
+//        Photo photo = null;
+//        if (cursor.moveToPosition(pos)) {
+//            photo = new Photo();
+//            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+//            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+//            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+//            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+//        }
+//        return photo;
+//    }
 
     public static void loadPhotosAsync(final Cursor cursor, final OnPhotosLoadedListener onPhotosLoadedListener) {
         new AsyncTask<Cursor, Void, Photo[]>() {

@@ -61,7 +61,6 @@ public class ExplorerRequestWorker implements Runnable {
                 mObserver.onRequestStarted();
             }
         });
-        Log.d(LOG_TAG, "Requesting: " + mRequest.getAccountType() + ":" + mRequest.getCategory());
 
         ContentValues categoryStubValues = new ContentValues();
         categoryStubValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
@@ -71,7 +70,7 @@ public class ExplorerRequestWorker implements Runnable {
         try {
             mProvider.insert(CrawlerContract.CategoryEntry.CONTENT_URI, categoryStubValues);
         } catch (SQLException e) {
-            Log.d(LOG_TAG, "Category exists");
+            Log.i(LOG_TAG, "Category exists");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -79,7 +78,6 @@ public class ExplorerRequestWorker implements Runnable {
         List<String> urls = new ArrayList<>();
         if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
             String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mRequest.getCategory();
-            Log.d(LOG_TAG, categoryUrl);
             try {
                 Document categoryDoc = Jsoup.connect(categoryUrl).get();
                 Element cards = categoryDoc.getElementById("cards");
@@ -173,7 +171,6 @@ public class ExplorerRequestWorker implements Runnable {
                     e.printStackTrace();
                 }
             }
-            Log.d(LOG_TAG, "Size: " + urls.size());
         } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
             try {
                 JSONObject rootObject = new JSONObject(getStringFromServer(new URL(urls.get(0))))

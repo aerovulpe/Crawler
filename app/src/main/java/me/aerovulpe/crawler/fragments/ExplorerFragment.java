@@ -46,8 +46,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     public static final int COL_ACCOUNT_DESCRIPTION = 5;
     public static final int COL_NUM_OF_POSTS = 6;
 
-    //private static final int EXPLORER_LOADER = 5;
-
     private static String[] ACCOUNTS_COLUMNS = {
             CrawlerContract.ExplorerEntry.TABLE_NAME + "." + CrawlerContract.ExplorerEntry._ID,
             CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
@@ -64,6 +62,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     private String mCategory;
     private ProgressDialog mProgressDialog;
     private boolean mIsLoading;
+    private int mLoaderId;
     private WeakReference<ExplorerDetailFragment> mLastDetailFragment;
 
     public ExplorerFragment() {
@@ -86,6 +85,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         if (args != null) {
             mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
             mCategory = args.getString(ARG_CATEGORY_NAME);
+            mLoaderId = mCategory.hashCode();
         }
         if (savedInstanceState != null) {
             mIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
@@ -98,7 +98,6 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 detailFragment.show(getFragmentManager(), "explorerDetailFragment");
             }
         }
-        //setRetainInstance(true);
     }
 
     @Override
@@ -135,13 +134,13 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(mCategory.hashCode(), null, this);
+        getLoaderManager().initLoader(mLoaderId, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(mCategory.hashCode(), null, this);
+        getLoaderManager().restartLoader(mLoaderId, null, this);
         if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
             @Override
@@ -162,9 +161,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
         if (AndroidUtils.isConnectedRoaming(activity)) {
             if (showDialogs)
-                activity.showError("Connected to roaming network", "You are currently connected with a " +
-                        "roaming mobile connection. Therefore, we will not download any photos as this " +
-                        "can incur significant costs", false);
+                activity.showError(activity.getString(R.string.connected_to_roaming_network),
+                        activity.getString(R.string.connected_to_roaming_network_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
@@ -178,9 +176,8 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
                 isConnectedToWifi = true;
             } else {
                 if (showDialogs)
-                    activity.showError("Not connected to WiFi",
-                            "You are currently connected with a mobile non-wifi connection. " +
-                                    "In order to download photos, change the relevant setting", false);
+                    activity.showError(activity.getString(R.string.not_connected_to_wifi),
+                            activity.getString(R.string.not_connected_to_wifi_message), false);
                 ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 
@@ -225,7 +222,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         dismissDialog(true);
         mIsLoading = true;
         ProgressDialog progressDialog = new ProgressDialog(activity);
-        progressDialog.setTitle("Explore");
+        progressDialog.setTitle(activity.getString(R.string.explore));
         progressDialog.setMessage(getResources().getString(R.string.loading_blogs));
         progressDialog.show();
         return progressDialog;
@@ -246,10 +243,11 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     public void setCategory(String category) {
         if (mCategory.equals(category)) return;
-        getLoaderManager().destroyLoader(mCategory.hashCode());
+        getLoaderManager().destroyLoader(mLoaderId);
         mCategory = category;
+        mLoaderId = mCategory.hashCode();
         doExplorerRequest();
-        getLoaderManager().initLoader(mCategory.hashCode(), null, this);
+        getLoaderManager().initLoader(mLoaderId, null, this);
     }
 
     public int getAccountType() {
@@ -265,7 +263,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (loader.getId() == mCategory.hashCode())
+        if (loader.getId() == mLoaderId)
             ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
         if (data.getCount() > 0)
             dismissDialog(false);
@@ -285,7 +283,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         dismissDialog(false);
         Activity activity = getActivity();
         if (!wasSuccessful && activity != null) {
-            Toast.makeText(activity, "Download failed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, activity.getString(R.string.download_failed), Toast.LENGTH_SHORT).show();
         }
     }
 }

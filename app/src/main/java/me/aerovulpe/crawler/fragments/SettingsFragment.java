@@ -63,6 +63,8 @@ public class SettingsFragment extends PreferenceFragment {
     private static final String DEFAULT_VALUE_DESC_INTERVAL
             = DEFAULT_VALUE_DESC_INTERVAL_INT + "";
     public static final int MEGABYTE_TO_BYTE_FACTOR = 1048576;
+    public static final String DEFAULT_VALUE_CACHE_SIZE = "400";
+    public static final String DEFAULT_VALUE_PHOTO_TRANSITION = "DEFAULT";
 
     private int mOldCacheValue;
 
@@ -82,13 +84,13 @@ public class SettingsFragment extends PreferenceFragment {
                 try {
                     int number = Integer.parseInt(newValue.toString());
                     if (number < 1 || number > 300) {
-                        Toast.makeText(getActivity(), "Number of seconds must be between 1 and 300",
+                        Toast.makeText(getActivity(), getString(R.string.slideshow_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     return true;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), "Please enter a valid number (minimum 1, maximum 300)",
+                    Toast.makeText(getActivity(), getString(R.string.slideshow_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -102,13 +104,13 @@ public class SettingsFragment extends PreferenceFragment {
                 try {
                     int number = Integer.parseInt(newValue.toString());
                     if (number < 1 || number > 120) {
-                        Toast.makeText(getActivity(), "Number of seconds must be between 1 and 120",
+                        Toast.makeText(getActivity(), getString(R.string.desc_switcher_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     return true;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), "Please enter a valid number (minimum 1, maximum 120)",
+                    Toast.makeText(getActivity(), getString(R.string.desc_switcher_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -155,7 +157,7 @@ public class SettingsFragment extends PreferenceFragment {
                 try {
                     int currentCacheValue = Integer.parseInt(newValue.toString());
                     if (currentCacheValue < 10) {
-                        Toast.makeText(getActivity(), "Please assign at least 10MB",
+                        Toast.makeText(getActivity(), getString(R.string.cache_size_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     } else if (currentCacheValue < mOldCacheValue) {
@@ -169,7 +171,7 @@ public class SettingsFragment extends PreferenceFragment {
                     }
                     return false;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), "Please enter a valid number",
+                    Toast.makeText(getActivity(), getString(R.string.cache_size_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -178,9 +180,9 @@ public class SettingsFragment extends PreferenceFragment {
 
         PreferenceCategory otherCategory = (PreferenceCategory) findPreference(OTHER_SETTINGS_KEY);
         DeletablePreference deleteCachePref = new DeletablePreference(getActivity());
-        deleteCachePref.setDialogTitle("Are you sure you want to delete the cached photos?");
-        deleteCachePref.setTitle("Delete cached photos");
-        deleteCachePref.setSummary("Click to delete cached photos (will be downloaded again during next run).");
+        deleteCachePref.setDialogTitle(getString(R.string.delete_cache_dialog_title));
+        deleteCachePref.setTitle(getString(R.string.delete_cache_title));
+        deleteCachePref.setSummary(getString(R.string.delete_cache_summary));
         deleteCachePref.setDialogIcon(android.R.drawable.ic_delete);
         deleteCachePref.setPersistent(true);
         deleteCachePref.setKey(DELETE_CACHE_KEY);
@@ -194,18 +196,18 @@ public class SettingsFragment extends PreferenceFragment {
 
         Preference aboutPref = new Preference(getActivity());
         aboutPref.setPersistent(false);
-        aboutPref.setTitle("About Crawler");
-        aboutPref.setSummary("Crawler is an image viewing app");
+        aboutPref.setTitle(getString(R.string.about_crawler_title));
+        aboutPref.setSummary(getString(R.string.about_crawler_summary));
         aboutPref.setIntent(new Intent(Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/apps/developer?id=AerisVulpe")));
+                Uri.parse(getString(R.string.aerisvulpe_dev_url))));
 
         otherCategory.addPreference(deleteCachePref);
         otherCategory.addPreference(aboutPref);
 
-        //hide this option from non-phone devices such as GoogleTV
-//        if (!AndroidUtils.hasTelephony(getActivity())) {
-//            otherCategory.removePreference(downloadOffWifiPref);
-//        }
+        //hide this option from non-phone devices
+        if (!AndroidUtils.hasTelephony(getActivity())) {
+            otherCategory.removePreference(downloadOffWifiPref);
+        }
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -222,8 +224,8 @@ public class SettingsFragment extends PreferenceFragment {
 
     public static ViewPager.PageTransformer getPageTransformer(Context context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        String transformerType = settings.getString(PHOTO_TRANSITION_KEY, "DEFAULT");
-        switch (transformerType != null ? transformerType : "DEFAULT") {
+        String transformerType = settings.getString(PHOTO_TRANSITION_KEY, DEFAULT_VALUE_PHOTO_TRANSITION);
+        switch (transformerType != null ? transformerType : DEFAULT_VALUE_PHOTO_TRANSITION) {
             case "DEFAULT":
                 return new DefaultTransformer();
             case "ACCORDION":
@@ -290,7 +292,7 @@ public class SettingsFragment extends PreferenceFragment {
 
     private static int getCurrentCacheValue(Context context) {
         return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
-                .getString("cacheSize", "400"));
+                .getString(CACHE_SIZE_KEY, DEFAULT_VALUE_CACHE_SIZE));
     }
 
     public static int getCurrentCacheValueInBytes(Context context) {

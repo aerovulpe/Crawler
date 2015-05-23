@@ -3,7 +3,6 @@ package me.aerovulpe.crawler.sync;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 
 /**
  * Created by Aaron on 29/12/2014.
@@ -14,7 +13,6 @@ public class CrawlerSyncService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d("CrawlerSyncService", "onCreate - CrawlerSyncService");
         synchronized (sSyncAdapterLock) {
             if (sCrawlerSyncAdapter == null) {
                 sCrawlerSyncAdapter = new CrawlerSyncAdapter(getApplicationContext(), true);

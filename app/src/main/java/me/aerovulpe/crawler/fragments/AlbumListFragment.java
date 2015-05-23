@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,9 +97,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                         }
                     }
                 });
-        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdView adView = (AdView) rootView.findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        adView.loadAd(adRequest);
         return rootView;
     }
 
@@ -142,9 +141,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         BaseActivity activity = (BaseActivity) getActivity();
 
         if (AndroidUtils.isConnectedRoaming(activity)) {
-            activity.showError("Connected to roaming network", "You are currently connected with a " +
-                    "roaming mobile connection. Therefore, we will not download any photos as this " +
-                    "can incur significant costs", false);
+            activity.showError(activity.getString(R.string.connected_to_roaming_network),
+                    activity.getString(R.string.connected_to_roaming_network_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
@@ -157,9 +155,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             if (AndroidUtils.isGoogleTV(activity)) {
                 isConnectedToWifi = true;
             } else {
-                activity.showError("Not connected to WiFi",
-                        "You are currently connected with a mobile non-wifi connection. " +
-                                "In order to download photos, change the relevant setting", false);
+                activity.showError(activity.getString(R.string.not_connected_to_wifi),
+                        activity.getString(R.string.not_connected_to_wifi_message), false);
                 ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 
@@ -174,7 +171,6 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void showPhotos(String albumTitle, String albumID, String photoDataUrl) {
-        Log.d(TAG, "SHOW PHOTOS()");
         PhotoManager managerActivity = (PhotoManager) getActivity();
         managerActivity.createPhotoListInstance(mAccountType, albumTitle, albumID, photoDataUrl, true);
     }

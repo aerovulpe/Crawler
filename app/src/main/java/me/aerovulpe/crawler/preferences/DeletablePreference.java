@@ -8,6 +8,7 @@ import android.util.AttributeSet;
 
 
 public class DeletablePreference extends DialogPreference {
+    public static final String OK = "OK";
     OnPreferenceChangeListener mOnChangeListener;
 
     public DeletablePreference(Context context, AttributeSet attrs) {
@@ -25,7 +26,7 @@ public class DeletablePreference extends DialogPreference {
     protected void onDialogClosed(boolean positiveResult) {
         super.onDialogClosed(positiveResult);
         if (positiveResult && mOnChangeListener != null) {
-            mOnChangeListener.onPreferenceChange(this, "OK");
+            mOnChangeListener.onPreferenceChange(this, OK);
 
         }
 

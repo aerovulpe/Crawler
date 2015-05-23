@@ -7,6 +7,7 @@
        android:defaultValue="5"
        android:title="Slideshow Interval"
        android:summary="Number of seconds to display each photo"
+       android:hint="Enter a number between 1 and 300"
        android:key="slideshowInterval"
        android:numeric="integer"
        android:dialogTitle="Slideshow Interval Duration (In Seconds)"/>
@@ -23,6 +24,7 @@
         android:defaultValue="5"
         android:title="Description Switcher Interval"
         android:summary="Number of seconds to display each line of a photo description"
+        android:hint="Enter a number between 1 and 120"
         android:key="descSwitcherInterval"
         android:numeric="integer"
         android:dialogTitle="Description Line Duration (In Seconds)"/>

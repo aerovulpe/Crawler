@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +39,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.PicasaPhotosRequest;
+import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
 import me.aerovulpe.crawler.util.AccountsUtil;
@@ -81,7 +81,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i(TAG, "receiver onReceive...");
             mIsRequesting = false;
             if (!mIsLoading)
                 dismissDialog();
@@ -124,7 +123,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         args.putString(ARG_PHOTO_DATA_URL, photoDataUrl);
         args.putInt(ARG_TYPE, accountType);
         fragment.setArguments(args);
-        Log.d(TAG, "PhotoListFragment created: " + albumTitle + " " + albumID + " " + photoDataUrl);
         return fragment;
     }
 
@@ -169,9 +167,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 displayPhoto(cursor, position, false);
             }
         });
-        AdView mAdView = (AdView) rootView.findViewById(R.id.adView);
+        AdView adView = (AdView) rootView.findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        adView.loadAd(adRequest);
         return rootView;
     }
 
@@ -216,7 +214,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getActivity().sendBroadcast(new Intent(mAlbumID + ".SHOW"));
+        getActivity().sendBroadcast(new Intent(Request.buildShowAction(mAlbumID)));
     }
 
     @Override
@@ -273,9 +271,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
         if (AndroidUtils.isConnectedRoaming(activity)) {
             dismissDialog();
-            activity.showError("Connected to roaming network", "You are currently connected with a " +
-                    "roaming mobile connection. Therefore, we will not download any photos as this " +
-                    "can incur significant costs", false);
+            activity.showError(activity.getString(R.string.connected_to_roaming_network),
+                    activity.getString(R.string.connected_to_roaming_network_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
             return;
         }
@@ -289,9 +286,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 isConnectedToWifi = true;
             } else {
                 dismissDialog();
-                activity.showError("Not connected to WiFi",
-                        "You are currently connected with a mobile non-wifi connection. " +
-                                "In order to download photos, change the relevant setting", false);
+                activity.showError(activity.getString(R.string.not_connected_to_wifi),
+                        activity.getString(R.string.not_connected_to_wifi_message), false);
                 ImageLoader.getInstance().denyNetworkDownloads(true);
             }
 

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,7 +94,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
                         @Override
                         public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                            Toast.makeText(mContext, "Failed to download image", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, mContext.getString(R.string.failed_to_download_image),
+                                    Toast.LENGTH_SHORT).show();
                             spinner.setVisibility(View.INVISIBLE);
                         }
 
@@ -140,16 +140,13 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
 
         if (albumTextLayout == null || photoTextLayout == null) {
-            Log.w(LOG_PREFIX, "Some of the views we want to toggle are null in setVisibilityOfSlideshowText! Let's make sure this doesn't crash the app");
             return;
         }
 
         if (viewIsVisible) {
-            //Log.d(LOG_PREFIX, "TITLE VISIBLE");
             photoTextLayout.setVisibility(View.VISIBLE);
             albumTextLayout.setVisibility(View.VISIBLE);
         } else {
-            //Log.d(LOG_PREFIX, "TITLE INVISIBLE");
             albumTextLayout.setVisibility(View.INVISIBLE);
             photoTextLayout.setVisibility(View.INVISIBLE);
         }

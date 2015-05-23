@@ -15,7 +15,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -62,11 +61,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         setContentView(R.layout.activity_main);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        View header = LayoutInflater.from(this).inflate(R.layout.account_entry, null);
+        View header = View.inflate(this, R.layout.account_entry, null);
         ((ImageView) header.findViewById(R.id.service_logo))
                 .setImageResource(android.R.drawable.ic_menu_add);
         ((TextView) header.findViewById(R.id.account_name))
-                .setText("Add new account");
+                .setText(getString(R.string.add_new_account));
         header.findViewById(R.id.account_id).setVisibility(View.GONE);
         header.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,11 +184,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
 
     @Override
     public void createPhotoListInstance(int accountType, String albumTitle, String albumID, String photoDataUrl,
-                                        boolean addToBackstack) {
+                                        boolean addToBackStack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(accountType, albumTitle,
                 albumID, photoDataUrl), albumTitle);
-        if (addToBackstack) fragmentTransaction.addToBackStack(null);
+        if (addToBackStack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 

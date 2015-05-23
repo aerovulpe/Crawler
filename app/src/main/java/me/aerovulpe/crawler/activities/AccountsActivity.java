@@ -103,9 +103,9 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         registerForContextMenu(mainList);
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
         if (CrawlerApplication.randomDraw(1 / 10.0)) {
-            AdView mAdView = (AdView) findViewById(R.id.adView);
+            AdView adView = (AdView) findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
-            mAdView.loadAd(adRequest);
+            adView.loadAd(adRequest);
         }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.explorer_interstitial_ad_unit_id));
@@ -278,7 +278,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         builder.setPositiveButton(R.string.yes, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                sendBroadcast(new Intent(accountID + ".CANCEL"));
+                sendBroadcast(new Intent(Request.buildCancelAction(accountID)));
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
