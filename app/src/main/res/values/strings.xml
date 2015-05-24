@@ -131,8 +131,8 @@
     <string name="delete_cache_title">Delete cached photos</string>
     <string name="delete_cache_summary">Click to delete cached photos (will be downloaded again during next run).</string>
     <string name="about_crawler_title">About Crawler</string>
-    <string name="about_crawler_summary">Crawler is an image viewing app. Crawler uses
-        open source components. You can find the source code of the open source projects along
+    <string name="about_crawler_summary">Crawler is an image viewing app which uses open source
+        components. You can find the source code of the open source projects along
         with their license information below. I acknowledge and am grateful to these developers for
         their contributions to the open source movement.
         \n\nProject: Universal Image Loader
