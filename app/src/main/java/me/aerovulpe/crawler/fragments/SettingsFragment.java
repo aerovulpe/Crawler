@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
@@ -96,7 +95,6 @@ public class SettingsFragment extends PreferenceFragment {
                 }
             }
         });
-        ListPreference photoTransitionPref = (ListPreference) findPreference(PHOTO_TRANSITION_KEY);
         EditTextPreference descSwitcherIntervalPref = (EditTextPreference) findPreference(DESC_SWITCHER_INTERVAL_KEY);
         descSwitcherIntervalPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -136,6 +134,13 @@ public class SettingsFragment extends PreferenceFragment {
                 if (((Boolean) newValue)) {
                     new CategoriesRequest(getActivity()).execute();
                     ImageLoader.getInstance().denyNetworkDownloads(false);
+                } else {
+                    Activity activity = getActivity();
+                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
+                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+
+                    if (!isConnectedToWifi && !isConnectedToWired)
+                        ImageLoader.getInstance().denyNetworkDownloads(true);
                 }
                 return true;
             }
