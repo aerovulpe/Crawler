@@ -20,19 +20,6 @@ import java.io.OutputStream;
 
 public class AndroidUtils {
 
-    /**
-     * Test if this device is a Google TV.
-     * <p/>
-     * See 32:00 in "Google I/O 2011: Building Android Apps for Google TV"
-     * http://www.youtube.com/watch?v=CxLL-sR6XfM
-     *
-     * @return true if google tv
-     */
-    public static boolean isGoogleTV(Context context) {
-        final PackageManager pm = context.getPackageManager();
-        return pm.hasSystemFeature("com.google.android.tv");
-    }
-
     public static boolean hasTelephony(Context context) {
         PackageManager pm = context.getPackageManager();
         return pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY);
@@ -66,8 +53,16 @@ public class AndroidUtils {
         return mobile != null && mobile.isConnected() && mobile.isRoaming();
     }
 
+    public static boolean isConnectedMobileNotRoaming(Context context) {
+        ConnectivityManager connectionManager = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mobile = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+        return mobile != null && mobile.isConnected() && !mobile.isRoaming();
+    }
+
     public static Uri savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
-                                     String description) {
+                                  String description) {
         OutputStream outputStream;
         String strDirectory = Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();

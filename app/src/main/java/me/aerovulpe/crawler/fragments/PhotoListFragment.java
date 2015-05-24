@@ -280,17 +280,18 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
         boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
         boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+        boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
+
+        if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
+            activity.showError(activity.getString(R.string.no_internet_connection_detected),
+                    activity.getString(R.string.no_internet_connection_detected_message), false);
+            return;
+        }
 
         if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
-            if (AndroidUtils.isGoogleTV(activity)) {
-                isConnectedToWifi = true;
-            } else {
-                dismissDialog();
-                activity.showError(activity.getString(R.string.not_connected_to_wifi),
-                        activity.getString(R.string.not_connected_to_wifi_message), false);
-                ImageLoader.getInstance().denyNetworkDownloads(true);
-            }
-
+            activity.showError(activity.getString(R.string.not_connected_to_wifi),
+                    activity.getString(R.string.not_connected_to_wifi_message), false);
+            ImageLoader.getInstance().denyNetworkDownloads(true);
         }
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {

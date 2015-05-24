@@ -133,17 +133,7 @@ public class SettingsFragment extends PreferenceFragment {
         downloadOffWifiPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                if (!((Boolean) newValue)) {
-                    Activity activity = getActivity();
-                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
-                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
-
-                    if (!isConnectedToWifi && !isConnectedToWired) {
-                        if (!AndroidUtils.isGoogleTV(activity)) {
-                            ImageLoader.getInstance().denyNetworkDownloads(true);
-                        }
-                    }
-                } else {
+                if (((Boolean) newValue)) {
                     new CategoriesRequest(getActivity()).execute();
                     ImageLoader.getInstance().denyNetworkDownloads(false);
                 }

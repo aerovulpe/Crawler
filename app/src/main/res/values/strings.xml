@@ -105,6 +105,9 @@
     <string name="not_connected_to_wifi">Not connected to WiFi</string>
     <string name="not_connected_to_wifi_message">You are currently connected with a mobile non-wifi
         connection. In order to download photos, please change the relevant setting</string>
+    <string name="no_internet_connection_detected">No internet connection detected</string>
+    <string name="no_internet_connection_detected_message">Cannot download photos as no internet
+    connection was detected. Please check your network connection and try again</string>
     <string name="download_failed">Download failed</string>
     <string name="start_slideshow">Start Slideshow</string>
     <string name="toggle_photo_details">Toggle Photo Details</string>
