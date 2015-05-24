@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.activities;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
@@ -163,17 +164,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             case MENU_ABOUT:
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.about_crawler_title));
-                builder.setIcon(android.R.drawable.ic_dialog_info);
-                builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                builder.setMessage(getString(R.string.about_crawler_summary));
-                builder.show();
+                new AboutDialogFragment().show(getFragmentManager(), "aboutDialog");
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -332,5 +323,22 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
+    }
+
+    public static class AboutDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle(getString(R.string.about_crawler_title));
+            builder.setIcon(android.R.drawable.ic_dialog_info);
+            builder.setPositiveButton(getString(R.string.ok), new OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dismiss();
+                }
+            });
+            builder.setMessage(getString(R.string.about_crawler_summary));
+            return builder.create();
+        }
     }
 }
