@@ -179,18 +179,17 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         final IntentFilter myFilter = new
                 IntentFilter(RequestService.ACTION_NOTIFY_PROGRESS);
         getActivity().registerReceiver(mReceiver, myFilter);
-        if (mRequestData) {
-            if (mAlbumID != null && mPhotoDataUrl != null) {
-                doPhotosRequest();
-            }
-            mRequestData = false;
-        }
         getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (mRequestData) {
+            if (mAlbumID != null && mPhotoDataUrl != null) {
+                doPhotosRequest();
+            }
+        }
         getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
         if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
@@ -259,6 +258,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         if (mHasDisplayedPhotos)
             return;
 
+        dismissDialog();
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(getResources()
                 .getString(R.string.loading_photos));
@@ -267,6 +267,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void doPhotosRequest() {
+        makeProgressDialog();
         BaseActivity activity = (BaseActivity) getActivity();
 
         if (AndroidUtils.isConnectedRoaming(activity)) {
@@ -309,6 +310,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             }
             getActivity().startService(intent);
             doBindService();
+            mRequestData = false;
         }
     }
 

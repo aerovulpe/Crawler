@@ -77,19 +77,20 @@ public class SettingsFragment extends PreferenceFragment {
     public View onCreateView(@NonNull final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         EditTextPreference slideshowIntervalPref = (EditTextPreference) findPreference(SLIDESHOW_INTERVAL_KEY);
+        final Activity activity = getActivity();
         slideshowIntervalPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 try {
                     int number = Integer.parseInt(newValue.toString());
                     if (number < 1 || number > 300) {
-                        Toast.makeText(getActivity(), getString(R.string.slideshow_guide),
+                        Toast.makeText(activity, getString(R.string.slideshow_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     return true;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), getString(R.string.slideshow_warning),
+                    Toast.makeText(activity, getString(R.string.slideshow_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -102,13 +103,13 @@ public class SettingsFragment extends PreferenceFragment {
                 try {
                     int number = Integer.parseInt(newValue.toString());
                     if (number < 1 || number > 120) {
-                        Toast.makeText(getActivity(), getString(R.string.desc_switcher_guide),
+                        Toast.makeText(activity, getString(R.string.desc_switcher_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     }
                     return true;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), getString(R.string.desc_switcher_warning),
+                    Toast.makeText(activity, getString(R.string.desc_switcher_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -119,7 +120,6 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 if ((Boolean) newValue) {
-                    Activity activity = getActivity();
                     Intent intent = new Intent(activity, RequestService.class);
                     intent.setAction(RequestService.ACTION_CLEAR_ALL_NOTIFICATIONS);
                     activity.startService(intent);
@@ -132,10 +132,9 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 if (((Boolean) newValue)) {
-                    new CategoriesRequest(getActivity()).execute();
+                    new CategoriesRequest(activity).execute();
                     ImageLoader.getInstance().denyNetworkDownloads(false);
                 } else {
-                    Activity activity = getActivity();
                     boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
                     boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
 
@@ -152,21 +151,21 @@ public class SettingsFragment extends PreferenceFragment {
                 try {
                     int currentCacheValue = Integer.parseInt(newValue.toString());
                     if (currentCacheValue < 10) {
-                        Toast.makeText(getActivity(), getString(R.string.cache_size_guide),
+                        Toast.makeText(activity, getString(R.string.cache_size_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
                     } else if (currentCacheValue < mOldCacheValue) {
-                        CrawlerApplication.clearImageCacheInit(getActivity(),
+                        CrawlerApplication.clearImageCacheInit(activity,
                                 currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
                         return true;
                     } else if (currentCacheValue > mOldCacheValue) {
-                        CrawlerApplication.initImageLoader(getActivity(),
+                        CrawlerApplication.initImageLoader(activity,
                                 currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
                         return true;
                     }
                     return false;
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), getString(R.string.cache_size_warning),
+                    Toast.makeText(activity, getString(R.string.cache_size_warning),
                             Toast.LENGTH_SHORT).show();
                     return false;
                 }
@@ -174,7 +173,7 @@ public class SettingsFragment extends PreferenceFragment {
         });
 
         PreferenceCategory otherCategory = (PreferenceCategory) findPreference(OTHER_SETTINGS_KEY);
-        DeletablePreference deleteCachePref = new DeletablePreference(getActivity());
+        DeletablePreference deleteCachePref = new DeletablePreference(activity);
         deleteCachePref.setDialogTitle(getString(R.string.delete_cache_dialog_title));
         deleteCachePref.setTitle(getString(R.string.delete_cache_title));
         deleteCachePref.setSummary(getString(R.string.delete_cache_summary));
@@ -189,7 +188,7 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
-        Preference morePref = new Preference(getActivity());
+        Preference morePref = new Preference(activity);
         morePref.setPersistent(false);
         morePref.setTitle(getString(R.string.more_pref_title));
         morePref.setSummary(getString(R.string.more_pref_summary));
@@ -200,9 +199,10 @@ public class SettingsFragment extends PreferenceFragment {
         otherCategory.addPreference(morePref);
 
         //hide this option from non-phone devices
-        if (!AndroidUtils.hasTelephony(getActivity())) {
+        if (!AndroidUtils.hasTelephony(activity) &&
+                !AndroidUtils.isConnectedMobile(activity))
             otherCategory.removePreference(downloadOffWifiPref);
-        }
+
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 

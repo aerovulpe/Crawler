@@ -106,16 +106,15 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (mAccountID != null && mRequestData) {
-            doAlbumsRequest();
-            mRequestData = false;
-        }
         getLoaderManager().initLoader(ALBUMS_LOADER, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        if (mAccountID != null && mRequestData) {
+            doAlbumsRequest();
+        }
         getLoaderManager().restartLoader(ALBUMS_LOADER, null, this);
         if (mRecyclerView.getAdapter() == null) return;
         mRecyclerView.post(new Runnable() {
@@ -169,6 +168,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
                 new PicasaAlbumsRequest(activity).execute(mAccountID);
             }
+            mRequestData = false;
         }
     }
 

@@ -61,6 +61,14 @@ public class AndroidUtils {
         return mobile != null && mobile.isConnected() && !mobile.isRoaming();
     }
 
+    public static boolean isConnectedMobile(Context context) {
+        ConnectivityManager connectionManager = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo mobile = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+        return mobile != null && mobile.isConnected();
+    }
+
     public static Uri savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
                                   String description) {
         OutputStream outputStream;
