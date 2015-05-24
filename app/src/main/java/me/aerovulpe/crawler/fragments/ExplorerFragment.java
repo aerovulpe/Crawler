@@ -173,14 +173,16 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
 
         if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
-            activity.showError(activity.getString(R.string.no_internet_connection_detected),
-                    activity.getString(R.string.no_internet_connection_detected_message), false);
+            if (showDialogs)
+                activity.showError(activity.getString(R.string.no_internet_connection_detected),
+                        activity.getString(R.string.no_internet_connection_detected_message), false);
             return;
         }
 
         if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
-            activity.showError(activity.getString(R.string.not_connected_to_wifi),
-                    activity.getString(R.string.not_connected_to_wifi_message), false);
+            if (showDialogs)
+                activity.showError(activity.getString(R.string.not_connected_to_wifi),
+                        activity.getString(R.string.not_connected_to_wifi_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
         }
 

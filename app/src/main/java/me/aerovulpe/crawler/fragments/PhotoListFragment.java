@@ -289,6 +289,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         }
 
         if (!isConnectedToWifi && !isConnectedToWired && !connectOn3G) {
+            dismissDialog();
             activity.showError(activity.getString(R.string.not_connected_to_wifi),
                     activity.getString(R.string.not_connected_to_wifi_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
