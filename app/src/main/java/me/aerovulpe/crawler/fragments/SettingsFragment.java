@@ -194,15 +194,15 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
-        Preference aboutPref = new Preference(getActivity());
-        aboutPref.setPersistent(false);
-        aboutPref.setTitle(getString(R.string.about_crawler_title));
-        aboutPref.setSummary(getString(R.string.about_crawler_summary));
-        aboutPref.setIntent(new Intent(Intent.ACTION_VIEW,
+        Preference morePref = new Preference(getActivity());
+        morePref.setPersistent(false);
+        morePref.setTitle(getString(R.string.more_pref_title));
+        morePref.setSummary(getString(R.string.more_pref_summary));
+        morePref.setIntent(new Intent(Intent.ACTION_VIEW,
                 Uri.parse(getString(R.string.aerisvulpe_dev_url))));
 
         otherCategory.addPreference(deleteCachePref);
-        otherCategory.addPreference(aboutPref);
+        otherCategory.addPreference(morePref);
 
         //hide this option from non-phone devices
         if (!AndroidUtils.hasTelephony(getActivity())) {

@@ -78,13 +78,13 @@ public abstract class Request implements Runnable {
                 .getBoolean(mAlbumID, false);
         mReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(final Context context, Intent intent) {
+            public void onReceive(Context context, Intent intent) {
                 if (buildCancelAction(mAlbumID).equals(intent.getAction())) {
                     onCancel();
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(mRequestService, String.format(context
+                            Toast.makeText(mRequestService, String.format(mRequestService
                                             .getString(R.string.download_cancelled), mAlbumName),
                                     Toast.LENGTH_SHORT).show();
                         }

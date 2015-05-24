@@ -17,7 +17,6 @@
     <string name="account_add_title">Add account</string>
     <string name="account_edit_title">Edit account</string>
     <string name="account_type">Type:</string>
-    <string name="account_id">ID:</string>
     <string name="account_name">Title:</string>
     <string name="choose_account_type">Choose account type</string>
     <string-array name="account_type_array">
@@ -101,12 +100,14 @@
     <string name="account_error">Account Error</string>
     <string name="account_invalid">The account you created is invalid. Please check it again.</string>
     <string name="connected_to_roaming_network">Connected to roaming network</string>
-    <string name="connected_to_roaming_network_message">You are currently connected with a roaming mobile connection. Therefore, we will not download any photos as this can incur significant costs</string>
+    <string name="connected_to_roaming_network_message">You are currently connected with a roaming
+        mobile connection. Therefore, no photos will be downloaded as this can incur significant costs</string>
     <string name="not_connected_to_wifi">Not connected to WiFi</string>
-    <string name="not_connected_to_wifi_message">You are currently connected with a mobile non-wifi connection. In order to download photos, change the relevant setting</string>
+    <string name="not_connected_to_wifi_message">You are currently connected with a mobile non-wifi
+        connection. In order to download photos, please change the relevant setting</string>
     <string name="download_failed">Download failed</string>
     <string name="start_slideshow">Start Slideshow</string>
-    <string name="toggle_photo_details">Toggle photo details</string>
+    <string name="toggle_photo_details">Toggle Photo Details</string>
     <string name="save_photo">Save Photo</string>
     <string name="share_photo">Share Photo</string>
     <string name="make_wallpaper">Make Wallpaper</string>
@@ -127,11 +128,46 @@
     <string name="delete_cache_title">Delete cached photos</string>
     <string name="delete_cache_summary">Click to delete cached photos (will be downloaded again during next run).</string>
     <string name="about_crawler_title">About Crawler</string>
-    <string name="about_crawler_summary">Crawler is an image viewing app</string>
+    <string name="about_crawler_summary">Crawler is an image viewing app. Crawler uses
+        open source components. You can find the source code of the open source projects along
+        with their license information below. I acknowledge and am grateful to these developers for
+        their contributions to the open source movement.
+        \n\nProject: Universal Image Loader
+        \nhttps://github.com/nostra13/Android-Universal-Image-Loader
+        \nCopyright © 2013 Sergey Tarasevich. All rights reserved.
+        \nLicense (Apache)
+        \nhttps://github.com/nostra13/Android-Universal-Image-Loader/blob/master/LICENSE
+     \n\nProject: TouchImageView
+        \nhttps://github.com/MikeOrtiz/TouchImageView
+        \nCopyright © 2012 Michael Ortiz. All rights reserved.
+        \nLicense
+        \nhttps://github.com/MikeOrtiz/TouchImageView/blob/master/LICENSE
+    \n\nProject: ViewPagerTransforms
+        \nhttps://github.com/ToxicBakery/ViewPagerTransforms
+        \nCopyright © 2015 Ian Thomas. All rights reserved.
+        \nLicense (Apache)
+        \nhttps://github.com/ToxicBakery/ViewPagerTransforms/blob/master/LICENSE
+    \n\nProject: CursorRecyclerViewAdapter
+        \nhttps://gist.github.com/skyfishjy/443b7448f59be978bc59
+        \nCopyright © 2014 skyfish.jy@gmail.com. All rights reserved.
+        \nLicense (Apache)
+        \nhttps://gist.github.com/skyfishjy/443b7448f59be978bc59
+    \n\nProject: PicView for Android
+        \nhttps://github.com/google/picview-for-android
+        \nCopyright © 2011 Sascha Häberling. All rights reserved.
+        \nLicense (Apache)
+        \nhttps://github.com/google/picview-for-android/blob/master/COPYING
+    \n\nProject: com.elsewhat.android.slideshow
+        \nhttps://github.com/elsewhat/com.elsewhat.android.slideshow
+        \nCopyright © 2012 Dagfinn Parnas. All rights reserved.
+        \nLicense (MIT)
+        \nhttps://github.com/elsewhat/com.elsewhat.android.slideshow/blob/master/License.MIT</string>
     <string name="aerisvulpe_dev_url">https://play.google.com/store/apps/developer?id=AerisVulpe</string>
     <string name="download_cancelled">"%s download cancelled"</string>
     <string name="download_finished">Downloading finished</string>
     <string name="downloading_failed">Downloading failed</string>
     <string name="downloading_from">"Downloading from %s"</string>
     <string name="downloading_page">"Downloading page %1$d of %2$d"</string>
+    <string name="more_pref_title">See more apps from this developer</string>
+    <string name="more_pref_summary">Click to go to my Google Play Store page and check out more apps!</string>
 </resources>

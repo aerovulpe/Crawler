@@ -191,8 +191,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         super.onStop();
         Activity activity = getActivity();
         activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
-                .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText).apply();
-        activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+                .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText)
                 .putBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, mIsFullscreen).apply();
     }
 

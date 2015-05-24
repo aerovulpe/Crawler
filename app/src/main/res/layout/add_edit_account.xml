@@ -28,8 +28,7 @@
             <TextView
                 android:id="@+id/account_id_title"
                 style="@style/account_dialog_label"
-                android:layout_column="1"
-                android:text="@string/account_id"/>
+                android:layout_column="1"/>
 
             <EditText
                 android:id="@+id/account_id"
