@@ -283,6 +283,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
 
         if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
+            dismissDialog();
             activity.showError(activity.getString(R.string.no_internet_connection_detected),
                     activity.getString(R.string.no_internet_connection_detected_message), false);
             return;
