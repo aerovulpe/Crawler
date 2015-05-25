@@ -85,6 +85,7 @@ public class ExplorerDetailFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
+        final Activity activity = getActivity();
         View rootView = inflater.inflate(R.layout.fragment_explorer_detail, container, false);
         if (!(mTitle == null || mTitle.isEmpty()))
             ((TextView) rootView.findViewById(R.id.textview_title)).setText(mTitle);
@@ -122,12 +123,12 @@ public class ExplorerDetailFragment extends DialogFragment {
                                 mType);
                         values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
                                 System.currentTimeMillis());
-                        Activity activity = getActivity();
-                        if (activity != null)
+                        if (activity != null) {
                             activity.getContentResolver()
                                     .insert(CrawlerContract.AccountEntry.CONTENT_URI,
                                             values);
-                        new RequestInfo(activity).execute(mType, mId);
+                            new RequestInfo(activity).execute(mType, mId);
+                        }
                     }
                 }).start();
                 dismiss();
