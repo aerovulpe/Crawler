@@ -196,72 +196,13 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         switch (item.getItemId()) {
             case CONTEXT_MENU_INFO:
                 if (cursor != null && cursor.moveToPosition(info.position)) {
-                    // custom dialog
-                    final Dialog dialog = new Dialog(this);
-                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    dialog.setContentView(R.layout.info_dialog);
-                    int dialogWidth = FrameLayout.LayoutParams.MATCH_PARENT;
-                    int dialogHeight = FrameLayout.LayoutParams.WRAP_CONTENT;
-                    dialog.getWindow().setLayout(dialogWidth, dialogHeight);
-
-                    // set the custom dialog components - description, image and button
-                    TextView title = (TextView) dialog.findViewById(R.id.textview_title);
-                    title.setText(cursor.getString(COL_ACCOUNT_NAME));
-                    TextView id = (TextView) dialog.findViewById(R.id.textview_id);
-                    int accountType = cursor.getInt(COL_ACCOUNT_TYPE);
-                    if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
-                        id.setText(AccountsUtil.makePicasaPseudoID(cursor.getString(COL_ACCOUNT_ID)));
-                    else
-                        id.setText(cursor.getString(COL_ACCOUNT_ID));
-                    TextView description = (TextView) dialog.findViewById(R.id.textview_description);
-                    description.setText(cursor.getString(COL_ACCOUNT_DESCRIPTION));
-                    TextView numOfPostsView = (TextView) dialog.findViewById(R.id.textview_num_of_posts);
-                    int numOfPosts = cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS);
-                    if (numOfPosts != -1) {
-                        numOfPostsView.setText(String.format(getResources()
-                                .getString(R.string.num_of_posts), numOfPosts));
-                    } else {
-                        numOfPostsView.setVisibility(View.GONE);
-                    }
-                    final ImageView avatarImage = (ImageView) dialog.findViewById(R.id.imageview_thumbnail);
-                    String previewUrl = cursor.getString(AccountsActivity.COL_ACCOUNT_PREVIEW_URL);
-                    if (previewUrl != null && !previewUrl.isEmpty()) {
-                        ImageLoader.getInstance().displayImage(previewUrl, avatarImage, new ImageLoadingListener() {
-                            @Override
-                            public void onLoadingStarted(String imageUri, View view) {
-
-                            }
-
-                            @Override
-                            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(cursor
-                                        .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
-                            }
-
-                            @Override
-                            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-
-                            }
-
-                            @Override
-                            public void onLoadingCancelled(String imageUri, View view) {
-
-                            }
-                        });
-                    } else {
-                        avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(cursor
-                                .getInt(AccountsActivity.COL_ACCOUNT_TYPE)));
-                    }
-
-                    Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
-                    // if button is clicked, close the custom dialog
-                    dialogButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialog.dismiss();
-                        }
-                    });
-                    dialog.show();
+                    InfoDialogFragment.newInstance(cursor.getInt(COL_ACCOUNT_TYPE),
+                            cursor.getString(COL_ACCOUNT_ID),
+                            cursor.getString(COL_ACCOUNT_NAME),
+                            cursor.getString(COL_ACCOUNT_DESCRIPTION),
+                            cursor.getString(COL_ACCOUNT_PREVIEW_URL),
+                            cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS))
+                            .show(getFragmentManager(), "infoDialog");
                 }
                 return true;
             case CONTEXT_MENU_EDIT:
@@ -339,6 +280,116 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
             });
             builder.setMessage(getString(R.string.about_crawler_summary));
             return builder.create();
+        }
+    }
+
+    public static class InfoDialogFragment extends DialogFragment {
+        private static final String ARG_ACCOUNT_TYPE = InfoDialogFragment.class.getName() + "account_type";
+        private static final String ARG_ACCOUNT_ID = InfoDialogFragment.class.getName() + "account_id";
+        private static final String ARG_ACCOUNT_NAME = InfoDialogFragment.class.getName() + "account_name";
+        private static final String ARG_ACCOUNT_DESC = InfoDialogFragment.class.getName() + "account_desc";
+        private static final String ARG_ACCOUNT_PREVIEW_URL = InfoDialogFragment.class.getName() + "account_preview_url";
+        private static final String ARG_ACCOUNT_NUM_OF_POSTS = InfoDialogFragment.class.getName() + "account_num_of_posts";
+
+        private int mAccountType;
+        private String mAccountId;
+        private String mAccountName;
+        private String mAccountDesc;
+        private String mAccountPreviewUrl;
+        private int mAccountNumOfPosts;
+
+        public static InfoDialogFragment newInstance(int accountType, String accountId, String accountName,
+                                                     String accountDesc, String accountPreviewUrl,
+                                                     int accountNumOfPosts) {
+            Bundle args = new Bundle();
+            args.putInt(ARG_ACCOUNT_TYPE, accountType);
+            args.putString(ARG_ACCOUNT_ID, accountId);
+            args.putString(ARG_ACCOUNT_NAME, accountName);
+            args.putString(ARG_ACCOUNT_DESC, accountDesc);
+            args.putString(ARG_ACCOUNT_PREVIEW_URL, accountPreviewUrl);
+            args.putInt(ARG_ACCOUNT_NUM_OF_POSTS, accountNumOfPosts);
+            InfoDialogFragment fragment = new InfoDialogFragment();
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            Bundle args = getArguments();
+            if (args != null) {
+                mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
+                mAccountId = args.getString(ARG_ACCOUNT_ID);
+                mAccountName = args.getString(ARG_ACCOUNT_NAME);
+                mAccountDesc = args.getString(ARG_ACCOUNT_DESC);
+                mAccountPreviewUrl = args.getString(ARG_ACCOUNT_PREVIEW_URL);
+                mAccountNumOfPosts = args.getInt(ARG_ACCOUNT_NUM_OF_POSTS);
+            }
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Dialog dialog = new Dialog(getActivity());
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.info_dialog);
+            int dialogWidth = FrameLayout.LayoutParams.MATCH_PARENT;
+            int dialogHeight = FrameLayout.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setLayout(dialogWidth, dialogHeight);
+
+            // set the custom dialog components - description, image and button
+            TextView title = (TextView) dialog.findViewById(R.id.textview_title);
+            title.setText(mAccountName);
+            TextView id = (TextView) dialog.findViewById(R.id.textview_id);
+            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+                id.setText(AccountsUtil.makePicasaPseudoID(mAccountId));
+            else
+                id.setText(mAccountId);
+            TextView description = (TextView) dialog.findViewById(R.id.textview_description);
+            description.setText(mAccountDesc);
+            TextView numOfPostsView = (TextView) dialog.findViewById(R.id.textview_num_of_posts);
+            if (mAccountNumOfPosts != -1) {
+                numOfPostsView.setText(String.format(getResources()
+                        .getString(R.string.num_of_posts), mAccountNumOfPosts));
+            } else {
+                numOfPostsView.setVisibility(View.GONE);
+            }
+            final ImageView avatarImage = (ImageView) dialog.findViewById(R.id.imageview_thumbnail);
+            if (mAccountPreviewUrl != null && !mAccountPreviewUrl.isEmpty()) {
+                ImageLoader.getInstance().displayImage(mAccountPreviewUrl, avatarImage,
+                        new ImageLoadingListener() {
+                            @Override
+                            public void onLoadingStarted(String imageUri, View view) {
+
+                            }
+
+                            @Override
+                            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
+                            }
+
+                            @Override
+                            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+
+                            }
+
+                            @Override
+                            public void onLoadingCancelled(String imageUri, View view) {
+
+                            }
+                        });
+            } else {
+                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
+            }
+
+            Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
+            // if button is clicked, close the custom dialog
+            dialogButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismiss();
+                }
+            });
+            return dialog;
         }
     }
 }
