@@ -127,7 +127,7 @@ public class ExplorerDetailFragment extends DialogFragment {
                             activity.getContentResolver()
                                     .insert(CrawlerContract.AccountEntry.CONTENT_URI,
                                             values);
-                        new RequestInfo(getActivity()).execute(mType, mId);
+                        new RequestInfo(activity).execute(mType, mId);
                     }
                 }).start();
                 dismiss();
