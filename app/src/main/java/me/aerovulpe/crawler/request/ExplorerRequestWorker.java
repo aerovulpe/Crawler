@@ -36,7 +36,7 @@ import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
  */
 public class ExplorerRequestWorker implements Runnable {
     private int mCacheSize = 25;
-    private final String LOG_TAG = ExplorerRequestWorker.class.getSimpleName();
+    private final String LOG_TAG = "ExplorerRequestWorker";
     private ContentProviderClient mProvider;
     private Vector<ContentValues> mContentCache;
     private final ExplorerRequest mRequest;

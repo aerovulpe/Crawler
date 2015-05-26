@@ -3,7 +3,7 @@
     <color name="crawlerPrimaryColor">@color/md_indigo_500</color>
     <color name="crawlerSecondaryColor">@color/md_indigo_700</color>
     <color name="crawlerBackgroundAccent">@color/md_pink_700</color>
-    <color name="crawlerBackgroundColor">@color/md_grey_500</color>
+    <color name="crawlerBackgroundColor">@color/md_grey_400</color>
     <color name="crawlerPrimaryTextColor">@color/md_white_1000</color>
     <color name="crawlerSecondaryTextColor">@color/md_grey_700</color>
     <color name="crawlerHighlightColor">@color/md_indigo_A700</color>

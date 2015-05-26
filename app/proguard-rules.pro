@@ -15,3 +15,18 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-keep public class com.google.android.gms.ads.** {
+   public *;
+}
+
+-keep public class com.google.ads.** {
+   public *;
+}
+
+-keep public class org.jsoup.** {
+   public *;
+}
+
+-keep public class me.aerovulpe.crawler.fragments.PhotoViewerFragment {
+ private void changePagerScroller();
+}

@@ -43,10 +43,10 @@ import me.aerovulpe.crawler.util.NetworkUtil;
 
 
 public class AddEditAccountFragment extends DialogFragment {
-    private static final String ARG_FRAGMENT_TYPE = AddEditAccountFragment.class.getName() + "arg_fragment_type";
-    private static final String ARG_ACCOUNT_TYPE = AddEditAccountFragment.class.getName() + "arg_account_type";
-    private static final String ARG_ID = AddEditAccountFragment.class.getName() + "arg_id";
-    private static final String ARG_NAME = AddEditAccountFragment.class.getName() + "arg_name";
+    private static final String ARG_FRAGMENT_TYPE = "AddEditAccountFragment.arg_fragment_type";
+    private static final String ARG_ACCOUNT_TYPE = "AddEditAccountFragment.arg_account_type";
+    private static final String ARG_ID = "AddEditAccountFragment.arg_id";
+    private static final String ARG_NAME = "AddEditAccountFragment.arg_name";
     public static int ADD_ACCOUNT = 0;
     public static int EDIT_ACCOUNT = 1;
 

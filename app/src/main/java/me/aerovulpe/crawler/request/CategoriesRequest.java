@@ -105,13 +105,13 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
         flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
                 AccountsUtil.ACCOUNT_TYPE_FLICKR);
         flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
-                FlickrRequest.class.getName());
+                AccountsUtil.CATEGORY_FLICKR);
 
         ContentValues picasaValues = new ContentValues();
         picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
                 AccountsUtil.ACCOUNT_TYPE_PICASA);
         picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
-                PicasaAlbumsRequest.class.getName());
+                AccountsUtil.CATEGORY_PICASA);
 
         addValues(flickrValues);
         addValues(picasaValues);
