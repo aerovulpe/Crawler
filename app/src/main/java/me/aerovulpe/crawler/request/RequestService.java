@@ -95,6 +95,12 @@ public class RequestService extends Service {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mRequestThreadPool.shutdown();
+    }
+
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
