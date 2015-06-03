@@ -239,8 +239,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                Photo currentPhoto = Photo.fromCursor(((PhotoViewerAdapter)
-                                        mViewPager.getAdapter()).getCursor());
+                                Photo currentPhoto = getCurrentPhoto();
                                 if (currentPhoto == null || mViewPager.getAdapter().getCount() == 0)
                                     return;
                                 TextSwitcher switcherDescription = (TextSwitcher) mViewPager
@@ -368,7 +367,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
     }
 
-    public Photo getCurrentPhoto() {
+    private Photo getCurrentPhoto() {
         mCurrentPhotoIndex = mViewPager.getCurrentItem();
         Cursor cursor = ((PhotoViewerAdapter) mViewPager.getAdapter()).getCursor();
         return cursor.moveToPosition(mCurrentPhotoIndex) ? Photo.fromCursor(cursor) : null;

@@ -12,10 +12,9 @@ public abstract class CursorPagerAdapter extends PagerAdapter {
     private Cursor mCursor;
     private Context mContext;
 
-    public CursorPagerAdapter(Context context, Cursor c) {
-        boolean cursorPresent = c != null;
-        mCursor = c;
-        mDataValid = cursorPresent;
+    public CursorPagerAdapter(Context context, Cursor cursor) {
+        mCursor = cursor;
+        mDataValid = cursor != null;
         mContext = context;
     }
 

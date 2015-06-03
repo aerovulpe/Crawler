@@ -43,6 +43,9 @@ import android.widget.Scroller;
 import java.io.IOException;
 import java.net.URL;
 
+import me.aerovulpe.crawler.fragments.SettingsFragment;
+import me.aerovulpe.crawler.utils.AndroidUtils;
+
 public class TouchImageView extends ImageView {
 
     private static final String DEBUG = "TouchImageView";
@@ -1310,6 +1313,11 @@ public class TouchImageView extends ImageView {
             final Handler handler = new Handler();
             new Thread(new Runnable() {
                 public void run() {
+                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
+                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
+                    if (!isConnectedToWifi && !isConnectedToWired &&
+                            !SettingsFragment.downloadOffWifi(getContext()))
+                        return;
                     try {
                         GifDecoder gifDecoder = new GifDecoder();
                         gifDecoder.read(new URL(url).openStream(), 0);
