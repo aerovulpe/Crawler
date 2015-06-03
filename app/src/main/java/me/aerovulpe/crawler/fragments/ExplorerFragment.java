@@ -23,12 +23,12 @@ import java.lang.ref.WeakReference;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.ExplorerActivity;
-import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
+import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.ExplorerRequest;
 import me.aerovulpe.crawler.request.ExplorerRequestManager;
 import me.aerovulpe.crawler.request.ExplorerRequestObserver;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 /**
  * Created by Aaron on 07/05/2015.

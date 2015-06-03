@@ -27,13 +27,13 @@ import android.widget.TextView;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.AccountsAdapter;
+import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {

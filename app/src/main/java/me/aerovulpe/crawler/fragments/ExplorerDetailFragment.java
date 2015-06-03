@@ -18,7 +18,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 /**
  * Created by Aaron on 14/05/2015.

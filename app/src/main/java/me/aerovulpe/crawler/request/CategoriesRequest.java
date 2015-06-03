@@ -17,8 +17,8 @@ import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 /**
  * Created by Aaron on 13/05/2015.

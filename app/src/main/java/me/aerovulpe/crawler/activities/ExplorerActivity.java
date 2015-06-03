@@ -20,10 +20,10 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.ExplorerTabAdapter;
+import me.aerovulpe.crawler.adapters.ExplorerTabAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int COL_CATEGORY_NAME = 1;

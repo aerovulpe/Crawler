@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.app.Activity;
 import android.content.Context;

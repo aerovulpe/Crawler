@@ -20,8 +20,8 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 
 /**

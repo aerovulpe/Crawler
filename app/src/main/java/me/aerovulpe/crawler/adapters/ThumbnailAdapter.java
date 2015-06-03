@@ -14,7 +14,7 @@
  * the License.
  */
 
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.database.Cursor;
 import android.graphics.Bitmap;

@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.app.Fragment;
 import android.app.FragmentManager;

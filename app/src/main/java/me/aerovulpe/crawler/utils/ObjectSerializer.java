@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.util;
+package me.aerovulpe.crawler.utils;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file

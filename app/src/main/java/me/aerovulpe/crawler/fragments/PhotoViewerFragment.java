@@ -37,9 +37,9 @@ import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
+import me.aerovulpe.crawler.adapters.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 

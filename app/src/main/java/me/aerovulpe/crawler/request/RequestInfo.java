@@ -18,9 +18,9 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
-import static me.aerovulpe.crawler.util.NetworkUtil.getStringFromServer;
+import static me.aerovulpe.crawler.utils.NetworkUtil.getStringFromServer;
 
 /**
  * Created by Aaron on 22/05/2015.

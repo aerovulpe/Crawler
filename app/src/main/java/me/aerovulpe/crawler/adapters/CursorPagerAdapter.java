@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.content.Context;
 import android.database.Cursor;

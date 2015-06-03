@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.util;
+package me.aerovulpe.crawler.utils;
 
 import android.content.ContentValues;
 import android.content.Context;
