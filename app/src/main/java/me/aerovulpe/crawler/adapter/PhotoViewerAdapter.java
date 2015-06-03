@@ -30,13 +30,10 @@ import me.aerovulpe.crawler.ui.TouchImageView;
  * Created by Aaron on 09/03/2015.
  */
 public class PhotoViewerAdapter extends CursorPagerAdapter {
-
-    private static final String LOG_PREFIX = PhotoViewerAdapter.class.getSimpleName();
-    public static final int LOAD_BUFFER_SIZE = 15;
     private final ImageLoader mImageLoader;
-    DisplayImageOptions mOptions;
     private String mAlbumTitle;
     private OnPhotoClickListener mOnClickListener;
+    private DisplayImageOptions mOptions;
     private boolean mShowText;
 
     public PhotoViewerAdapter(Context context, Cursor cursor, String albumTitle, OnPhotoClickListener onClickListener) {
@@ -70,13 +67,11 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         TextSwitcher descriptionSwitcher = (TextSwitcher) view.findViewById(R.id.photo_description_switcher);
         final ProgressBar spinner = (ProgressBar) view.findViewById(R.id.loading);
         setVisibilityOfPhotoText(view, mShowText);
-
-        photoView.setTag(view);
         photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
         final Photo currentPhoto = Photo.fromCursor(cursor);
-
+        if (currentPhoto != null){
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                     new ImageLoadingListener() {
                         @Override
@@ -105,18 +100,14 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
                     });
             txtPhotoTitle.setText(currentPhoto.getTitle());
             txtAlbumName.setText(mAlbumTitle);
-
             Animation inAnim = AnimationUtils.loadAnimation(context,
                     R.anim.slide_in_up);
             Animation outAnim = AnimationUtils.loadAnimation(context,
                     R.anim.slide_out_down);
-
             descriptionSwitcher.setInAnimation(inAnim);
             descriptionSwitcher.setOutAnimation(outAnim);
-
             descriptionSwitcher.setText(currentPhoto.getDescription());
-
-            descriptionSwitcher.setTag(cursor.getPosition());
+            descriptionSwitcher.setTag(cursor.getPosition());}
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
@@ -127,8 +118,6 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         //the values are already populated
         View photoTextLayout = photoView.findViewById(R.id.photo_text_background);
         View albumTextLayout = photoView.findViewById(R.id.photo_album_name_background);
-
-
         if (albumTextLayout == null || photoTextLayout == null) {
             return;
         }
@@ -140,11 +129,6 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
             albumTextLayout.setVisibility(View.INVISIBLE);
             photoTextLayout.setVisibility(View.INVISIBLE);
         }
-    }
-
-    @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
-        container.removeView((View) object);
     }
 
     @Override
