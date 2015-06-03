@@ -20,12 +20,14 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -37,6 +39,9 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
+
+import java.io.IOException;
+import java.net.URL;
 
 public class TouchImageView extends ImageView {
 
@@ -63,7 +68,6 @@ public class TouchImageView extends ImageView {
     //
     private Matrix matrix, prevMatrix;
     private State state;
-    ;
     private float minScale;
     private float maxScale;
     private float superMinScale;
@@ -88,6 +92,7 @@ public class TouchImageView extends ImageView {
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;
     private OnTouchListener userTouchListener = null;
     private OnTouchImageViewListener touchImageViewListener = null;
+    private volatile boolean mIsAnimated;
 
     public TouchImageView(Context context) {
         super(context);
@@ -276,7 +281,11 @@ public class TouchImageView extends ImageView {
             setZoom(delayedZoomVariables.scale, delayedZoomVariables.focusX, delayedZoomVariables.focusY, delayedZoomVariables.scaleType);
             delayedZoomVariables = null;
         }
-        super.onDraw(canvas);
+        try {
+            super.onDraw(canvas);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -1279,6 +1288,59 @@ public class TouchImageView extends ImageView {
             this.focusX = focusX;
             this.focusY = focusY;
             this.scaleType = scaleType;
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mIsAnimated = false;
+        Drawable drawable = getDrawable();
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            Bitmap bitmap = bitmapDrawable.getBitmap();
+            if (bitmap != null && !bitmap.isRecycled())
+                bitmap.recycle();
+        }
+    }
+
+    public void playGif(final String url) {
+        try {
+            mIsAnimated = true;
+            final Handler handler = new Handler();
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        GifDecoder gifDecoder = new GifDecoder();
+                        gifDecoder.read(new URL(url).openStream(), 0);
+                        final int frameCount = gifDecoder.getFrameCount();
+                        while (mIsAnimated && isShown()) {
+                            for (int i = 0; i < frameCount; i++) {
+                                final Bitmap nextBitmap = gifDecoder.getNextFrame();
+                                int delay = gifDecoder.getDelay(i);
+                                delay = delay != 0 ? delay : 33;
+                                handler.post(new Runnable() {
+                                    public void run() {
+                                        if (nextBitmap != null && !nextBitmap.isRecycled()) {
+                                            TouchImageView.this.setImageBitmap(nextBitmap);
+                                        }
+                                    }
+                                });
+                                try {
+                                    Thread.sleep(delay);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    } catch (IOException | IllegalStateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (OutOfMemoryError e) {
+            e.printStackTrace();
+            System.gc();
         }
     }
 }

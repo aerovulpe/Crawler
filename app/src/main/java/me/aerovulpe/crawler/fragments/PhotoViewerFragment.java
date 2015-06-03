@@ -3,12 +3,9 @@ package me.aerovulpe.crawler.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -16,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,7 +29,6 @@ import android.widget.Toast;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -41,12 +38,10 @@ import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapter.PhotoViewerAdapter;
-import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.util.AndroidUtils;
 
-public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener,
-        LoaderManager.LoaderCallbacks<Cursor> {
+public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 
     public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
 
@@ -54,22 +49,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5;
 
     public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
-    public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_VIEW.album_id";
-    public static final String ARG_ALBUM_PHOTOS = "me.aerovulpe.crawler.PHOTO_VIEW.photos";
-    public static final String ARG_PHOTO_INDEX = "me.aerovulpe.crawler.PHOTO_VIEW.photo_index";
-    private static final int PHOTOS_LOADER = 3;
-    private static String[] PHOTOS_COLUMNS = {
-            CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
-            CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
-            CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE,
-            CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL,
-            CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION
-    };
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
-    private String mAlbumID;
-    private Photo[] mPhotos;
-    private int mInitPhotoIndex;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
     private boolean mShowText;
@@ -83,14 +64,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         // Required empty public constructor
     }
 
-    public static PhotoViewerFragment newInstance(String albumTitle, String albumId,
-                                                  List<Photo> photos, int currentPhotoIndex) {
+    public static PhotoViewerFragment newInstance(String albumTitle) {
         PhotoViewerFragment fragment = new PhotoViewerFragment();
         Bundle args = new Bundle();
         args.putString(ARG_ALBUM_TITLE, albumTitle);
-        args.putString(ARG_ALBUM_ID, albumId);
-        args.putParcelableArrayList(ARG_ALBUM_PHOTOS, (ArrayList<Photo>) photos);
-        args.putInt(ARG_PHOTO_INDEX, currentPhotoIndex);
         fragment.setArguments(args);
         return fragment;
     }
@@ -101,10 +78,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         Bundle args = getArguments();
         if (args != null) {
             mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
-            mAlbumID = args.getString(ARG_ALBUM_ID);
-            ArrayList<Photo> arrayList = args.getParcelableArrayList(ARG_ALBUM_PHOTOS);
-            mPhotos = arrayList.toArray(new Photo[arrayList.size()]);
-            mInitPhotoIndex = args.getInt(ARG_PHOTO_INDEX);
         }
         mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
@@ -118,7 +91,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_photo_viewer, container, false);
         mViewPager = (ViewPager) rootView.findViewById(R.id.view_pager);
-        mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), mPhotos, mAlbumTitle, this));
+        mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), null, mAlbumTitle, this));
         mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
         changePagerScroller();
         setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
@@ -129,19 +102,12 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(PHOTOS_LOADER, null, this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(PHOTOS_LOADER, null, this);
-        if (mInitPhotoIndex != -1) {
-            mViewPager.setCurrentItem(mInitPhotoIndex);
-            mInitPhotoIndex = -1;
-        } else {
-            mViewPager.setCurrentItem(mCurrentPhotoIndex);
-        }
+        mViewPager.setCurrentItem(mCurrentPhotoIndex);
 
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -236,16 +202,16 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 toggleDetailViews();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SAVE:
-                if (savePhoto(getPhoto(getCurrentPhotoIndex())) != null)
+                if (savePhoto(getCurrentPhoto()) != null)
                     Toast.makeText(getActivity(), getString(R.string.photo_saved), Toast.LENGTH_LONG).show();
                 else
                     Toast.makeText(getActivity(), getString(R.string.photo_save_failed), Toast.LENGTH_LONG).show();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SHARE:
-                sharePhoto(getPhoto(getCurrentPhotoIndex()));
+                sharePhoto(getCurrentPhoto());
                 return true;
             case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
-                setAsWallpaper(getPhoto(getCurrentPhotoIndex()));
+                setAsWallpaper(getCurrentPhoto());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -273,8 +239,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     public void run() {
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                if (mPhotos.length == 0) return;
-                                Photo currentPhoto = mPhotos[mViewPager.getCurrentItem()];
+                                Photo currentPhoto = Photo.fromCursor(((PhotoViewerAdapter)
+                                        mViewPager.getAdapter()).getCursor());
+                                if (currentPhoto == null || mViewPager.getAdapter().getCount() == 0)
+                                    return;
                                 TextSwitcher switcherDescription = (TextSwitcher) mViewPager
                                         .findViewWithTag(mViewPager.getCurrentItem());
                                 updateScrollingDescription(currentPhoto, switcherDescription);
@@ -358,7 +326,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                         public void run() {
                             PhotoViewerFragment.this.getActivity().runOnUiThread(new Runnable() {
                                 public void run() {
-                                    if (mViewPager.getCurrentItem() == mPhotos.length - 1) {
+                                    if (mViewPager.getCurrentItem() == mViewPager
+                                            .getAdapter().getCount()) {
                                         mViewPager.setCurrentItem(0);
                                         toggleSlideShow();
                                     } else {
@@ -399,13 +368,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
     }
 
-    public int getCurrentPhotoIndex() {
+    public Photo getCurrentPhoto() {
         mCurrentPhotoIndex = mViewPager.getCurrentItem();
-        return mCurrentPhotoIndex;
-    }
-
-    public Photo getPhoto(int position) {
-        return mPhotos[position];
+        Cursor cursor = ((PhotoViewerAdapter) mViewPager.getAdapter()).getCursor();
+        return cursor.moveToPosition(mCurrentPhotoIndex) ? Photo.fromCursor(cursor) : null;
     }
 
     public void sharePhoto(Photo photo) {
@@ -490,31 +456,16 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager.setCurrentItem(currentPosition);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = CrawlerContract.PhotoEntry.buildPhotosUriWithAlbumID(mAlbumID);
-        String sortOrder = CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " DESC";
-        return new CursorLoader(getActivity(), uri, PHOTOS_COLUMNS, null,
-                null, sortOrder);
+    public void setCursor(Cursor data) {
+        int currentItem = mViewPager.getCurrentItem();
+        ((PhotoViewerAdapter) mViewPager.getAdapter()).swapCursor(data);
+        mViewPager.setCurrentItem(currentItem);
+        Log.d(LOG_PREFIX, "Size: " + mViewPager.getAdapter().getCount());
     }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Photo.loadPhotosAsync(data, new Photo.OnPhotosLoadedListener() {
-            @Override
-            public void onPhotosLoaded(Photo[] photos) {
-                if (photos == null) return;
-
-                int currentItem = mViewPager.getCurrentItem();
-                mPhotos = photos;
-                ((PhotoViewerAdapter) mViewPager.getAdapter()).swapPhotos(mPhotos);
-                mViewPager.setCurrentItem(currentItem);
-            }
-        });
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
+    public void setCursor(Cursor data, int pos) {
+        ((PhotoViewerAdapter) mViewPager.getAdapter()).swapCursor(data);
+        mViewPager.setCurrentItem(pos);
+        Log.d(LOG_PREFIX, "Size: " + mViewPager.getAdapter().getCount());
     }
 }
