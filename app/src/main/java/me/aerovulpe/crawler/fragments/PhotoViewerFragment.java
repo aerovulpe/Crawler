@@ -13,7 +13,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -459,7 +458,6 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         int currentItem = mViewPager.getCurrentItem();
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapCursor(data);
         mViewPager.setCurrentItem(currentItem);
-        Log.d(LOG_PREFIX, "Size: " + mViewPager.getAdapter().getCount());
     }
 
     public void setCursor(Cursor data, int pos) {
