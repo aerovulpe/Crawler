@@ -8,7 +8,7 @@ import android.net.wifi.WifiManager;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 /**
  * Created by Aaron on 22/05/2015.

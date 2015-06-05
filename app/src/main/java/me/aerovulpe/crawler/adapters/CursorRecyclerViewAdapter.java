@@ -1,4 +1,4 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 /*
  * Copyright (C) 2014 skyfish.jy@gmail.com

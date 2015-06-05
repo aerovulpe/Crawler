@@ -28,22 +28,21 @@ import com.google.android.gms.ads.AdView;
 import com.melnykov.fab.FloatingActionButton;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.util.List;
+import java.lang.ref.WeakReference;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
-import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
+import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -109,6 +108,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     };
     private boolean mIsBound;
     private int mIndex;
+    private WeakReference<PhotoViewerFragment> mPhotoViewerInstance;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -326,12 +326,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
         if (getActivity() != null) {
-            int syncLoadLimit = 3500;
-            List<Photo> photos = (cursor.getCount() < syncLoadLimit) ?
-                    Photo.listFromCursor(cursor) :
-                    Photo.partialListFromCursor(cursor, syncLoadLimit, initPos);
-            ((PhotoManager) getActivity())
-                    .createPhotoViewerInstance(mAlbumTitle, mAlbumID, photos, initPos, isSlideShow);
+            PhotoViewerFragment photoViewerInstance = ((PhotoManager) getActivity())
+                    .createPhotoViewerInstance(mAlbumTitle, isSlideShow);
+            photoViewerInstance.setCursor(cursor, initPos);
+            mPhotoViewerInstance = new WeakReference<>(photoViewerInstance);
             mHasDisplayedPhotos = true;
         }
     }
@@ -347,6 +345,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
+        if (mPhotoViewerInstance != null) {
+            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
+            if (photoViewerInstance != null)
+                photoViewerInstance.setCursor(data);
+        }
         mIsLoading = false;
         if (!mIsRequesting)
             dismissDialog();
@@ -355,5 +358,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
+        if (mPhotoViewerInstance != null) {
+            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
+            if (photoViewerInstance != null)
+                photoViewerInstance.setCursor(null);
+        }
     }
 }

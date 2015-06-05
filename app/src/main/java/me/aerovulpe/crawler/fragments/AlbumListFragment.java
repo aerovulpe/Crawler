@@ -22,11 +22,11 @@ import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.activities.BaseActivity;
-import me.aerovulpe.crawler.adapter.ThumbnailAdapter;
+import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
-import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 

@@ -24,19 +24,16 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.List;
-
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.adapter.AccountsAdapter;
+import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
@@ -193,12 +190,9 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, String albumId,
-                                                         List<Photo> photos, int currentPhotoIndex,
-                                                         boolean isSlideShow) {
+    public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle, albumId, photos,
-                currentPhotoIndex);
+        PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle);
         fragmentTransaction.add(R.id.content_frame, fragment, null);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();

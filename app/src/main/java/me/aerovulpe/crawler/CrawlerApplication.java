@@ -32,7 +32,7 @@ import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import java.util.Random;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 public class CrawlerApplication extends Application {
 

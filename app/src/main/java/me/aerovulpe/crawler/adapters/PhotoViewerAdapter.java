@@ -1,9 +1,9 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,21 +29,15 @@ import me.aerovulpe.crawler.ui.TouchImageView;
 /**
  * Created by Aaron on 09/03/2015.
  */
-public class PhotoViewerAdapter extends PagerAdapter {
-
-    private static final String LOG_PREFIX = PhotoViewerAdapter.class.getSimpleName();
-    public static final int LOAD_BUFFER_SIZE = 30;
+public class PhotoViewerAdapter extends CursorPagerAdapter {
     private final ImageLoader mImageLoader;
-    DisplayImageOptions mOptions;
-    private Context mContext;
-    private Photo[] mPhotos;
     private String mAlbumTitle;
     private OnPhotoClickListener mOnClickListener;
+    private DisplayImageOptions mOptions;
     private boolean mShowText;
 
-    public PhotoViewerAdapter(Context context, Photo[] photos, String albumTitle, OnPhotoClickListener onClickListener) {
-        mContext = context;
-        mPhotos = photos;
+    public PhotoViewerAdapter(Context context, Cursor cursor, String albumTitle, OnPhotoClickListener onClickListener) {
+        super(context, cursor);
         mAlbumTitle = albumTitle;
         mOnClickListener = onClickListener;
         mImageLoader = ImageLoader.getInstance();
@@ -59,32 +53,25 @@ public class PhotoViewerAdapter extends PagerAdapter {
     }
 
     @Override
-    public int getCount() {
-        return (mPhotos != null) ? mPhotos.length : 0;
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        return inflater.inflate(R.layout.photo_view, parent, false);
     }
 
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-        LayoutInflater inflater = (LayoutInflater) mContext
-                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        View rootView = inflater.inflate(R.layout.photo_view, container, false);
-        TouchImageView photoView = (TouchImageView) rootView.findViewById(R.id.photo);
-        TextView txtPhotoTitle = (TextView) rootView.findViewById(R.id.photo_title);
-        TextView txtAlbumName = (TextView) rootView.findViewById(R.id.photo_album_name);
-        TextSwitcher descriptionSwitcher = (TextSwitcher) rootView.findViewById(R.id.photo_description_switcher);
-        final ProgressBar spinner = (ProgressBar) rootView.findViewById(R.id.loading);
-        setVisibilityOfPhotoText(rootView, mShowText);
-
-        photoView.setTag(rootView);
+    public void bindView(View view, final Context context, Cursor cursor) {
+        final TouchImageView photoView = (TouchImageView) view.findViewById(R.id.photo);
+        TextView txtPhotoTitle = (TextView) view.findViewById(R.id.photo_title);
+        TextView txtAlbumName = (TextView) view.findViewById(R.id.photo_album_name);
+        TextSwitcher descriptionSwitcher = (TextSwitcher) view.findViewById(R.id.photo_description_switcher);
+        final ProgressBar spinner = (ProgressBar) view.findViewById(R.id.loading);
+        setVisibilityOfPhotoText(view, mShowText);
         photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
-        Photo currentPhoto = mPhotos[position];
-
-        if (position % LOAD_BUFFER_SIZE == 0)
-            bufferLoad(position, position + 1);
-
-        if (currentPhoto != null) {
+        final Photo currentPhoto = Photo.fromCursor(cursor);
+        if (currentPhoto != null){
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                     new ImageLoadingListener() {
                         @Override
@@ -94,7 +81,7 @@ public class PhotoViewerAdapter extends PagerAdapter {
 
                         @Override
                         public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                            Toast.makeText(mContext, mContext.getString(R.string.failed_to_download_image),
+                            Toast.makeText(context, context.getString(R.string.failed_to_download_image),
                                     Toast.LENGTH_SHORT).show();
                             spinner.setVisibility(View.INVISIBLE);
                         }
@@ -102,6 +89,8 @@ public class PhotoViewerAdapter extends PagerAdapter {
                         @Override
                         public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                             spinner.setVisibility(View.INVISIBLE);
+                            if (currentPhoto.getName().endsWith(".gif"))
+                                photoView.playGif(imageUri);
                         }
 
                         @Override
@@ -111,22 +100,14 @@ public class PhotoViewerAdapter extends PagerAdapter {
                     });
             txtPhotoTitle.setText(currentPhoto.getTitle());
             txtAlbumName.setText(mAlbumTitle);
-
-            Animation inAnim = AnimationUtils.loadAnimation(mContext,
+            Animation inAnim = AnimationUtils.loadAnimation(context,
                     R.anim.slide_in_up);
-            Animation outAnim = AnimationUtils.loadAnimation(mContext,
+            Animation outAnim = AnimationUtils.loadAnimation(context,
                     R.anim.slide_out_down);
-
             descriptionSwitcher.setInAnimation(inAnim);
             descriptionSwitcher.setOutAnimation(outAnim);
-
             descriptionSwitcher.setText(currentPhoto.getDescription());
-
-            descriptionSwitcher.setTag(position);
-        }
-
-        container.addView(rootView);
-        return rootView;
+            descriptionSwitcher.setTag(cursor.getPosition());}
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
@@ -137,8 +118,6 @@ public class PhotoViewerAdapter extends PagerAdapter {
         //the values are already populated
         View photoTextLayout = photoView.findViewById(R.id.photo_text_background);
         View albumTextLayout = photoView.findViewById(R.id.photo_album_name_background);
-
-
         if (albumTextLayout == null || photoTextLayout == null) {
             return;
         }
@@ -152,29 +131,9 @@ public class PhotoViewerAdapter extends PagerAdapter {
         }
     }
 
-    private void bufferLoad(int startPos, int currentPos) {
-        if (currentPos - startPos <= LOAD_BUFFER_SIZE && currentPos < mPhotos.length) {
-            Photo photo = mPhotos[currentPos];
-            if (photo != null) {
-                bufferLoad(startPos, currentPos + 1);
-                mImageLoader.loadImage(photo.getImageUrl(), null);
-            }
-        }
-    }
-
-    @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
-        container.removeView((View) object);
-    }
-
     @Override
     public boolean isViewFromObject(View view, Object object) {
         return view == object;
-    }
-
-    public void swapPhotos(Photo[] newPhotos) {
-        mPhotos = newPhotos;
-        notifyDataSetChanged();
     }
 
     public void setShowText(boolean showText) {

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -32,7 +32,7 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 public class AccountsAdapter extends CursorAdapter {
 

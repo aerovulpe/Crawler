@@ -41,7 +41,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestService;
-import me.aerovulpe.crawler.util.AndroidUtils;
+import me.aerovulpe.crawler.utils.AndroidUtils;
 
 /**
  * Created by Aaron on 19/05/2015.

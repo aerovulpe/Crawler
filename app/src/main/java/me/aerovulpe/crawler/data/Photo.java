@@ -1,8 +1,6 @@
 package me.aerovulpe.crawler.data;
 
 import android.database.Cursor;
-import android.database.StaleDataException;
-import android.os.AsyncTask;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -12,9 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 
@@ -44,82 +39,17 @@ public class Photo implements Serializable, Parcelable {
     private String imageUrl;
     private String description;
 
-    public static List<Photo> listFromCursor(Cursor cursor) {
-        return new ArrayList<>(Arrays.asList(arrayFromCursor(cursor)));
-    }
-
-    public static Photo[] arrayFromCursor(Cursor cursor) {
-        Photo[] photos = new Photo[cursor.getCount()];
-        int idx = 0;
-        cursor.moveToPosition(-1);
-        while (!cursor.isClosed() && cursor.moveToNext()) {
+    public static Photo fromCursor(Cursor cursor) {
+        try {
             Photo photo = new Photo();
             photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
             photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
             photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
             photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-            photos[idx++] = photo;
+            return photo;
+        } catch (Exception e) {
+            return null;
         }
-        return photos;
-    }
-
-    public static List<Photo> partialListFromCursor(Cursor cursor, int filledLength, int startPos) {
-        int cursorCount = cursor.getCount();
-        if (filledLength > cursorCount) throw new IllegalArgumentException();
-
-        Photo[] photoArray = new Photo[cursorCount];
-
-        int filledStart = startPos - (filledLength / 2);
-        int filledEnd = startPos + (filledLength / 2) + 1;
-        filledStart = (filledStart < 0) ? 0 : filledStart;
-        filledEnd = (filledEnd < cursorCount) ? filledEnd : cursorCount;
-        int idx = filledStart;
-        cursor.moveToPosition(idx - 1);
-        while (cursor.moveToNext() && idx < filledEnd) {
-            Photo photo = new Photo();
-            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
-            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
-            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
-            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-            photoArray[idx++] = photo;
-        }
-
-        return new ArrayList<>(Arrays.asList(photoArray));
-    }
-
-//    public static Photo fromCursor(Cursor cursor, int pos) {
-//        Photo photo = null;
-//        if (cursor.moveToPosition(pos)) {
-//            photo = new Photo();
-//            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
-//            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
-//            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
-//            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
-//        }
-//        return photo;
-//    }
-
-    public static void loadPhotosAsync(final Cursor cursor, final OnPhotosLoadedListener onPhotosLoadedListener) {
-        new AsyncTask<Cursor, Void, Photo[]>() {
-            @Override
-            protected Photo[] doInBackground(Cursor... params) {
-                if (params[0].isClosed()) return null;
-
-                Photo[] photos = null;
-                try {
-                    photos = arrayFromCursor(params[0]);
-                } catch (StaleDataException e) {
-                    e.printStackTrace();
-                }
-
-                return photos;
-            }
-
-            @Override
-            protected void onPostExecute(Photo[] photos) {
-                onPhotosLoadedListener.onPhotosLoaded(photos);
-            }
-        }.execute(cursor);
     }
 
     /**
@@ -213,9 +143,5 @@ public class Photo implements Serializable, Parcelable {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public interface OnPhotosLoadedListener {
-        void onPhotosLoaded(Photo[] photos);
     }
 }

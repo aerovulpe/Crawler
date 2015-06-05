@@ -13,7 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 /**
  * Created by Aaron on 01/05/2015.

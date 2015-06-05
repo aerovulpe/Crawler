@@ -38,8 +38,8 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
-import me.aerovulpe.crawler.util.AccountsUtil;
-import me.aerovulpe.crawler.util.NetworkUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.utils.NetworkUtil;
 
 
 public class AddEditAccountFragment extends DialogFragment {

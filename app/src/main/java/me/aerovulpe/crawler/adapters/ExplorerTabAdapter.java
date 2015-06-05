@@ -1,10 +1,10 @@
-package me.aerovulpe.crawler.adapter;
+package me.aerovulpe.crawler.adapters;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
 
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.util.AccountsUtil;
+import me.aerovulpe.crawler.utils.AccountsUtil;
 
 /**
  * Created by Aaron on 12/05/2015.
