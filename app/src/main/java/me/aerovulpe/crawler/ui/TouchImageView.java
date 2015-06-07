@@ -287,7 +287,7 @@ public class TouchImageView extends ImageView {
         try {
             super.onDraw(canvas);
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            Log.w(DEBUG, "Bitmap was recycled.");
         }
     }
 
@@ -1341,8 +1341,10 @@ public class TouchImageView extends ImageView {
                                 }
                             }
                         }
-                    } catch (IOException | IllegalStateException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
+                    } catch (IllegalStateException e) {
+                        Log.w(DEBUG, "Bitmap was recycled.");
                     }
                 }
             }).start();

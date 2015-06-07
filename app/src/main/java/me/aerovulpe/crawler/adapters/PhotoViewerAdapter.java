@@ -23,6 +23,7 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
+import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.ui.TouchImageView;
 
 
@@ -30,6 +31,7 @@ import me.aerovulpe.crawler.ui.TouchImageView;
  * Created by Aaron on 09/03/2015.
  */
 public class PhotoViewerAdapter extends CursorPagerAdapter {
+    private static final int LOAD_BUFFER_SIZE = 25;
     private final ImageLoader mImageLoader;
     private String mAlbumTitle;
     private OnPhotoClickListener mOnClickListener;
@@ -70,8 +72,20 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         photoView.setOnClickListener(mOnClickListener);
         photoView.setOnLongClickListener(mOnClickListener);
 
+        int position = cursor.getPosition();
+        if (position % LOAD_BUFFER_SIZE == 0) {
+            String[] photoUrls = new String[LOAD_BUFFER_SIZE];
+            int idx = 0;
+            while (!cursor.isClosed() && cursor.moveToNext() && idx < LOAD_BUFFER_SIZE)
+                photoUrls[idx++] = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
+            cursor.moveToPosition(position);
+            for (String photoUrl : photoUrls)
+                if (photoUrl != null)
+                    mImageLoader.loadImage(photoUrl, null);
+        }
+
         final Photo currentPhoto = Photo.fromCursor(cursor);
-        if (currentPhoto != null){
+        if (currentPhoto != null) {
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                     new ImageLoadingListener() {
                         @Override
@@ -107,7 +121,8 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
             descriptionSwitcher.setInAnimation(inAnim);
             descriptionSwitcher.setOutAnimation(outAnim);
             descriptionSwitcher.setText(currentPhoto.getDescription());
-            descriptionSwitcher.setTag(cursor.getPosition());}
+            descriptionSwitcher.setTag(cursor.getPosition());
+        }
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
