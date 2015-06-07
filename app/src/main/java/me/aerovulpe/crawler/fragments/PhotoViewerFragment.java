@@ -325,7 +325,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                             PhotoViewerFragment.this.getActivity().runOnUiThread(new Runnable() {
                                 public void run() {
                                     if (mViewPager.getCurrentItem() == mViewPager
-                                            .getAdapter().getCount()) {
+                                            .getAdapter().getCount() - 1) {
                                         mViewPager.setCurrentItem(0);
                                         toggleSlideShow();
                                     } else {
