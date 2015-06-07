@@ -461,7 +461,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public void setCursor(Cursor data, int pos) {
-        ((PhotoViewerAdapter) mViewPager.getAdapter()).swapCursor(data);
+        PhotoViewerAdapter adapter = (PhotoViewerAdapter) mViewPager.getAdapter();
+        adapter.swapCursor(data);
         mViewPager.setCurrentItem(pos);
+        if (pos % PhotoViewerAdapter.LOAD_BUFFER_SIZE != 0)
+            adapter.bufferLoad(pos);
     }
 }

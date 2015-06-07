@@ -31,7 +31,7 @@ import me.aerovulpe.crawler.ui.TouchImageView;
  * Created by Aaron on 09/03/2015.
  */
 public class PhotoViewerAdapter extends CursorPagerAdapter {
-    private static final int LOAD_BUFFER_SIZE = 25;
+    public static final int LOAD_BUFFER_SIZE = 15;
     private final ImageLoader mImageLoader;
     private String mAlbumTitle;
     private OnPhotoClickListener mOnClickListener;
@@ -73,16 +73,8 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         photoView.setOnLongClickListener(mOnClickListener);
 
         int position = cursor.getPosition();
-        if (position % LOAD_BUFFER_SIZE == 0) {
-            String[] photoUrls = new String[LOAD_BUFFER_SIZE];
-            int idx = 0;
-            while (!cursor.isClosed() && cursor.moveToNext() && idx < LOAD_BUFFER_SIZE)
-                photoUrls[idx++] = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
-            cursor.moveToPosition(position);
-            for (String photoUrl : photoUrls)
-                if (photoUrl != null)
-                    mImageLoader.loadImage(photoUrl, null);
-        }
+        if (position % LOAD_BUFFER_SIZE == 0)
+            bufferLoad(position);
 
         final Photo currentPhoto = Photo.fromCursor(cursor);
         if (currentPhoto != null) {
@@ -121,7 +113,22 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
             descriptionSwitcher.setInAnimation(inAnim);
             descriptionSwitcher.setOutAnimation(outAnim);
             descriptionSwitcher.setText(currentPhoto.getDescription());
-            descriptionSwitcher.setTag(cursor.getPosition());
+            descriptionSwitcher.setTag(position);
+        }
+    }
+
+    public void bufferLoad(int position) {
+        String[] photoUrls = new String[LOAD_BUFFER_SIZE];
+        Cursor cursor = getCursor();
+        cursor.moveToPosition(position);
+        int idx = 0;
+        while (!cursor.isClosed() && cursor.moveToNext() && idx < LOAD_BUFFER_SIZE)
+            photoUrls[idx++] = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
+        cursor.moveToPosition(position);
+        for (int i = photoUrls.length - 1; i >= 0; i--) {
+            String photoUrl = photoUrls[i];
+            if (photoUrl != null)
+                mImageLoader.loadImage(photoUrl, null);
         }
     }
 
