@@ -464,7 +464,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         PhotoViewerAdapter adapter = (PhotoViewerAdapter) mViewPager.getAdapter();
         adapter.swapCursor(data);
         mViewPager.setCurrentItem(pos);
-        if (pos % PhotoViewerAdapter.LOAD_BUFFER_SIZE != 0)
+        int loadBufferSize = PhotoViewerAdapter.LOAD_BUFFER_SIZE;
+        int posModBufferSize = pos % loadBufferSize;
+        if (posModBufferSize != 0 && Math.abs(posModBufferSize - loadBufferSize) > 2)
             adapter.bufferLoad(pos);
     }
 }

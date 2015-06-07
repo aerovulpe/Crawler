@@ -117,19 +117,24 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         }
     }
 
-    public void bufferLoad(int position) {
-        String[] photoUrls = new String[LOAD_BUFFER_SIZE];
+    public void bufferLoad(final int position) {
+        final String[] photoUrls = new String[LOAD_BUFFER_SIZE];
         Cursor cursor = getCursor();
         cursor.moveToPosition(position);
         int idx = 0;
         while (!cursor.isClosed() && cursor.moveToNext() && idx < LOAD_BUFFER_SIZE)
             photoUrls[idx++] = cursor.getString(PhotoListFragment.COL_PHOTO_URL);
         cursor.moveToPosition(position);
-        for (int i = photoUrls.length - 1; i >= 0; i--) {
-            String photoUrl = photoUrls[i];
-            if (photoUrl != null)
-                mImageLoader.loadImage(photoUrl, null);
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = photoUrls.length - 1; i >= 0; i--) {
+                    String photoUrl = photoUrls[i];
+                    if (photoUrl != null)
+                        mImageLoader.loadImage(photoUrl, null);
+                }
+            }
+        }).start();
     }
 
     public static void setVisibilityOfPhotoText(View photoView, boolean viewIsVisible) {
