@@ -373,22 +373,23 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public void sharePhoto(Photo photo) {
+        Activity activity = getActivity();
         if (photo == null) {
-            Toast.makeText(getActivity(), getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
             return;
         }
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
-        //we assume the type is image/jpg
-        shareIntent.setType("image/jpg");
-        String sharedText = photo.getTitle() + "\n\n" + photo.getDescription();
+        shareIntent.setType("image/*");
+        String sharedText = photo.getTitle() + "\n\n" + photo.getDescription() + "\n\n"
+                + activity.getString(R.string.shared_with_crawler);
         shareIntent.putExtra(Intent.EXTRA_STREAM, savePhoto(photo));
         shareIntent.putExtra(Intent.EXTRA_TEXT, sharedText);
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, photo.getTitle());
 
         //Start the actual sharing activity
         try {
-            List<ResolveInfo> relevantActivities = getActivity().getPackageManager().queryIntentActivities(shareIntent, 0);
+            List<ResolveInfo> relevantActivities = activity.getPackageManager().queryIntentActivities(shareIntent, 0);
             if (relevantActivities == null || relevantActivities.size() == 0) {
                 Intent backupShareIntent = new Intent();
                 backupShareIntent.setAction(Intent.ACTION_SEND);
@@ -402,7 +403,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             }
 
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(getActivity(), getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, getString(R.string.unable_to_share_photo), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -416,7 +417,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public void setAsWallpaper(Photo photo) {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_ATTACH_DATA);
-        String mimeType = "image/jpg";
+        String mimeType = "image/*";
         Uri uri = savePhoto(photo);
 
         intent.setDataAndType(uri, mimeType);

@@ -10,39 +10,27 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.FailReason;
-import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.fragments.AddEditAccountFragment;
+import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.request.CategoriesRequest;
-import me.aerovulpe.crawler.request.Request;
-import me.aerovulpe.crawler.utils.AccountsUtil;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -118,11 +106,6 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     protected void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(ACCOUNTS_LOADER, null, this);
-    }
-
-    private void showEditAccountDialog(int accountType, String id, String name) {
-        AddEditAccountFragment dialog = AddEditAccountFragment.newInstance(accountType, id, name);
-        dialog.show(getFragmentManager(), "accountEditDialog");
     }
 
     @Override
@@ -213,32 +196,10 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 return true;
             case CONTEXT_MENU_DELETE:
                 if (cursor != null && cursor.moveToPosition(info.position))
-                    showAreYouSureDialog(cursor.getString(COL_ACCOUNT_ID));
+                    showRemoveAccountDialog(cursor.getString(COL_ACCOUNT_ID));
                 return true;
         }
         return super.onContextItemSelected(item);
-    }
-
-    private void showAreYouSureDialog(final String accountID) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(R.string.are_you_sure_delete);
-        builder.setNegativeButton(R.string.no, null);
-        builder.setPositiveButton(R.string.yes, new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                sendBroadcast(new Intent(Request.buildCancelAction(accountID)));
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Request.removeAlbumRequestData(AccountsActivity.this, accountID);
-                    }
-                }, 5000);
-                getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
-                                accountID + "'", null);
-            }
-        });
-        builder.create().show();
     }
 
     private void requestNewInterstitial() {
@@ -283,113 +244,4 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         }
     }
 
-    public static class InfoDialogFragment extends DialogFragment {
-        private static final String ARG_ACCOUNT_TYPE = InfoDialogFragment.class.getName() + "account_type";
-        private static final String ARG_ACCOUNT_ID = InfoDialogFragment.class.getName() + "account_id";
-        private static final String ARG_ACCOUNT_NAME = InfoDialogFragment.class.getName() + "account_name";
-        private static final String ARG_ACCOUNT_DESC = InfoDialogFragment.class.getName() + "account_desc";
-        private static final String ARG_ACCOUNT_PREVIEW_URL = InfoDialogFragment.class.getName() + "account_preview_url";
-        private static final String ARG_ACCOUNT_NUM_OF_POSTS = InfoDialogFragment.class.getName() + "account_num_of_posts";
-
-        private int mAccountType;
-        private String mAccountId;
-        private String mAccountName;
-        private String mAccountDesc;
-        private String mAccountPreviewUrl;
-        private int mAccountNumOfPosts;
-
-        public static InfoDialogFragment newInstance(int accountType, String accountId, String accountName,
-                                                     String accountDesc, String accountPreviewUrl,
-                                                     int accountNumOfPosts) {
-            Bundle args = new Bundle();
-            args.putInt(ARG_ACCOUNT_TYPE, accountType);
-            args.putString(ARG_ACCOUNT_ID, accountId);
-            args.putString(ARG_ACCOUNT_NAME, accountName);
-            args.putString(ARG_ACCOUNT_DESC, accountDesc);
-            args.putString(ARG_ACCOUNT_PREVIEW_URL, accountPreviewUrl);
-            args.putInt(ARG_ACCOUNT_NUM_OF_POSTS, accountNumOfPosts);
-            InfoDialogFragment fragment = new InfoDialogFragment();
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            Bundle args = getArguments();
-            if (args != null) {
-                mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
-                mAccountId = args.getString(ARG_ACCOUNT_ID);
-                mAccountName = args.getString(ARG_ACCOUNT_NAME);
-                mAccountDesc = args.getString(ARG_ACCOUNT_DESC);
-                mAccountPreviewUrl = args.getString(ARG_ACCOUNT_PREVIEW_URL);
-                mAccountNumOfPosts = args.getInt(ARG_ACCOUNT_NUM_OF_POSTS);
-            }
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            Dialog dialog = new Dialog(getActivity());
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(R.layout.info_dialog);
-            int dialogWidth = FrameLayout.LayoutParams.MATCH_PARENT;
-            int dialogHeight = FrameLayout.LayoutParams.WRAP_CONTENT;
-            dialog.getWindow().setLayout(dialogWidth, dialogHeight);
-
-            // set the custom dialog components - description, image and button
-            TextView title = (TextView) dialog.findViewById(R.id.textview_title);
-            title.setText(mAccountName);
-            TextView id = (TextView) dialog.findViewById(R.id.textview_id);
-            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
-                id.setText(AccountsUtil.makePicasaPseudoID(mAccountId));
-            else
-                id.setText(mAccountId);
-            TextView description = (TextView) dialog.findViewById(R.id.textview_description);
-            description.setText(mAccountDesc);
-            TextView numOfPostsView = (TextView) dialog.findViewById(R.id.textview_num_of_posts);
-            if (mAccountNumOfPosts != -1) {
-                numOfPostsView.setText(String.format(getResources()
-                        .getString(R.string.num_of_posts), mAccountNumOfPosts));
-            } else {
-                numOfPostsView.setVisibility(View.GONE);
-            }
-            final ImageView avatarImage = (ImageView) dialog.findViewById(R.id.imageview_thumbnail);
-            if (mAccountPreviewUrl != null && !mAccountPreviewUrl.isEmpty()) {
-                ImageLoader.getInstance().displayImage(mAccountPreviewUrl, avatarImage,
-                        new ImageLoadingListener() {
-                            @Override
-                            public void onLoadingStarted(String imageUri, View view) {
-
-                            }
-
-                            @Override
-                            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
-                            }
-
-                            @Override
-                            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-
-                            }
-
-                            @Override
-                            public void onLoadingCancelled(String imageUri, View view) {
-
-                            }
-                        });
-            } else {
-                avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
-            }
-
-            Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
-            // if button is clicked, close the custom dialog
-            dialogButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dismiss();
-                }
-            });
-            return dialog;
-        }
-    }
 }

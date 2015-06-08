@@ -105,7 +105,7 @@ public class AndroidUtils {
             values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
             values.put(MediaStore.Images.Media.TITLE, imgTitle);
             values.put(MediaStore.Images.Media.DESCRIPTION, description);
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
             values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
 
             context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);

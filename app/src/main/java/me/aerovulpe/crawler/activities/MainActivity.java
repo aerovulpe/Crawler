@@ -15,6 +15,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
+import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
@@ -42,6 +44,13 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;
     private static final int ACCOUNTS_LOADER = 2;
+    public static final int COL_ACCOUNT_PREVIEW_URL = 4;
+    public static final int COL_ACCOUNT_DESCRIPTION = 5;
+    public static final int COL_ACCOUNT_NUM_OF_POSTS = 6;
+    // The order of these must match the array "account_actions" in strings.xml.
+    private static final int CONTEXT_MENU_INFO = 0;
+    private static final int CONTEXT_MENU_EDIT = 1;
+    private static final int CONTEXT_MENU_DELETE = 2;
     private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
     private FragmentManager mManager;
     private DrawerLayout mDrawerLayout;
@@ -94,6 +103,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                 }
             }
         });
+        registerForContextMenu(mDrawerList);
         mTitle = mDrawerTitle = getTitle();
         Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
@@ -156,6 +166,57 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         }
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId() == R.id.left_drawer) {
+            Cursor cursor = adapter.getCursor();
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            int position = info.position - 1;
+            if (cursor != null && cursor.moveToPosition(position))
+                menu.setHeaderTitle(cursor.getString(COL_ACCOUNT_NAME) + "\n" +
+                        cursor.getString(COL_ACCOUNT_ID));
+
+            String[] menuItems = getResources().getStringArray(R.array.account_actions);
+            for (int i = 0; i < menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
+                .getMenuInfo();
+        final Cursor cursor = adapter.getCursor();
+
+        int position = info.position - 1;
+        switch (item.getItemId()) {
+            case CONTEXT_MENU_INFO:
+                if (cursor != null && cursor.moveToPosition(position)) {
+                    InfoDialogFragment.newInstance(cursor.getInt(COL_ACCOUNT_TYPE),
+                            cursor.getString(COL_ACCOUNT_ID),
+                            cursor.getString(COL_ACCOUNT_NAME),
+                            cursor.getString(COL_ACCOUNT_DESCRIPTION),
+                            cursor.getString(COL_ACCOUNT_PREVIEW_URL),
+                            cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS))
+                            .show(getFragmentManager(), "infoDialog");
+                }
+                return true;
+            case CONTEXT_MENU_EDIT:
+                if (cursor != null && cursor.moveToPosition(position))
+                    showEditAccountDialog(cursor.getInt(COL_ACCOUNT_TYPE),
+                            cursor.getString(COL_ACCOUNT_ID),
+                            cursor.getString(COL_ACCOUNT_NAME));
+                return true;
+            case CONTEXT_MENU_DELETE:
+                if (cursor != null && cursor.moveToPosition(position))
+                    showRemoveAccountDialog(cursor.getString(COL_ACCOUNT_ID));
+                return true;
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override
