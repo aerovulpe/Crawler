@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Timer;
@@ -52,6 +54,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private String mAlbumTitle;
     private int mCurrentPhotoIndex;
     private ViewPager mViewPager;
+    private WeakReference<RecyclerView> mPhotoListRef;
     private boolean mShowText;
     private boolean isSlideShowRunning;
     private boolean mIsFullscreen;
@@ -149,6 +152,14 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         }
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mIsFullscreen = ((PhotoManager) getActivity()).isFullScreen();
+        final RecyclerView photoList;
+        if (mPhotoListRef != null && (photoList = mPhotoListRef.get()) != null)
+            photoList.post(new Runnable() {
+                @Override
+                public void run() {
+                    photoList.getLayoutManager().scrollToPosition(mCurrentPhotoIndex);
+                }
+            });
     }
 
     @Override
@@ -469,5 +480,9 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         int posModBufferSize = pos % loadBufferSize;
         if (posModBufferSize != 0 && Math.abs(posModBufferSize - loadBufferSize) > 2)
             adapter.bufferLoad(pos);
+    }
+
+    public void setPhotoListRef(RecyclerView recyclerView) {
+        mPhotoListRef = new WeakReference<>(recyclerView);
     }
 }

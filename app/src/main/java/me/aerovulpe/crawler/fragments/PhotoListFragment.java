@@ -149,6 +149,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
         mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_PHOTOS));
+        if (mPhotoViewerInstance != null) {
+            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
+            if (photoViewerInstance != null)
+                photoViewerInstance.setPhotoListRef(mRecyclerView);
+        }
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.attachToRecyclerView(mRecyclerView);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -329,6 +334,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             PhotoViewerFragment photoViewerInstance = ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, isSlideShow);
             photoViewerInstance.setCursor(cursor, initPos);
+            photoViewerInstance.setPhotoListRef(mRecyclerView);
             mPhotoViewerInstance = new WeakReference<>(photoViewerInstance);
             mHasDisplayedPhotos = true;
         }
