@@ -11,8 +11,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -154,12 +154,15 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mIsFullscreen = ((PhotoManager) getActivity()).isFullScreen();
         final RecyclerView photoList;
         if (mPhotoListRef != null && (photoList = mPhotoListRef.get()) != null)
-            photoList.post(new Runnable() {
-                @Override
-                public void run() {
-                    photoList.getLayoutManager().scrollToPosition(mCurrentPhotoIndex);
-                }
-            });
+            if (((GridLayoutManager) photoList.getLayoutManager()).findLastVisibleItemPosition()
+                    < mCurrentPhotoIndex)
+                photoList.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        photoList.setAdapter(photoList.getAdapter());
+                        photoList.getLayoutManager().scrollToPosition(mCurrentPhotoIndex);
+                    }
+                });
     }
 
     @Override
@@ -461,8 +464,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             setShowText(true);
         }
         int currentPosition = mViewPager.getCurrentItem();
-        PagerAdapter adapter = mViewPager.getAdapter();
-        mViewPager.setAdapter(adapter);
+        mViewPager.setAdapter(mViewPager.getAdapter());
         mViewPager.setCurrentItem(currentPosition);
     }
 
