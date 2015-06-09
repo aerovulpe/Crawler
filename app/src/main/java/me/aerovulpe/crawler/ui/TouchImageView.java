@@ -1311,9 +1311,9 @@ public class TouchImageView extends ImageView {
         }
     }
 
-    public void playGif(final String url) {
+    public void playGif(String url) {
         try {
-            final Handler handler = new Handler();
+            Handler handler = new Handler();
             mGifThread = new GifThread(this, handler, url);
             mGifThread.start();
         } catch (OutOfMemoryError e) {
@@ -1363,8 +1363,8 @@ public class TouchImageView extends ImageView {
                         mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
-                                    TouchImageView touchImageView = mTouchImageViewRef.get();
-                                    if (touchImageView != null)
+                                    TouchImageView touchImageView;
+                                    if ((touchImageView = mTouchImageViewRef.get()) != null)
                                         touchImageView.setImageBitmap(nextBitmap);
                                 }
                             }
