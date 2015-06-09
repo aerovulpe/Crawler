@@ -150,7 +150,7 @@ public class SettingsFragment extends PreferenceFragment {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 try {
                     int currentCacheValue = Integer.parseInt(newValue.toString());
-                    if (currentCacheValue < 10) {
+                    if (currentCacheValue < 10 || currentCacheValue > 2000) {
                         Toast.makeText(activity, getString(R.string.cache_size_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;

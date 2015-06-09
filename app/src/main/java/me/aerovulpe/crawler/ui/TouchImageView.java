@@ -20,7 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -29,6 +28,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -41,6 +41,8 @@ import android.widget.OverScroller;
 import android.widget.Scroller;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
@@ -95,7 +97,7 @@ public class TouchImageView extends ImageView {
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;
     private OnTouchListener userTouchListener = null;
     private OnTouchImageViewListener touchImageViewListener = null;
-    private Thread mGifThread;
+    private GifThread mGifThread;
 
     public TouchImageView(Context context) {
         super(context);
@@ -277,18 +279,15 @@ public class TouchImageView extends ImageView {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         onDrawReady = true;
         imageRenderedAtLeastOnce = true;
         if (delayedZoomVariables != null) {
-            setZoom(delayedZoomVariables.scale, delayedZoomVariables.focusX, delayedZoomVariables.focusY, delayedZoomVariables.scaleType);
+            setZoom(delayedZoomVariables.scale, delayedZoomVariables.focusX,
+                    delayedZoomVariables.focusY, delayedZoomVariables.scaleType);
             delayedZoomVariables = null;
         }
-        try {
-            super.onDraw(canvas);
-        } catch (RuntimeException e) {
-            Log.w(DEBUG, "Bitmap was recycled.");
-        }
+        super.onDraw(canvas);
     }
 
     @Override
@@ -1297,63 +1296,82 @@ public class TouchImageView extends ImageView {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (mGifThread != null)
+        if (mGifThread != null) {
             mGifThread.interrupt();
-        Drawable drawable = getDrawable();
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            Bitmap bitmap = bitmapDrawable.getBitmap();
-            if (bitmap != null && !bitmap.isRecycled())
-                bitmap.recycle();
         }
     }
 
-    public void playGif(final String url) {
+    public void playGif(String url) {
         try {
-            final Handler handler = new Handler();
-            mGifThread = new Thread(new Runnable() {
-                public void run() {
-                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
-                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
-                    if (!isConnectedToWifi && !isConnectedToWired &&
-                            !SettingsFragment.downloadOffWifi(getContext()))
-                        return;
-                    try {
-                        GifDecoder gifDecoder = new GifDecoder();
-                        gifDecoder.read(new URL(url).openStream(), 0);
-                        final int frameCount = gifDecoder.getFrameCount();
-                        while (!Thread.currentThread().isInterrupted()) {
-                            for (int i = 0; i < frameCount && !Thread.currentThread()
-                                    .isInterrupted(); i++) {
-                                final Bitmap nextBitmap = gifDecoder.getNextFrame();
-                                int delay = gifDecoder.getDelay(i);
-                                delay = delay != 0 ? delay : 33;
-                                handler.post(new Runnable() {
-                                    public void run() {
-                                        if (nextBitmap != null && !nextBitmap.isRecycled()) {
-                                            TouchImageView.this.setImageBitmap(nextBitmap);
-                                        }
-                                    }
-                                });
-                                try {
-                                    Thread.sleep(delay);
-                                } catch (InterruptedException e) {
-                                    Log.i(DEBUG, "Show is over");
-                                    return;
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (IllegalStateException e) {
-                        Log.w(DEBUG, "Bitmap was recycled.");
-                    }
-                }
-            });
+            Handler handler = new Handler();
+            mGifThread = new GifThread(this, handler, url);
             mGifThread.start();
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
             System.gc();
+        }
+    }
+
+    static class GifThread extends Thread {
+        WeakReference<TouchImageView> mTouchImageViewRef;
+        Handler mHandler;
+        String mUrl;
+
+        public GifThread(TouchImageView touchImageView, Handler handler, String url) {
+            mTouchImageViewRef = new WeakReference<>(touchImageView);
+            mHandler = handler;
+            mUrl = url;
+        }
+
+        @Override
+        public void run() {
+            if (mTouchImageViewRef.get() == null)
+                return;
+            else {
+                Context context = mTouchImageViewRef.get().getContext();
+                boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(context);
+                boolean isConnectedToWired = AndroidUtils.isConnectedToWired(context);
+                if (!isConnectedToWifi && !isConnectedToWired &&
+                        !SettingsFragment.downloadOffWifi(context))
+                    return;
+            }
+
+            try {
+                GifDecoder gifDecoder = new GifDecoder();
+                gifDecoder.read(new URL(mUrl).openStream(), 0);
+                final int frameCount = gifDecoder.getFrameCount();
+                while (!Thread.currentThread().isInterrupted()
+                        && mTouchImageViewRef.get() != null) {
+                    for (int i = 0; i < frameCount; i++) {
+                        if (Thread.currentThread().isInterrupted()
+                                || mTouchImageViewRef.get() == null)
+                            return;
+
+                        final Bitmap nextBitmap = gifDecoder.getNextFrame();
+                        int delay = gifDecoder.getDelay(i);
+                        delay = delay != 0 ? delay : 33;
+                        mHandler.post(new Runnable() {
+                            public void run() {
+                                if (nextBitmap != null && !nextBitmap.isRecycled()) {
+                                    TouchImageView touchImageView;
+                                    if ((touchImageView = mTouchImageViewRef.get()) != null)
+                                        touchImageView.setImageBitmap(nextBitmap);
+                                }
+                            }
+                        });
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
+                    }
+                }
+            } catch (InterruptedIOException ignored) {
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                Log.w(DEBUG, "Bitmap was not ready.");
+            }
         }
     }
 }
