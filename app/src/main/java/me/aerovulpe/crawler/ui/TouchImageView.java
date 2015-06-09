@@ -20,7 +20,6 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -29,6 +28,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -279,18 +279,15 @@ public class TouchImageView extends ImageView {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         onDrawReady = true;
         imageRenderedAtLeastOnce = true;
         if (delayedZoomVariables != null) {
-            setZoom(delayedZoomVariables.scale, delayedZoomVariables.focusX, delayedZoomVariables.focusY, delayedZoomVariables.scaleType);
+            setZoom(delayedZoomVariables.scale, delayedZoomVariables.focusX,
+                    delayedZoomVariables.focusY, delayedZoomVariables.scaleType);
             delayedZoomVariables = null;
         }
-        try {
-            super.onDraw(canvas);
-        } catch (RuntimeException e) {
-            Log.w(DEBUG, "Bitmap was recycled.");
-        }
+        super.onDraw(canvas);
     }
 
     @Override
@@ -1302,13 +1299,6 @@ public class TouchImageView extends ImageView {
         if (mGifThread != null) {
             mGifThread.interrupt();
         }
-        Drawable drawable = getDrawable();
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            Bitmap bitmap = bitmapDrawable.getBitmap();
-            if (bitmap != null && !bitmap.isRecycled())
-                bitmap.recycle();
-        }
     }
 
     public void playGif(String url) {
@@ -1380,7 +1370,7 @@ public class TouchImageView extends ImageView {
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (IllegalStateException e) {
-                Log.w(DEBUG, "Bitmap was recycled.");
+                Log.w(DEBUG, "Bitmap was not ready.");
             }
         }
     }
