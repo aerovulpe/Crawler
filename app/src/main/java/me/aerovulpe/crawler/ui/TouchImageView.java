@@ -95,7 +95,7 @@ public class TouchImageView extends ImageView {
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;
     private OnTouchListener userTouchListener = null;
     private OnTouchImageViewListener touchImageViewListener = null;
-    private volatile boolean mIsAnimated;
+    private Thread mGifThread;
 
     public TouchImageView(Context context) {
         super(context);
@@ -1297,7 +1297,8 @@ public class TouchImageView extends ImageView {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        mIsAnimated = false;
+        if (mGifThread != null)
+            mGifThread.interrupt();
         Drawable drawable = getDrawable();
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
@@ -1309,9 +1310,8 @@ public class TouchImageView extends ImageView {
 
     public void playGif(final String url) {
         try {
-            mIsAnimated = true;
             final Handler handler = new Handler();
-            new Thread(new Runnable() {
+            mGifThread = new Thread(new Runnable() {
                 public void run() {
                     boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
                     boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
@@ -1322,8 +1322,9 @@ public class TouchImageView extends ImageView {
                         GifDecoder gifDecoder = new GifDecoder();
                         gifDecoder.read(new URL(url).openStream(), 0);
                         final int frameCount = gifDecoder.getFrameCount();
-                        while (mIsAnimated && isShown()) {
-                            for (int i = 0; i < frameCount; i++) {
+                        while (!Thread.currentThread().isInterrupted()) {
+                            for (int i = 0; i < frameCount && !Thread.currentThread()
+                                    .isInterrupted(); i++) {
                                 final Bitmap nextBitmap = gifDecoder.getNextFrame();
                                 int delay = gifDecoder.getDelay(i);
                                 delay = delay != 0 ? delay : 33;
@@ -1337,7 +1338,8 @@ public class TouchImageView extends ImageView {
                                 try {
                                     Thread.sleep(delay);
                                 } catch (InterruptedException e) {
-                                    e.printStackTrace();
+                                    Log.i(DEBUG, "Show is over");
+                                    return;
                                 }
                             }
                         }
@@ -1347,8 +1349,13 @@ public class TouchImageView extends ImageView {
                         Log.w(DEBUG, "Bitmap was recycled.");
                     }
                 }
-            }).start();
-        } catch (OutOfMemoryError e) {
+            });
+            mGifThread.start();
+        } catch (
+                OutOfMemoryError e
+                )
+
+        {
             e.printStackTrace();
             System.gc();
         }

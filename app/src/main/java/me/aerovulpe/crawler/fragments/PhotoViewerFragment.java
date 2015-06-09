@@ -153,9 +153,11 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mIsFullscreen = ((PhotoManager) getActivity()).isFullScreen();
         final RecyclerView photoList;
-        if (mPhotoListRef != null && (photoList = mPhotoListRef.get()) != null)
-            if (((GridLayoutManager) photoList.getLayoutManager()).findLastVisibleItemPosition()
-                    < mCurrentPhotoIndex)
+        if (mPhotoListRef != null && (photoList = mPhotoListRef.get()) != null) {
+            GridLayoutManager layoutManager = (GridLayoutManager) photoList.getLayoutManager();
+            if (layoutManager.findLastVisibleItemPosition()
+                    < mCurrentPhotoIndex ||
+                    layoutManager.findFirstVisibleItemPosition() > mCurrentPhotoIndex)
                 photoList.post(new Runnable() {
                     @Override
                     public void run() {
@@ -163,6 +165,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                         photoList.getLayoutManager().scrollToPosition(mCurrentPhotoIndex);
                     }
                 });
+        }
     }
 
     @Override

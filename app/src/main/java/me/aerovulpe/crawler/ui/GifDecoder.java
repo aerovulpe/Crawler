@@ -28,6 +28,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -265,6 +266,8 @@ public class GifDecoder {
                 buffer.flush();
 
                 read(buffer.toByteArray());
+            } catch (InterruptedIOException e) {
+                Log.i(TAG, "Show is over");
             } catch (IOException e) {
                 Log.w(TAG, "Error reading data from stream", e);
             }
