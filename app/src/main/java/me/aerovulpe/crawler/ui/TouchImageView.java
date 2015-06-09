@@ -1351,11 +1351,7 @@ public class TouchImageView extends ImageView {
                 }
             });
             mGifThread.start();
-        } catch (
-                OutOfMemoryError e
-                )
-
-        {
+        } catch (OutOfMemoryError e) {
             e.printStackTrace();
             System.gc();
         }
