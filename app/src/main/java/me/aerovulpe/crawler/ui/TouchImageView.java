@@ -41,6 +41,8 @@ import android.widget.OverScroller;
 import android.widget.Scroller;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
@@ -49,6 +51,9 @@ import me.aerovulpe.crawler.utils.AndroidUtils;
 public class TouchImageView extends ImageView {
 
     private static final String DEBUG = "TouchImageView";
+    private static volatile int sDebugGifCnt;
+    private static volatile int sDebugExCnt;
+    private static volatile int sDebugCnt;
 
     //
     // SuperMin and SuperMax multipliers. Determine how much the image can be
@@ -95,7 +100,7 @@ public class TouchImageView extends ImageView {
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;
     private OnTouchListener userTouchListener = null;
     private OnTouchImageViewListener touchImageViewListener = null;
-    private Thread mGifThread;
+    private GifThread mGifThread;
 
     public TouchImageView(Context context) {
         super(context);
@@ -1297,8 +1302,10 @@ public class TouchImageView extends ImageView {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (mGifThread != null)
+        if (mGifThread != null) {
             mGifThread.interrupt();
+            sDebugExCnt--;
+        }
         Drawable drawable = getDrawable();
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
@@ -1311,49 +1318,78 @@ public class TouchImageView extends ImageView {
     public void playGif(final String url) {
         try {
             final Handler handler = new Handler();
-            mGifThread = new Thread(new Runnable() {
-                public void run() {
-                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
-                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
-                    if (!isConnectedToWifi && !isConnectedToWired &&
-                            !SettingsFragment.downloadOffWifi(getContext()))
-                        return;
-                    try {
-                        GifDecoder gifDecoder = new GifDecoder();
-                        gifDecoder.read(new URL(url).openStream(), 0);
-                        final int frameCount = gifDecoder.getFrameCount();
-                        while (!Thread.currentThread().isInterrupted()) {
-                            for (int i = 0; i < frameCount && !Thread.currentThread()
-                                    .isInterrupted(); i++) {
-                                final Bitmap nextBitmap = gifDecoder.getNextFrame();
-                                int delay = gifDecoder.getDelay(i);
-                                delay = delay != 0 ? delay : 33;
-                                handler.post(new Runnable() {
-                                    public void run() {
-                                        if (nextBitmap != null && !nextBitmap.isRecycled()) {
-                                            TouchImageView.this.setImageBitmap(nextBitmap);
-                                        }
-                                    }
-                                });
-                                try {
-                                    Thread.sleep(delay);
-                                } catch (InterruptedException e) {
-                                    Log.i(DEBUG, "Show is over");
-                                    return;
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (IllegalStateException e) {
-                        Log.w(DEBUG, "Bitmap was recycled.");
-                    }
-                }
-            });
+            mGifThread = new GifThread(this, handler, url);
             mGifThread.start();
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
             System.gc();
+        }
+    }
+
+    static class GifThread extends Thread {
+        WeakReference<TouchImageView> mTouchImageViewRef;
+        Handler mHandler;
+        String mUrl;
+
+        public GifThread(TouchImageView touchImageView, Handler handler, String url) {
+            mTouchImageViewRef = new WeakReference<>(touchImageView);
+            mHandler = handler;
+            mUrl = url;
+        }
+
+        @Override
+        public void run() {
+            sDebugGifCnt++;
+            sDebugExCnt++;
+            if (mTouchImageViewRef.get() == null)
+                return;
+            else {
+                Context context = mTouchImageViewRef.get().getContext();
+                boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(context);
+                boolean isConnectedToWired = AndroidUtils.isConnectedToWired(context);
+                if (!isConnectedToWifi && !isConnectedToWired &&
+                        !SettingsFragment.downloadOffWifi(context))
+                    return;
+            }
+
+            try {
+                GifDecoder gifDecoder = new GifDecoder();
+                gifDecoder.read(new URL(mUrl).openStream(), 0);
+                final int frameCount = gifDecoder.getFrameCount();
+                while (!Thread.currentThread().isInterrupted() || mIsAnimated) {
+                    for (int i = 0; i < frameCount; i++) {
+//                                if (isInterrupted = Thread.currentThread()
+//                                        .isInterrupted())
+//                                    return;
+
+                        final Bitmap nextBitmap = gifDecoder.getNextFrame();
+                        int delay = gifDecoder.getDelay(i);
+                        delay = delay != 0 ? delay : 33;
+                        handler.post(new Runnable() {
+                            public void run() {
+                                if (nextBitmap != null && !nextBitmap.isRecycled()) {
+                                    TouchImageView.this.setImageBitmap(nextBitmap);
+                                }
+                            }
+                        });
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
+                    }
+                    Log.d(DEBUG, Uri.parse(url).getLastPathSegment() + " (" + mDebugIdx + ") Looped");
+                }
+            } catch (InterruptedIOException ignored) {
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalStateException e) {
+                Log.w(DEBUG, "Bitmap was recycled.");
+            } finally {
+                mIsAnimated = false;
+                sDebugGifCnt--;
+                Log.i(DEBUG, "Show is over: " + sDebugGifCnt + " :Expected: " + sDebugExCnt);
+            }
         }
     }
 }

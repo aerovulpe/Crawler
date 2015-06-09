@@ -125,7 +125,7 @@
     <string name="slideshow_warning">Please enter a valid number (minimum 1, maximum 300)</string>
     <string name="desc_switcher_guide">Number of seconds must be between 1 and 120</string>
     <string name="desc_switcher_warning">Please enter a valid number (minimum 1, maximum 120)</string>
-    <string name="cache_size_guide">Please assign at least 10MB</string>
+    <string name="cache_size_guide">Please assign at least 10MBand at most 2000MB (2GB)</string>
     <string name="cache_size_warning">Please enter a valid number</string>
     <string name="delete_cache_dialog_title">Are you sure you want to delete the cached photos?</string>
     <string name="delete_cache_title">Delete cached photos</string>

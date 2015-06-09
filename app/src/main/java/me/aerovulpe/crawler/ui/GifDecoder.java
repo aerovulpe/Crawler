@@ -28,7 +28,6 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -253,24 +252,18 @@ public class GifDecoder {
      * @param is containing GIF file.
      * @return read status code (0 = no errors)
      */
-    public int read(InputStream is, int contentLength) {
+    public int read(InputStream is, int contentLength) throws IOException {
         if (is != null) {
-            try {
-                int capacity = (contentLength > 0) ? (contentLength + 4096) : 4096;
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream(capacity);
-                int nRead;
-                byte[] data = new byte[16384];
-                while ((nRead = is.read(data, 0, data.length)) != -1) {
-                    buffer.write(data, 0, nRead);
-                }
-                buffer.flush();
-
-                read(buffer.toByteArray());
-            } catch (InterruptedIOException e) {
-                Log.i(TAG, "Show is over");
-            } catch (IOException e) {
-                Log.w(TAG, "Error reading data from stream", e);
+            int capacity = (contentLength > 0) ? (contentLength + 4096) : 4096;
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream(capacity);
+            int nRead;
+            byte[] data = new byte[16384];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
             }
+            buffer.flush();
+
+            read(buffer.toByteArray());
         } else {
             status = STATUS_OPEN_ERROR;
         }
