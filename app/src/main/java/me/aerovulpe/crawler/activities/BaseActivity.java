@@ -80,9 +80,14 @@ public abstract class BaseActivity extends AppCompatActivity {
                         Request.removeAlbumRequestData(BaseActivity.this, accountID);
                     }
                 }, 5000);
-                getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
-                        CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
-                                accountID + "'", null);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getContentResolver().delete(CrawlerContract.AccountEntry.CONTENT_URI,
+                                CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == '" +
+                                        accountID + "'", null);
+                    }
+                }).start();
             }
         });
         builder.create().show();
