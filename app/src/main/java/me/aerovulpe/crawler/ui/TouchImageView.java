@@ -51,9 +51,6 @@ import me.aerovulpe.crawler.utils.AndroidUtils;
 public class TouchImageView extends ImageView {
 
     private static final String DEBUG = "TouchImageView";
-    private static volatile int sDebugGifCnt;
-    private static volatile int sDebugExCnt;
-    private static volatile int sDebugCnt;
 
     //
     // SuperMin and SuperMax multipliers. Determine how much the image can be
@@ -1304,7 +1301,6 @@ public class TouchImageView extends ImageView {
         super.onDetachedFromWindow();
         if (mGifThread != null) {
             mGifThread.interrupt();
-            sDebugExCnt--;
         }
         Drawable drawable = getDrawable();
         if (drawable instanceof BitmapDrawable) {
@@ -1339,8 +1335,6 @@ public class TouchImageView extends ImageView {
 
         @Override
         public void run() {
-            sDebugGifCnt++;
-            sDebugExCnt++;
             if (mTouchImageViewRef.get() == null)
                 return;
             else {
@@ -1356,19 +1350,22 @@ public class TouchImageView extends ImageView {
                 GifDecoder gifDecoder = new GifDecoder();
                 gifDecoder.read(new URL(mUrl).openStream(), 0);
                 final int frameCount = gifDecoder.getFrameCount();
-                while (!Thread.currentThread().isInterrupted() || mIsAnimated) {
+                while (!Thread.currentThread().isInterrupted()
+                        && mTouchImageViewRef.get() != null) {
                     for (int i = 0; i < frameCount; i++) {
-//                                if (isInterrupted = Thread.currentThread()
-//                                        .isInterrupted())
-//                                    return;
+                        if (Thread.currentThread().isInterrupted()
+                                || mTouchImageViewRef.get() == null)
+                            return;
 
                         final Bitmap nextBitmap = gifDecoder.getNextFrame();
                         int delay = gifDecoder.getDelay(i);
                         delay = delay != 0 ? delay : 33;
-                        handler.post(new Runnable() {
+                        mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
-                                    TouchImageView.this.setImageBitmap(nextBitmap);
+                                    TouchImageView touchImageView = mTouchImageViewRef.get();
+                                    if (touchImageView != null)
+                                        touchImageView.setImageBitmap(nextBitmap);
                                 }
                             }
                         });
@@ -1378,17 +1375,12 @@ public class TouchImageView extends ImageView {
                             return;
                         }
                     }
-                    Log.d(DEBUG, Uri.parse(url).getLastPathSegment() + " (" + mDebugIdx + ") Looped");
                 }
             } catch (InterruptedIOException ignored) {
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (IllegalStateException e) {
                 Log.w(DEBUG, "Bitmap was recycled.");
-            } finally {
-                mIsAnimated = false;
-                sDebugGifCnt--;
-                Log.i(DEBUG, "Show is over: " + sDebugGifCnt + " :Expected: " + sDebugExCnt);
             }
         }
     }
