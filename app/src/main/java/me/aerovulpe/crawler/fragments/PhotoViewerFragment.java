@@ -427,7 +427,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public Uri savePhoto(Photo photo) {
         Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photo.getImageUrl());
         return bitmap != null ? AndroidUtils.savePicture(getActivity(),
-                bitmap, photo.getName(),
+                bitmap, photo.getImageUrl(), photo.getName(),
                 photo.getTitle(), photo.getDescription()) : null;
     }
 

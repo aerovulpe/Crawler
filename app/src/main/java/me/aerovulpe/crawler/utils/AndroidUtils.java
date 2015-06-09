@@ -16,7 +16,9 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 public class AndroidUtils {
 
@@ -69,50 +71,99 @@ public class AndroidUtils {
         return mobile != null && mobile.isConnected();
     }
 
-    public static Uri savePicture(Context context, Bitmap bitmap, String imgName, String imgTitle,
-                                  String description) {
-        OutputStream outputStream;
-        String strDirectory = Environment
+    public static Uri savePicture(final Context context, final Bitmap bitmap, final String url, String imgName,
+                                  String imgTitle, String description) {
+        final String strDirectory = Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 
-        File file = new File(strDirectory, imgName);
+        final File file = new File(strDirectory, imgName);
+        deleteFile(context, strDirectory, file);
 
         try {
-            if (file.exists())
-                if (file.delete()) {
-                    if (Build.VERSION.SDK_INT < 19) {
-                        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
-                                Uri.parse("file://" + strDirectory)));
-                    } else {
-                        MediaScannerConnection.scanFile(context, new String[]{strDirectory},
-                                null, new MediaScannerConnection.OnScanCompletedListener() {
-                                    public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("ExternalStorage", "Scanned " + path + ":");
-                                        Log.i("ExternalStorage", "-> uri=" + uri);
-                                    }
-                                });
-                    }
-                }
-
-            outputStream = new FileOutputStream(file);
-
-            /**Compress image**/
+            FileOutputStream outputStream = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
-
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-            values.put(MediaStore.Images.Media.TITLE, imgTitle);
-            values.put(MediaStore.Images.Media.DESCRIPTION, description);
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
-            values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
-
-            context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            return Uri.parse("file://" + file.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+
+        if (imgName.endsWith(".gif")) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    InputStream inputStream = null;
+                    FileOutputStream outputStream = null;
+                    try {
+                        inputStream = new URL(url).openStream();
+                        outputStream = new FileOutputStream(file);
+                        byte[] bytes = new byte[16384];
+                        int length;
+                        while ((length = inputStream.read(bytes)) != -1)
+                            outputStream.write(bytes, 0, length);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        try {
+                            closeOutputStream(outputStream);
+                            deleteFile(context, strDirectory, file);
+                            outputStream = new FileOutputStream(file);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
+                                    outputStream);
+                        } catch (IOException innerE) {
+                            innerE.printStackTrace();
+                        }
+                    } finally {
+                        closeInputStream(inputStream);
+                        closeOutputStream(outputStream);
+                    }
+                }
+
+                private void closeInputStream(InputStream inputStream) {
+                    if (inputStream != null)
+                        try {
+                            inputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                }
+
+                private void closeOutputStream(FileOutputStream outputStream) {
+                    if (outputStream != null)
+                        try {
+                            outputStream.flush();
+                            outputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                }
+            }).start();
+        }
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        values.put(MediaStore.Images.Media.TITLE, imgTitle);
+        values.put(MediaStore.Images.Media.DESCRIPTION, description);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
+        values.put(MediaStore.MediaColumns.DATA, file.getAbsolutePath());
+
+        context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        return Uri.parse("file://" + file.getAbsolutePath());
+    }
+
+    private static void deleteFile(Context context, String strDirectory, File file) {
+        if (file.exists())
+            if (file.delete())
+                if (Build.VERSION.SDK_INT < 19)
+                    context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
+                            Uri.parse("file://" + strDirectory)));
+                else
+                    MediaScannerConnection.scanFile(context, new String[]{strDirectory},
+                            null, new MediaScannerConnection.OnScanCompletedListener() {
+                                public void onScanCompleted(String path, Uri uri) {
+                                    Log.i("ExternalStorage", "Scanned " + path + ":");
+                                    Log.i("ExternalStorage", "-> uri=" + uri);
+                                }
+                            });
     }
 }
