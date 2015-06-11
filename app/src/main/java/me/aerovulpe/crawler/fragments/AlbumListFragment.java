@@ -1,5 +1,6 @@
 package me.aerovulpe.crawler.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
@@ -74,6 +75,13 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         }
         mRequestData = true;
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        if (!(activity instanceof PhotoManager))
+            throw new IllegalArgumentException("Must be attached to a PhotoManager instance.");
+        super.onAttach(activity);
     }
 
     @Override

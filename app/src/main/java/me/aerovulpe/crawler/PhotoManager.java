@@ -13,7 +13,7 @@ public interface PhotoManager {
 
     PhotoViewerFragment createPhotoViewerInstance(String albumTitle, boolean isSlideShow);
 
-    void setFullScreen(boolean fullScreen, boolean restoreActionBar);
+    void setFullScreen(boolean fullScreen);
 
     void toggleFullScreen();
 

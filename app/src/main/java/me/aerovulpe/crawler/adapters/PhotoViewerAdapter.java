@@ -117,7 +117,7 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         }
     }
 
-    public void bufferLoad(final int position) {
+    public void bufferLoad(int position) {
         final String[] photoUrls = new String[LOAD_BUFFER_SIZE];
         Cursor cursor = getCursor();
         cursor.moveToPosition(position);

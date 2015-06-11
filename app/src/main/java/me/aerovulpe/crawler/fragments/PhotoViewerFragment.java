@@ -88,6 +88,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        if (!(activity instanceof PhotoManager))
+            throw new IllegalArgumentException("Must be attached to a PhotoManager instance.");
+        super.onAttach(activity);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -102,16 +109,10 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         mViewPager.setCurrentItem(mCurrentPhotoIndex);
-
-        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
@@ -130,7 +131,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         });
 
         Activity activity = getActivity();
-        ((PhotoManager) activity).setFullScreen(mIsFullscreen, true);
+        ((PhotoManager) activity).setFullScreen(mIsFullscreen);
         mViewPager.setPageTransformer(true, SettingsFragment.getPageTransformer(activity));
         mAnimSlideshowDelay = SettingsFragment.getSlideshowIntervalMS(activity);
         mDescInterval = SettingsFragment.getDescIntervalMS(activity);
@@ -150,8 +151,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
             slideShowTimer.cancel();
             slideShowTimer = null;
         }
-        getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mIsFullscreen = ((PhotoManager) getActivity()).isFullScreen();
+        Activity activity = getActivity();
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         final RecyclerView photoList;
         if (mPhotoListRef != null && (photoList = mPhotoListRef.get()) != null) {
             GridLayoutManager layoutManager = (GridLayoutManager) photoList.getLayoutManager();
@@ -166,21 +167,21 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     }
                 });
         }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Activity activity = getActivity();
         activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
                 .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText)
                 .putBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, mIsFullscreen).apply();
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        mViewPager.clearOnPageChangeListeners();
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-        ((PhotoManager) getActivity()).setFullScreen(false, true);
+        ((PhotoManager) getActivity()).setFullScreen(false);
     }
 
     @Override
@@ -332,7 +333,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         if (activity == null)
             return;
 
-        ((PhotoManager) activity).setFullScreen(isSlideShowRunning, true);
+        ((PhotoManager) activity).setFullScreen(isSlideShowRunning || mIsFullscreen);
         if (isSlideShowRunning) {
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             //schedule this to
@@ -447,8 +448,11 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     @Override
     public void onClick(View v) {
         PhotoManager photoManager = (PhotoManager) getActivity();
-        if (photoManager != null && !isSlideShowRunning) photoManager.toggleFullScreen();
-        else toggleSlideShow();
+        if (photoManager != null && !isSlideShowRunning) {
+            photoManager.toggleFullScreen();
+            mIsFullscreen = !mIsFullscreen;
+        } else
+            toggleSlideShow();
     }
 
     @Override

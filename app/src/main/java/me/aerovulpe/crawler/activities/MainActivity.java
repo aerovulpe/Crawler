@@ -263,7 +263,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public void setFullScreen(boolean fullScreen, boolean restoreActionBar) {
+    public void setFullScreen(boolean fullScreen) {
         ActionBar actionBar = getSupportActionBar();
         if (fullScreen) {
             if (Build.VERSION.SDK_INT < 16) { //ye olde method
@@ -291,7 +291,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                 decorView.setSystemUiVisibility(uiOptions);
                 // Remember that you should never show the action bar if the
                 // status bar is hidden, so !hide that too if necessary.
-                if (restoreActionBar && actionBar != null)
+                if (actionBar != null)
                     actionBar.show();
             }
         }
@@ -300,7 +300,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
 
     @Override
     public void toggleFullScreen() {
-        setFullScreen(!mIsFullScreen, true);
+        setFullScreen(!mIsFullScreen);
     }
 
     @Override

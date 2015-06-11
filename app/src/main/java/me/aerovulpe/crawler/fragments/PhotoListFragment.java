@@ -141,6 +141,17 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        if (!(activity instanceof PhotoManager))
+            throw new IllegalArgumentException("Must be attached to a PhotoManager instance.");
+        super.onAttach(activity);
+        // If is loading, show progress dialog.
+        if (mIsRequesting || mIsLoading) {
+            makeProgressDialog();
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -219,15 +230,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public void onDestroy() {
         super.onDestroy();
         getActivity().sendBroadcast(new Intent(Request.buildShowAction(mAlbumID)));
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        // If is loading, show progress dialog.
-        if (mIsRequesting || mIsLoading) {
-            makeProgressDialog();
-        }
     }
 
     @Override
