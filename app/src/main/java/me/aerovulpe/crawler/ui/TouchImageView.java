@@ -1303,8 +1303,7 @@ public class TouchImageView extends ImageView {
 
     public void playGif(String url) {
         try {
-            Handler handler = new Handler();
-            mGifThread = new GifThread(this, handler, url);
+            mGifThread = new GifThread(this, url);
             mGifThread.start();
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
@@ -1317,9 +1316,9 @@ public class TouchImageView extends ImageView {
         Handler mHandler;
         String mUrl;
 
-        public GifThread(TouchImageView touchImageView, Handler handler, String url) {
+        public GifThread(TouchImageView touchImageView, String url) {
             mTouchImageViewRef = new WeakReference<>(touchImageView);
-            mHandler = handler;
+            mHandler = new Handler();
             mUrl = url;
         }
 
@@ -1349,7 +1348,7 @@ public class TouchImageView extends ImageView {
 
                         final Bitmap nextBitmap = gifDecoder.getNextFrame();
                         int delay = gifDecoder.getDelay(i);
-                        delay = delay != 0 ? delay : 33;
+                        if (delay == 0) delay = 85;
                         mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
