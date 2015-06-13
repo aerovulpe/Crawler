@@ -32,7 +32,6 @@ import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import java.util.Random;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.utils.AndroidUtils;
 
 public class CrawlerApplication extends Application {
 
@@ -52,7 +51,7 @@ public class CrawlerApplication extends Application {
                 .getCurrentCacheValueInBytes(context));
         // Initialize ImageLoader with configuration.
         ImageLoader.getInstance().init(config.build());
-        if (AndroidUtils.isConnectedRoaming(context)) {
+        if (Utils.Android.isConnectedRoaming(context)) {
             ImageLoader.getInstance().denyNetworkDownloads(true);
         }
     }
@@ -63,7 +62,7 @@ public class CrawlerApplication extends Application {
         if (ImageLoader.getInstance().isInited())
             ImageLoader.getInstance().destroy();
         ImageLoader.getInstance().init(config.build());
-        if (AndroidUtils.isConnectedRoaming(context)) {
+        if (Utils.Android.isConnectedRoaming(context)) {
             ImageLoader.getInstance().denyNetworkDownloads(true);
         }
     }

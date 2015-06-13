@@ -32,7 +32,7 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 public class AccountsAdapter extends CursorAdapter {
 
@@ -64,7 +64,7 @@ public class AccountsAdapter extends CursorAdapter {
 
                 @Override
                 public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                    holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(accountType));
+                    holder.mServiceLogo.setImageResource(Utils.Accounts.getAccountLogoResource(accountType));
                 }
 
                 @Override
@@ -78,10 +78,10 @@ public class AccountsAdapter extends CursorAdapter {
                 }
             });
         } else {
-            holder.mServiceLogo.setImageResource(AccountsUtil.getAccountLogoResource(accountType));
+            holder.mServiceLogo.setImageResource(Utils.Accounts.getAccountLogoResource(accountType));
         }
-        if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
-            holder.mAccountID.setText(AccountsUtil
+        if (accountType == Utils.Accounts.ACCOUNT_TYPE_PICASA)
+            holder.mAccountID.setText(Utils.Accounts
                     .makePicasaPseudoID(cursor.getString(AccountsActivity.COL_ACCOUNT_ID)));
         else
             holder.mAccountID.setText(cursor.getString(AccountsActivity.COL_ACCOUNT_ID));

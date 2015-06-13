@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
-import static me.aerovulpe.crawler.utils.NetworkUtil.getStringFromServer;
+import static me.aerovulpe.crawler.Utils.Network.getStringFromServer;
 
 /**
  * Created by Aaron on 18/05/2015.
@@ -76,7 +76,7 @@ public class ExplorerRequestWorker implements Runnable {
         }
 
         List<String> urls = new ArrayList<>();
-        if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+        if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
             String categoryUrl = CategoriesRequest.BASE_SPOTLIGHT_URL + mRequest.getCategory();
             try {
                 Document categoryDoc = Jsoup.connect(categoryUrl).get();
@@ -96,7 +96,7 @@ public class ExplorerRequestWorker implements Runnable {
                 onPostExecute(false);
                 return;
             }
-        } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+        } else if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_FLICKR) {
             Uri uri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
                     .appendQueryParameter(FlickrRequest.API_KEY_PARAM, FlickrRequest.API_KEY)
                     .appendQueryParameter(FlickrRequest.METHOD_PARAM, "flickr.interestingness.getList")
@@ -104,7 +104,7 @@ public class ExplorerRequestWorker implements Runnable {
                     .appendQueryParameter(FlickrRequest.FORMAT_PARAM, "json")
                     .appendQueryParameter(FlickrRequest.NOJSONCALLBACK_PARAM, "1").build();
             urls.add(uri.toString());
-        } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+        } else if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
             urls.add("https://picasaweb.google.com/data/feed/api/all?&max-results=500&alt=json");
         }
         try {
@@ -122,7 +122,7 @@ public class ExplorerRequestWorker implements Runnable {
     }
 
     private void parseResult(String category, List<String> urls) throws IOException {
-        if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+        if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
             for (String url : urls) {
                 String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
                 String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
@@ -147,7 +147,7 @@ public class ExplorerRequestWorker implements Runnable {
                     ContentValues values = new ContentValues();
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                            AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                            Utils.Accounts.ACCOUNT_TYPE_TUMBLR);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, url);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
                             blogObject.getString("name"));
@@ -171,7 +171,7 @@ public class ExplorerRequestWorker implements Runnable {
                     e.printStackTrace();
                 }
             }
-        } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+        } else if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_FLICKR) {
             try {
                 JSONObject rootObject = new JSONObject(getStringFromServer(new URL(urls.get(0))))
                         .getJSONObject("photos");
@@ -196,7 +196,7 @@ public class ExplorerRequestWorker implements Runnable {
                             .getJSONObject("person");
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                            AccountsUtil.ACCOUNT_TYPE_FLICKR);
+                            Utils.Accounts.ACCOUNT_TYPE_FLICKR);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID, Jsoup.parse(ownerObject
                             .getJSONObject("photosurl").getString("_content")).text());
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
@@ -221,7 +221,7 @@ public class ExplorerRequestWorker implements Runnable {
             } catch (JSONException | NullPointerException | MalformedURLException e) {
                 e.printStackTrace();
             }
-        } else if (mRequest.getAccountType() == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+        } else if (mRequest.getAccountType() == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
             try {
                 JSONArray entryArray = new JSONObject(getStringFromServer(new URL(urls.get(0))))
                         .getJSONObject("feed").getJSONArray("entry");
@@ -229,12 +229,12 @@ public class ExplorerRequestWorker implements Runnable {
                     ContentValues values = new ContentValues();
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_CATEGORY_KEY, category);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_TYPE,
-                            AccountsUtil.ACCOUNT_TYPE_PICASA);
+                            Utils.Accounts.ACCOUNT_TYPE_PICASA);
                     JSONObject ownerObject = entryArray.getJSONObject(i).getJSONArray("author")
                             .getJSONObject(0);
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_ID,
-                            AccountsUtil.urlFromUser(ownerObject.getJSONObject("gphoto$user")
-                                    .getString("$t"), AccountsUtil.ACCOUNT_TYPE_PICASA));
+                            Utils.Accounts.urlFromUser(ownerObject.getJSONObject("gphoto$user")
+                                    .getString("$t"), Utils.Accounts.ACCOUNT_TYPE_PICASA));
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_NAME,
                             ownerObject.getJSONObject("name").getString("$t"));
                     values.put(CrawlerContract.ExplorerEntry.COLUMN_ACCOUNT_PREVIEW_URL,

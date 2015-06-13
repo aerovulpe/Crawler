@@ -35,7 +35,7 @@ import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
@@ -144,22 +144,22 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             final Intent intent = getIntent();
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
-                    case AccountsUtil.ACCOUNT_TYPE_TUMBLR:
-                        createPhotoListInstance(AccountsUtil.ACCOUNT_TYPE_TUMBLR, intent.getExtras()
+                    case Utils.Accounts.ACCOUNT_TYPE_TUMBLR:
+                        createPhotoListInstance(Utils.Accounts.ACCOUNT_TYPE_TUMBLR, intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_NAME),
                                 intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
                                 intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_ID), false);
                         break;
-                    case AccountsUtil.ACCOUNT_TYPE_FLICKR:
-                        createPhotoListInstance(AccountsUtil.ACCOUNT_TYPE_FLICKR, intent.getExtras()
+                    case Utils.Accounts.ACCOUNT_TYPE_FLICKR:
+                        createPhotoListInstance(Utils.Accounts.ACCOUNT_TYPE_FLICKR, intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_NAME),
                                 intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID),
                                 intent.getExtras()
                                         .getString(AccountsActivity.ARG_ACCOUNT_ID), false);
                         break;
-                    case AccountsUtil.ACCOUNT_TYPE_PICASA:
-                        createAlbumListInstance(AccountsUtil.ACCOUNT_TYPE_PICASA,
+                    case Utils.Accounts.ACCOUNT_TYPE_PICASA:
+                        createAlbumListInstance(Utils.Accounts.ACCOUNT_TYPE_PICASA,
                                 intent.getExtras().getString(AccountsActivity.ARG_ACCOUNT_ID));
                         break;
                 }

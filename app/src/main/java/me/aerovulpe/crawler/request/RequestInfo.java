@@ -18,9 +18,9 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
-import static me.aerovulpe.crawler.utils.NetworkUtil.getStringFromServer;
+import static me.aerovulpe.crawler.Utils.Network.getStringFromServer;
 
 /**
  * Created by Aaron on 22/05/2015.
@@ -58,7 +58,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
     }
 
     private void parse(int accountType, String url) throws IOException, RemoteException {
-        if (accountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+        if (accountType == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
             String blog = url.replaceFirst("^(http://|http://www\\.|www\\.)", "");
             String uri = Uri.parse(TumblrRequest.TUMBLR_API_BASE_URI).buildUpon()
                     .appendPath(blog)
@@ -93,7 +93,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
                 String title = blogObject.getString("title");
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                         (title != null && !title.isEmpty()) ? title :
-                                AccountsUtil.userFromUrl(url, accountType));
+                                Utils.Accounts.userFromUrl(url, accountType));
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
                         blogObject.getInt("posts"));
                 mProviderClient.update(CrawlerContract.AccountEntry
@@ -103,7 +103,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
             } catch (JSONException | MalformedURLException e) {
                 e.printStackTrace();
             }
-        } else if (accountType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+        } else if (accountType == Utils.Accounts.ACCOUNT_TYPE_FLICKR) {
             try {
                 ContentValues values = new ContentValues();
                 Uri uri = Uri.parse(FlickrRequest.FLICKR_API_BASE_URI).buildUpon()
@@ -138,7 +138,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
                         .getString("_content");
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                         (title != null && !title.isEmpty()) ? title :
-                                AccountsUtil.userFromUrl(url, accountType));
+                                Utils.Accounts.userFromUrl(url, accountType));
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
                         ownerObject.getJSONObject("photos").getJSONObject("count")
                                 .getString("_content"));
@@ -149,7 +149,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
             } catch (JSONException | NullPointerException | MalformedURLException e) {
                 e.printStackTrace();
             }
-        } else if (accountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+        } else if (accountType == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
             try {
                 ContentValues values = new ContentValues();
                 JSONObject ownerObject = new JSONObject(getStringFromServer(new URL(Uri
@@ -163,7 +163,7 @@ public class RequestInfo extends AsyncTask<Object, Void, Void> {
                 String title = ownerObject.getJSONObject("gphoto$nickname").getString("$t");
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                         (title != null && !title.isEmpty()) ? title :
-                                AccountsUtil.userFromUrl(url, accountType));
+                                Utils.Accounts.userFromUrl(url, accountType));
                 values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NUM_OF_POSTS,
                         -1);
                 mProviderClient.update(CrawlerContract.AccountEntry

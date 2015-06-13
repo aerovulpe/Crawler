@@ -8,7 +8,7 @@ import android.net.wifi.WifiManager;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 22/05/2015.
@@ -23,7 +23,7 @@ public class WifiConnectedReceiver extends BroadcastReceiver {
                     ImageLoader.getInstance().denyNetworkDownloads(false);
             } else {
                 boolean connectOn3G = SettingsFragment.downloadOffWifi(context);
-                boolean isConnectedToWired = AndroidUtils.isConnectedToWired(context);
+                boolean isConnectedToWired = Utils.Android.isConnectedToWired(context);
 
                 if (!isConnectedToWired && !connectOn3G)
                     if (ImageLoader.getInstance().isInited())

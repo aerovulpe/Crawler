@@ -16,7 +16,7 @@ import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 08/06/2015.
@@ -78,8 +78,8 @@ public class InfoDialogFragment extends DialogFragment {
         TextView title = (TextView) dialog.findViewById(R.id.textview_title);
         title.setText(mAccountName);
         TextView id = (TextView) dialog.findViewById(R.id.textview_id);
-        if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
-            id.setText(AccountsUtil.makePicasaPseudoID(mAccountId));
+        if (mAccountType == Utils.Accounts.ACCOUNT_TYPE_PICASA)
+            id.setText(Utils.Accounts.makePicasaPseudoID(mAccountId));
         else
             id.setText(mAccountId);
         TextView description = (TextView) dialog.findViewById(R.id.textview_description);
@@ -102,7 +102,7 @@ public class InfoDialogFragment extends DialogFragment {
 
                         @Override
                         public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
-                            avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
+                            avatarImage.setImageResource(Utils.Accounts.getAccountLogoResource(mAccountType));
                         }
 
                         @Override
@@ -116,7 +116,7 @@ public class InfoDialogFragment extends DialogFragment {
                         }
                     });
         } else {
-            avatarImage.setImageResource(AccountsUtil.getAccountLogoResource(mAccountType));
+            avatarImage.setImageResource(Utils.Accounts.getAccountLogoResource(mAccountType));
         }
 
         Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);

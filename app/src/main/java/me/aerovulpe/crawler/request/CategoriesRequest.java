@@ -17,8 +17,7 @@ import java.util.Vector;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.utils.AccountsUtil;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 13/05/2015.
@@ -71,8 +70,8 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
         }
         mProviderClient.release();
         boolean connectOn3G = SettingsFragment.downloadOffWifi(mContext);
-        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(mContext);
-        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(mContext);
+        boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(mContext);
+        boolean isConnectedToWired = Utils.Android.isConnectedToWired(mContext);
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G)
             for (ExplorerRequest request : mRequests) {
@@ -82,9 +81,9 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
 
     private void addCategories(Document document) {
         mRequests.add(new ExplorerRequest(mContext, FlickrRequest.class.getName(),
-                AccountsUtil.ACCOUNT_TYPE_FLICKR));
+                Utils.Accounts.ACCOUNT_TYPE_FLICKR));
         mRequests.add(new ExplorerRequest(mContext, PicasaAlbumsRequest.class.getName(),
-                AccountsUtil.ACCOUNT_TYPE_PICASA));
+                Utils.Accounts.ACCOUNT_TYPE_PICASA));
         Elements aElements = document.select("a");
         int size = aElements.size();
         for (int i = 0; i < size; i++) {
@@ -93,25 +92,25 @@ public class CategoriesRequest extends AsyncTask<Void, Void, Void> {
                 category = category.substring(11).replace('+', ' ');
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
-                        AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                        Utils.Accounts.ACCOUNT_TYPE_TUMBLR);
                 contentValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
                         category);
                 addValues(contentValues);
                 mRequests.add(new ExplorerRequest(mContext, category,
-                        AccountsUtil.ACCOUNT_TYPE_TUMBLR));
+                        Utils.Accounts.ACCOUNT_TYPE_TUMBLR));
             }
         }
         ContentValues flickrValues = new ContentValues();
         flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
-                AccountsUtil.ACCOUNT_TYPE_FLICKR);
+                Utils.Accounts.ACCOUNT_TYPE_FLICKR);
         flickrValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
-                AccountsUtil.CATEGORY_FLICKR);
+                Utils.Accounts.CATEGORY_FLICKR);
 
         ContentValues picasaValues = new ContentValues();
         picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE,
-                AccountsUtil.ACCOUNT_TYPE_PICASA);
+                Utils.Accounts.ACCOUNT_TYPE_PICASA);
         picasaValues.put(CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID,
-                AccountsUtil.CATEGORY_PICASA);
+                Utils.Accounts.CATEGORY_PICASA);
 
         addValues(flickrValues);
         addValues(picasaValues);

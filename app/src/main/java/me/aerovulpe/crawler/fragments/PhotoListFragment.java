@@ -41,8 +41,7 @@ import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.utils.AccountsUtil;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -277,7 +276,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         makeProgressDialog();
         BaseActivity activity = (BaseActivity) getActivity();
 
-        if (AndroidUtils.isConnectedRoaming(activity)) {
+        if (Utils.Android.isConnectedRoaming(activity)) {
             dismissDialog();
             activity.showError(activity.getString(R.string.connected_to_roaming_network),
                     activity.getString(R.string.connected_to_roaming_network_message), false);
@@ -286,9 +285,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         }
 
         boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
-        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
-        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
-        boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
+        boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(activity);
+        boolean isConnectedToWired = Utils.Android.isConnectedToWired(activity);
+        boolean isConnectedToMobile = Utils.Android.isConnectedMobileNotRoaming(activity);
 
         if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
             dismissDialog();
@@ -308,11 +307,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             ImageLoader.getInstance().denyNetworkDownloads(false);
             Intent intent = new Intent(getActivity(), RequestService.class);
             intent.putExtra(RequestService.ARG_RAW_URL, mPhotoDataUrl);
-            if (mType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+            if (mType == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
                 intent.putExtra(RequestService.ARG_REQUEST_TYPE, PicasaPhotosRequest.class.getName());
-            } else if (mType == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+            } else if (mType == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
                 intent.putExtra(RequestService.ARG_REQUEST_TYPE, TumblrRequest.class.getName());
-            } else if (mType == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+            } else if (mType == Utils.Accounts.ACCOUNT_TYPE_FLICKR) {
                 intent.putExtra(RequestService.ARG_REQUEST_TYPE, FlickrRequest.class.getName());
             }
             getActivity().startService(intent);

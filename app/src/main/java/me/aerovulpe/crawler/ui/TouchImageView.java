@@ -46,7 +46,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import me.aerovulpe.crawler.fragments.SettingsFragment;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 public class TouchImageView extends ImageView {
 
@@ -1328,8 +1328,8 @@ public class TouchImageView extends ImageView {
                 return;
             else {
                 Context context = mTouchImageViewRef.get().getContext();
-                boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(context);
-                boolean isConnectedToWired = AndroidUtils.isConnectedToWired(context);
+                boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(context);
+                boolean isConnectedToWired = Utils.Android.isConnectedToWired(context);
                 if (!isConnectedToWifi && !isConnectedToWired &&
                         !SettingsFragment.downloadOffWifi(context))
                     return;

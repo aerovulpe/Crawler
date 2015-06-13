@@ -40,7 +40,7 @@ import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapters.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 
@@ -427,7 +427,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
 
     public Uri savePhoto(Photo photo) {
         Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photo.getImageUrl());
-        return bitmap != null ? AndroidUtils.savePicture(getActivity(),
+        return bitmap != null ? Utils.Android.savePicture(getActivity(),
                 bitmap, photo.getImageUrl(), photo.getName(),
                 photo.getTitle(), photo.getDescription()) : null;
     }

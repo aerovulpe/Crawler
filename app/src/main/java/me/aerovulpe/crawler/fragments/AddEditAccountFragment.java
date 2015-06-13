@@ -38,8 +38,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
-import me.aerovulpe.crawler.utils.AccountsUtil;
-import me.aerovulpe.crawler.utils.NetworkUtil;
+import me.aerovulpe.crawler.Utils;
 
 
 public class AddEditAccountFragment extends DialogFragment {
@@ -131,11 +130,11 @@ public class AddEditAccountFragment extends DialogFragment {
         if (mFragmentType == EDIT_ACCOUNT) {
             ((ViewGroup) accountName.getParent()).setVisibility(View.VISIBLE);
             TextView idText = (TextView) view.findViewById(R.id.account_id_title);
-            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_TUMBLR)
+            if (mAccountType == Utils.Accounts.ACCOUNT_TYPE_TUMBLR)
                 idText.setText(activity.getString(R.string.blog_name));
-            else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_FLICKR)
+            else if (mAccountType == Utils.Accounts.ACCOUNT_TYPE_FLICKR)
                 idText.setText(activity.getString(R.string.username));
-            else if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA)
+            else if (mAccountType == Utils.Accounts.ACCOUNT_TYPE_PICASA)
                 idText.setText(activity.getString(R.string.user_id));
 
             ViewGroup accountTypeParent = (ViewGroup) accountType.getParent();
@@ -143,7 +142,7 @@ public class AddEditAccountFragment extends DialogFragment {
             accountTypeParent.removeView(accountType);
             TextView accountTypeText = new TextView(activity);
             accountTypeText.setTextAppearance(activity, android.R.style.TextAppearance_Medium);
-            accountTypeText.setText(new AccountsUtil(getResources()).typeIdToName(mAccountType));
+            accountTypeText.setText(new Utils.Accounts(getResources()).typeIdToName(mAccountType));
             accountTypeParent.addView(accountTypeText, accountTypeIndex);
 
             ViewGroup accountIdParent = (ViewGroup) accountId.getParent();
@@ -151,7 +150,7 @@ public class AddEditAccountFragment extends DialogFragment {
             accountIdParent.removeView(accountId);
             TextView accountIdText = new TextView(activity);
             accountIdText.setTextAppearance(activity, android.R.style.TextAppearance_Medium);
-            accountIdText.setText(AccountsUtil.userFromUrl(mID, mAccountType));
+            accountIdText.setText(Utils.Accounts.userFromUrl(mID, mAccountType));
             accountIdParent.addView(accountIdText, accountIdIndex);
             accountName.setText(mName);
         }
@@ -160,11 +159,11 @@ public class AddEditAccountFragment extends DialogFragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
                 TextView idText = (TextView) view.findViewById(R.id.account_id_title);
-                if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                if (position == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
                     idText.setText(activity.getString(R.string.blog_name));
-                } else if (position == AccountsUtil.ACCOUNT_TYPE_FLICKR) {
+                } else if (position == Utils.Accounts.ACCOUNT_TYPE_FLICKR) {
                     idText.setText(activity.getString(R.string.username));
-                } else if (position == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+                } else if (position == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
                     idText.setText(activity.getString(R.string.user_id));
                 }
             }
@@ -189,13 +188,13 @@ public class AddEditAccountFragment extends DialogFragment {
                 if (name.isEmpty()) name = id;
 
                 if (mFragmentType == ADD_ACCOUNT)
-                    id = AccountsUtil.urlFromUser(id, type);
+                    id = Utils.Accounts.urlFromUser(id, type);
                 else id = mID;
 
                 final String finalId = id;
                 final String finalName = name;
 
-                NetworkUtil.validateUrl(new NetworkUtil.NetworkObserver() {
+                Utils.Network.validateUrl(new Utils.Network.NetworkObserver() {
                     @Override
                     public Context getContext() {
                         return activity;
@@ -203,7 +202,7 @@ public class AddEditAccountFragment extends DialogFragment {
 
                     @Override
                     public void onNetworkStatusReceived(boolean doesExist) {
-                        if (doesExist || !NetworkUtil.isNetworkAvailable(activity)) {
+                        if (doesExist || !Utils.Network.isNetworkAvailable(activity)) {
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {

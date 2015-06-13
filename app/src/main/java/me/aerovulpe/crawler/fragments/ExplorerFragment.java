@@ -28,7 +28,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.ExplorerRequest;
 import me.aerovulpe.crawler.request.ExplorerRequestManager;
 import me.aerovulpe.crawler.request.ExplorerRequestObserver;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 07/05/2015.
@@ -159,7 +159,7 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         ExplorerActivity activity = (ExplorerActivity) getActivity();
         boolean showDialogs = activity.isExplorerVisible(this);
 
-        if (AndroidUtils.isConnectedRoaming(activity)) {
+        if (Utils.Android.isConnectedRoaming(activity)) {
             if (showDialogs)
                 activity.showError(activity.getString(R.string.connected_to_roaming_network),
                         activity.getString(R.string.connected_to_roaming_network_message), false);
@@ -168,9 +168,9 @@ public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCa
         }
 
         boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
-        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
-        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
-        boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
+        boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(activity);
+        boolean isConnectedToWired = Utils.Android.isConnectedToWired(activity);
+        boolean isConnectedToMobile = Utils.Android.isConnectedMobileNotRoaming(activity);
 
         if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
             if (showDialogs)

@@ -13,7 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 01/05/2015.
@@ -44,7 +44,7 @@ public class TumblrRequest extends Request {
                     && mIsRunning; mCurrentPage++) {
                 URL url = urlFromBlog(mCurrentPage);
                 parseResult(getStringFromServer(url));
-                notifyUser(AccountsUtil.ACCOUNT_TYPE_TUMBLR);
+                notifyUser(Utils.Accounts.ACCOUNT_TYPE_TUMBLR);
             }
             if (mIsRunning)
                 onDownloadSuccess();

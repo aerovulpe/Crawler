@@ -23,7 +23,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.adapters.ExplorerTabAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int COL_CATEGORY_NAME = 1;
@@ -64,7 +64,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
 
             @Override
             public void onPageSelected(int position) {
-                if (position == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+                if (position == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
                     mSpinner.setVisibility(View.VISIBLE);
                 } else {
                     mSpinner.setVisibility(View.INVISIBLE);
@@ -102,7 +102,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
     protected void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(CATEGORIES_LOADER, null, this);
-        if (mViewPagerPos == AccountsUtil.ACCOUNT_TYPE_TUMBLR) {
+        if (mViewPagerPos == Utils.Accounts.ACCOUNT_TYPE_TUMBLR) {
             mSpinner.setVisibility(View.VISIBLE);
         }
     }
@@ -139,7 +139,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         String sortOrder = CrawlerContract.CategoryEntry.COLUMN_CATEGORY_ID + " ASC";
         return new CursorLoader(this, CrawlerContract.CategoryEntry.CONTENT_URI, CATEGORIES_COLUMNS,
                 CrawlerContract.CategoryEntry.COLUMN_ACCOUNT_TYPE + " == ?",
-                new String[]{String.valueOf(AccountsUtil.ACCOUNT_TYPE_TUMBLR)}, sortOrder);
+                new String[]{String.valueOf(Utils.Accounts.ACCOUNT_TYPE_TUMBLR)}, sortOrder);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
                 Cursor data = ((SimpleCursorAdapter) parent.getAdapter()).getCursor();
                 data.moveToPosition(position);
                 ((ExplorerFragment) ((ExplorerTabAdapter) mViewPager.getAdapter())
-                        .getRegisteredFragment(AccountsUtil.ACCOUNT_TYPE_TUMBLR))
+                        .getRegisteredFragment(Utils.Accounts.ACCOUNT_TYPE_TUMBLR))
                         .setCategory(data.getString(COL_CATEGORY_NAME));
             }
 

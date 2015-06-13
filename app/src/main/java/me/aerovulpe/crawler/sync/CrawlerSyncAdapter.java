@@ -20,8 +20,7 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.utils.AccountsUtil;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 
 /**
@@ -154,8 +153,8 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         boolean connectOn3G = SettingsFragment.downloadOffWifi(getContext());
-        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(getContext());
-        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(getContext());
+        boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(getContext());
+        boolean isConnectedToWired = Utils.Android.isConnectedToWired(getContext());
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
             String url = extras.getString(SYNC_URL);
@@ -164,7 +163,7 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                     Cursor accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
                             new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
                             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
-                                    AccountsUtil.ACCOUNT_TYPE_TUMBLR, null, null);
+                                    Utils.Accounts.ACCOUNT_TYPE_TUMBLR, null, null);
                     accountsCursor.moveToPosition(-1);
                     while (accountsCursor.moveToNext()) {
                         Intent intent = new Intent(getContext(), RequestService.class);
@@ -176,7 +175,7 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
                     accountsCursor = provider.query(CrawlerContract.AccountEntry.CONTENT_URI,
                             new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID},
                             CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TYPE + " == " +
-                                    AccountsUtil.ACCOUNT_TYPE_FLICKR, null, null);
+                                    Utils.Accounts.ACCOUNT_TYPE_FLICKR, null, null);
                     accountsCursor.moveToPosition(-1);
                     while (accountsCursor.moveToNext()) {
                         Intent intent = new Intent(getContext(), RequestService.class);

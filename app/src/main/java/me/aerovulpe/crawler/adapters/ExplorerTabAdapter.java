@@ -4,15 +4,15 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 12/05/2015.
  */
 public class ExplorerTabAdapter extends SmartFragmentStatePagerAdapter {
     private static final String[] mTabNames = {"Tumblr", "Flickr", "Picasa"};
-    private static final String[] mCategories = {"accessories", AccountsUtil.CATEGORY_FLICKR,
-            AccountsUtil.CATEGORY_PICASA};
+    private static final String[] mCategories = {"accessories", Utils.Accounts.CATEGORY_FLICKR,
+            Utils.Accounts.CATEGORY_PICASA};
 
     public ExplorerTabAdapter(FragmentManager fragmentManager) {
         super(fragmentManager);

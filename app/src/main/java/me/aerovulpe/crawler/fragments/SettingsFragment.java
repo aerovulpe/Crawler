@@ -41,7 +41,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestService;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 19/05/2015.
@@ -135,8 +135,8 @@ public class SettingsFragment extends PreferenceFragment {
                     new CategoriesRequest(activity).execute();
                     ImageLoader.getInstance().denyNetworkDownloads(false);
                 } else {
-                    boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
-                    boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
+                    boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(activity);
+                    boolean isConnectedToWired = Utils.Android.isConnectedToWired(activity);
 
                     if (!isConnectedToWifi && !isConnectedToWired)
                         ImageLoader.getInstance().denyNetworkDownloads(true);
@@ -199,8 +199,8 @@ public class SettingsFragment extends PreferenceFragment {
         otherCategory.addPreference(morePref);
 
         //hide this option from non-phone devices
-        if (!AndroidUtils.hasTelephony(activity) &&
-                !AndroidUtils.isConnectedMobile(activity))
+        if (!Utils.Android.hasTelephony(activity) &&
+                !Utils.Android.isConnectedMobile(activity))
             otherCategory.removePreference(downloadOffWifiPref);
 
         return super.onCreateView(inflater, container, savedInstanceState);

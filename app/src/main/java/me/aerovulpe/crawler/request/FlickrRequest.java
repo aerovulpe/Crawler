@@ -12,7 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import me.aerovulpe.crawler.data.CrawlerContract;
-import me.aerovulpe.crawler.utils.AccountsUtil;
+import me.aerovulpe.crawler.Utils;
 
 /**
  * Created by Aaron on 26/04/2015.
@@ -50,7 +50,7 @@ public class FlickrRequest extends Request {
                     && mIsRunning; mCurrentPage++) {
                 URL url = urlFromUserId(userId, mCurrentPage);
                 parseResult(getStringFromServer(url));
-                notifyUser(AccountsUtil.ACCOUNT_TYPE_FLICKR);
+                notifyUser(Utils.Accounts.ACCOUNT_TYPE_FLICKR);
             }
             if (mIsRunning)
                 onDownloadSuccess();

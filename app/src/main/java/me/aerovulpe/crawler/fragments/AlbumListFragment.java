@@ -26,8 +26,7 @@ import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
-import me.aerovulpe.crawler.utils.AccountsUtil;
-import me.aerovulpe.crawler.utils.AndroidUtils;
+import me.aerovulpe.crawler.Utils;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -147,7 +146,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private void doAlbumsRequest() {
         BaseActivity activity = (BaseActivity) getActivity();
 
-        if (AndroidUtils.isConnectedRoaming(activity)) {
+        if (Utils.Android.isConnectedRoaming(activity)) {
             activity.showError(activity.getString(R.string.connected_to_roaming_network),
                     activity.getString(R.string.connected_to_roaming_network_message), false);
             ImageLoader.getInstance().denyNetworkDownloads(true);
@@ -155,9 +154,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         }
 
         boolean connectOn3G = SettingsFragment.downloadOffWifi(activity);
-        boolean isConnectedToWifi = AndroidUtils.isConnectedToWifi(activity);
-        boolean isConnectedToWired = AndroidUtils.isConnectedToWired(activity);
-        boolean isConnectedToMobile = AndroidUtils.isConnectedMobileNotRoaming(activity);
+        boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(activity);
+        boolean isConnectedToWired = Utils.Android.isConnectedToWired(activity);
+        boolean isConnectedToMobile = Utils.Android.isConnectedMobileNotRoaming(activity);
 
         if (!isConnectedToWifi && !isConnectedToMobile && !isConnectedToWired) {
             activity.showError(activity.getString(R.string.no_internet_connection_detected),
@@ -173,7 +172,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
 
         if ((isConnectedToWifi || isConnectedToWired) || connectOn3G) {
             ImageLoader.getInstance().denyNetworkDownloads(false);
-            if (mAccountType == AccountsUtil.ACCOUNT_TYPE_PICASA) {
+            if (mAccountType == Utils.Accounts.ACCOUNT_TYPE_PICASA) {
                 new PicasaAlbumsRequest(activity).execute(mAccountID);
             }
             mRequestData = false;
