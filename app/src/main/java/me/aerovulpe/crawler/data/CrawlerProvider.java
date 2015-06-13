@@ -16,13 +16,12 @@ public class CrawlerProvider extends ContentProvider {
 
     private static final int PHOTOS = 100;
     private static final int PHOTOS_WITH_ALBUM = 101;
-    private static final int PHOTOS_INCREMENT_TIME = 200;
-    private static final int ALBUMS = 300;
-    private static final int ALBUMS_WITH_ACCOUNT = 301;
-    private static final int ACCOUNTS = 400;
-    private static final int EXPLORERS = 500;
-    private static final int EXPLORER_ACCOUNTS_WITH_CATEGORY = 501;
-    private static final int CATEGORIES = 600;
+    private static final int ALBUMS = 200;
+    private static final int ALBUMS_WITH_ACCOUNT = 201;
+    private static final int ACCOUNTS = 300;
+    private static final int EXPLORERS = 400;
+    private static final int EXPLORER_ACCOUNTS_WITH_CATEGORY = 401;
+    private static final int CATEGORIES = 500;
     // The URI Matcher used by this content provider.
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private static final SQLiteQueryBuilder sAccountsByCategoryQueryBuilder;
@@ -85,7 +84,6 @@ public class CrawlerProvider extends ContentProvider {
         // For each type of URI you want to add, create a corresponding code.
         matcher.addURI(authority, CrawlerContract.PATH_PHOTOS, PHOTOS);
         matcher.addURI(authority, CrawlerContract.PATH_PHOTOS + "/*", PHOTOS_WITH_ALBUM);
-        matcher.addURI(authority, CrawlerContract.PATH_PHOTOS_INCREMENT_TIME, PHOTOS_INCREMENT_TIME);
 
         matcher.addURI(authority, CrawlerContract.PATH_ALBUMS, ALBUMS);
         matcher.addURI(authority, CrawlerContract.PATH_ALBUMS + "/*", ALBUMS_WITH_ACCOUNT);
@@ -442,12 +440,6 @@ public class CrawlerProvider extends ContentProvider {
             case PHOTOS:
                 rowsUpgraded = db.update(
                         CrawlerContract.PhotoEntry.TABLE_NAME, values, selection, selectionArgs);
-                break;
-            case PHOTOS_INCREMENT_TIME:
-                rowsUpgraded = db.rawQuery("update " + CrawlerContract.PhotoEntry.TABLE_NAME + " set " +
-                        CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " = " +
-                        CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " + ? where " +
-                        CrawlerContract.PhotoEntry.COLUMN_ALBUM_KEY + " = ?", selectionArgs).getCount();
                 break;
             case ALBUMS:
                 rowsUpgraded = db.update(

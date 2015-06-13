@@ -79,13 +79,21 @@ public class AndroidUtils {
         final File file = new File(strDirectory, imgName);
         deleteFile(context, strDirectory, file);
 
+        FileOutputStream outputStream = null;
         try {
-            FileOutputStream outputStream = new FileOutputStream(file);
+            outputStream = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
             outputStream.flush();
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException innerE) {
+                    innerE.printStackTrace();
+                }
+            }
             return null;
         }
 
