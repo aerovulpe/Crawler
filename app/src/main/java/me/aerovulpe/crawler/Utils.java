@@ -53,10 +53,9 @@ public final class Utils {
         private static final String FLICKR_BASE = "https://www.flickr.com/photos/";
         private static final String PICASA_BASE = "http://picasaweb.google.com/data/feed/api/user/";
         private static final String PICASA_PSEUDO_BASE = "https://picasaweb.google.com/";
-        private final String[] typeNames;
 
-        public Accounts(Resources resources) {
-            typeNames = resources.getStringArray(R.array.account_type_array);
+        private Accounts() {
+            // Restrict instantiation.
         }
 
         public static int getAccountLogoResource(int accountType) {
@@ -111,14 +110,14 @@ public final class Utils {
             }
         }
 
-        public String typeIdToName(int typeId) {
-            return typeNames[typeId];
+        public static String typeIdToName(Resources resources, int typeId) {
+            return resources.getStringArray(R.array.account_type_array)[typeId];
         }
     }
 
     public static final class Android {
         private Android() {
-            // restrict instantiation.
+            // Restrict instantiation.
         }
 
         public static boolean hasTelephony(Context context) {
@@ -271,7 +270,7 @@ public final class Utils {
      */
     public static final class Network {
         private Network() {
-            // restrict instantiation.
+            // Restrict instantiation.
         }
 
         public static boolean isImage(String uri) {
@@ -431,7 +430,7 @@ public final class Utils {
     public static final class ObjectSerializer {
 
         private ObjectSerializer() {
-            // restrict instantiation.
+            // Restrict instantiation.
         }
 
 

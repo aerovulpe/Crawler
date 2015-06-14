@@ -35,10 +35,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
-import me.aerovulpe.crawler.Utils;
 
 
 public class AddEditAccountFragment extends DialogFragment {
@@ -142,7 +142,7 @@ public class AddEditAccountFragment extends DialogFragment {
             accountTypeParent.removeView(accountType);
             TextView accountTypeText = new TextView(activity);
             accountTypeText.setTextAppearance(activity, android.R.style.TextAppearance_Medium);
-            accountTypeText.setText(new Utils.Accounts(getResources()).typeIdToName(mAccountType));
+            accountTypeText.setText(Utils.Accounts.typeIdToName(getResources(), mAccountType));
             accountTypeParent.addView(accountTypeText, accountTypeIndex);
 
             ViewGroup accountIdParent = (ViewGroup) accountId.getParent();
