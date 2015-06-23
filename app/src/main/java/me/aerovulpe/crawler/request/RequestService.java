@@ -5,8 +5,9 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.nostra13.universalimageloader.core.assist.deque.LIFOLinkedBlockingDeque;
+
 import java.util.HashSet;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,7 @@ public class RequestService extends Service {
                 MAXIMUM_POOL_SIZE,       // Max pool size
                 KEEP_ALIVE_TIME,
                 KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<Runnable>());
+                new LIFOLinkedBlockingDeque<Runnable>());
     }
 
     @Override
