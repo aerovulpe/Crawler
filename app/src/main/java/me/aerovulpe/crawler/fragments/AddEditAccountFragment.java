@@ -22,6 +22,7 @@ import android.app.DialogFragment;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -209,6 +210,7 @@ public class AddEditAccountFragment extends DialogFragment {
                                     ContentResolver contentResolver = activity
                                             .getContentResolver();
                                     ContentValues values = new ContentValues();
+                                    Cursor cursor = null;
                                     if (mFragmentType == EDIT_ACCOUNT) {
                                         values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                                                 finalName);
@@ -216,7 +218,10 @@ public class AddEditAccountFragment extends DialogFragment {
                                                         .CONTENT_URI, values, CrawlerContract
                                                         .AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
                                                 new String[]{mID});
-                                    } else {
+                                    } else if ((cursor = contentResolver.query(CrawlerContract.AccountEntry
+                                                    .CONTENT_URI, new String[]{}, CrawlerContract.AccountEntry
+                                                    .COLUMN_ACCOUNT_ID + " == ?",
+                                            new String[]{finalId}, null)) == null || cursor.getCount() < 1) {
                                         values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME,
                                                 finalName);
                                         values.put(CrawlerContract.AccountEntry.COLUMN_ACCOUNT_TIME,
@@ -230,6 +235,8 @@ public class AddEditAccountFragment extends DialogFragment {
                                                         values);
                                         new RequestInfo(activity).execute(type, finalId);
                                     }
+                                    if (cursor != null)
+                                        cursor.close();
                                 }
                             }).start();
                             dismiss();
