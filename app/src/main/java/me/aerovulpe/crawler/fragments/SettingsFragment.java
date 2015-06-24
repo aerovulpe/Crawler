@@ -32,16 +32,18 @@ import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
 import com.ToxicBakery.viewpager.transforms.ScaleInOutTransformer;
 import com.ToxicBakery.viewpager.transforms.StackTransformer;
 import com.ToxicBakery.viewpager.transforms.TabletTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestService;
-import me.aerovulpe.crawler.Utils;
+import me.aerovulpe.crawler.ui.RandomTransformer;
 
 /**
  * Created by Aaron on 19/05/2015.
@@ -223,6 +225,8 @@ public class SettingsFragment extends PreferenceFragment {
         switch (transformerType != null ? transformerType : DEFAULT_VALUE_PHOTO_TRANSITION) {
             case "DEFAULT":
                 return new DefaultTransformer();
+            case "RANDOM":
+                return new RandomTransformer();
             case "ACCORDION":
                 return new AccordionTransformer();
             case "BACKGROUND_TO_FOREGROUND":
@@ -248,7 +252,7 @@ public class SettingsFragment extends PreferenceFragment {
             case "TABLET":
                 return new TabletTransformer();
             case "ZOOM_IN":
-                return new TabletTransformer();
+                return new ZoomInTransformer();
             case "ZOOM_OUT_SLIDE":
                 return new ZoomOutSlideTransformer();
             case "ZOOM_OUT":

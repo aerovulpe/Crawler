@@ -53,6 +53,7 @@
 
     <string-array name="pref_transition_types_text">
         <item>Default</item>
+        <item>Random</item>
         <item>Accordion</item>
         <item>Background to Foreground</item>
         <item>Cube In</item>
@@ -71,6 +72,7 @@
     </string-array>
     <string-array name="pref_transition_types_values">
         <item>DEFAULT</item>
+        <item>RANDOM</item>
         <item>ACCORDION</item>
         <item>BACKGROUND_TO_FOREGROUND</item>
         <item>CUBE_IN</item>
