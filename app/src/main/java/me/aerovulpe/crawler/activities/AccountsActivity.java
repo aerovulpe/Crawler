@@ -37,6 +37,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ACCOUNTS.account_id";
     public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.ACCOUNTS.account_type";
     public static final String ARG_ACCOUNT_NAME = "me.aerovulpe.crawler.ACCOUNTS.account_name";
+    public static final String ARG_DRAWER_POS = "me.aerovulpe.crawler.DRAWER.drawer_pos";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;
@@ -86,6 +87,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                     intent.putExtra(ARG_ACCOUNT_ID, cursor.getString(COL_ACCOUNT_ID));
                     intent.putExtra(ARG_ACCOUNT_TYPE, cursor.getInt(COL_ACCOUNT_TYPE));
                     intent.putExtra(ARG_ACCOUNT_NAME, cursor.getString(COL_ACCOUNT_NAME));
+                    intent.putExtra(ARG_DRAWER_POS, position);
                     AccountsActivity.this.startActivity(intent);
                 }
             }

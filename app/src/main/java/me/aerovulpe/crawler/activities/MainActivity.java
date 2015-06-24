@@ -28,6 +28,7 @@ import android.widget.TextView;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
@@ -35,7 +36,6 @@ import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
 import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
-import me.aerovulpe.crawler.Utils;
 
 
 public class MainActivity extends BaseActivity implements PhotoManager, LoaderManager.LoaderCallbacks<Cursor> {
@@ -55,7 +55,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private FragmentManager mManager;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
-    private AccountsAdapter adapter;
+    private AccountsAdapter mAccountsAdapter;
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
@@ -81,13 +81,13 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         });
         mDrawerList.addHeaderView(header);
         mManager = getFragmentManager();
-        adapter = new AccountsAdapter(this, null, 0);
-        mDrawerList.setAdapter(adapter);
+        mAccountsAdapter = new AccountsAdapter(this, null, 0);
+        mDrawerList.setAdapter(mAccountsAdapter);
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor cursor = adapter.getCursor();
+                Cursor cursor = mAccountsAdapter.getCursor();
                 // Account for header
                 if (cursor != null && cursor.moveToPosition(position - 1)) {
                     Intent intent = new Intent(MainActivity.this,
@@ -98,6 +98,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
                             cursor.getInt(COL_ACCOUNT_TYPE));
                     intent.putExtra(AccountsActivity.ARG_ACCOUNT_NAME,
                             cursor.getString(COL_ACCOUNT_NAME));
+                    intent.putExtra(AccountsActivity.ARG_DRAWER_POS, position);
                     MainActivity.this.finish();
                     MainActivity.this.startActivity(intent);
                 }
@@ -142,7 +143,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
 
             final Intent intent = getIntent();
-            if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) && intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
+            if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) &&
+                    intent.hasExtra(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                 switch (intent.getExtras().getInt(AccountsActivity.ARG_ACCOUNT_TYPE)) {
                     case Utils.Accounts.ACCOUNT_TYPE_TUMBLR:
                         createPhotoListInstance(Utils.Accounts.ACCOUNT_TYPE_TUMBLR, intent.getExtras()
@@ -172,7 +174,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public void onCreateContextMenu(ContextMenu menu, View v,
                                     ContextMenu.ContextMenuInfo menuInfo) {
         if (v.getId() == R.id.left_drawer) {
-            Cursor cursor = adapter.getCursor();
+            Cursor cursor = mAccountsAdapter.getCursor();
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
             int position = info.position - 1;
             if (cursor != null && cursor.moveToPosition(position))
@@ -190,7 +192,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item
                 .getMenuInfo();
-        final Cursor cursor = adapter.getCursor();
+        final Cursor cursor = mAccountsAdapter.getCursor();
 
         int position = info.position - 1;
         switch (item.getItemId()) {
@@ -371,11 +373,12 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        adapter.swapCursor(data);
+        mAccountsAdapter.swapCursor(data);
+        mDrawerList.setSelection(getIntent().getIntExtra(AccountsActivity.ARG_DRAWER_POS, 0) - 1);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.swapCursor(null);
+        mAccountsAdapter.swapCursor(null);
     }
 }
