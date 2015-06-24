@@ -1311,10 +1311,10 @@ public class TouchImageView extends ImageView {
         }
     }
 
-    static class GifThread extends Thread {
-        WeakReference<TouchImageView> mTouchImageViewRef;
-        Handler mHandler;
-        String mUrl;
+    private static class GifThread extends Thread {
+        private WeakReference<TouchImageView> mTouchImageViewRef;
+        private Handler mHandler;
+        private String mUrl;
 
         public GifThread(TouchImageView touchImageView, String url) {
             mTouchImageViewRef = new WeakReference<>(touchImageView);
