@@ -1351,13 +1351,13 @@ public class TouchImageView extends ImageView {
 
     public static boolean getGifStream(Context context, String url, OutputStream outputStream)
             throws IOException {
+        initGifCache(context);
         if (!GifThread.sGifCache.contains(url)) {
             return false;
         } else {
             SimpleDiskCache.InputStreamEntry streamEntry = null;
             InputStream inputStream = null;
             try {
-                initGifCache(context);
                 streamEntry = GifThread.sGifCache
                         .getInputStream(url);
                 inputStream = streamEntry.getInputStream();

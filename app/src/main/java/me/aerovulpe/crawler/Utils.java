@@ -208,7 +208,7 @@ public final class Utils {
                             if (!TouchImageView.getGifStream(context, url, outputStream)) {
                                 InputStream inputStream = new URL(url).openStream();
                                 IOUtils.copy(inputStream, outputStream);
-                                IOUtils.closeQuietly(inputStream);
+                                inputStream.close();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -220,6 +220,7 @@ public final class Utils {
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
                                         outputStream);
                             } catch (IOException ignored) {
+                                IOUtils.closeQuietly(outputStream);
                             }
                         } finally {
                             IOUtils.closeQuietly(outputStream);
