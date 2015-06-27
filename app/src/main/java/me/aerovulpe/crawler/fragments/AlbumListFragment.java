@@ -105,7 +105,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                     }
                 });
         AdView adView = (AdView) rootView.findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
+        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
         adView.loadAd(adRequest);
         return rootView;
     }

@@ -40,10 +40,13 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 
@@ -1344,6 +1347,28 @@ public class TouchImageView extends ImageView {
     public static void setMaxGifCacheSize(Context context, long maxSize) {
         initGifCache(context);
         GifThread.sGifCache.setMaxSize(maxSize);
+    }
+
+    public static boolean getGifStream(Context context, String url, OutputStream outputStream)
+            throws IOException {
+        if (!GifThread.sGifCache.contains(url)) {
+            return false;
+        } else {
+            SimpleDiskCache.InputStreamEntry streamEntry = null;
+            InputStream inputStream = null;
+            try {
+                initGifCache(context);
+                streamEntry = GifThread.sGifCache
+                        .getInputStream(url);
+                inputStream = streamEntry.getInputStream();
+              return IOUtils.copy(inputStream, outputStream) > 0;
+            } finally {
+                if (inputStream != null)
+                    inputStream.close();
+                if (streamEntry != null)
+                    streamEntry.close();
+            }
+        }
     }
 
     private static class GifThread extends Thread {

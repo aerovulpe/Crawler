@@ -80,7 +80,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         getLoaderManager().initLoader(CATEGORIES_LOADER, null, this);
 
         AdView adView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
+        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
         adView.loadAd(adRequest);
     }
 

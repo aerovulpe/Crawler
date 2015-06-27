@@ -18,6 +18,8 @@ import android.util.Log;
 
 import com.google.android.gms.ads.AdRequest;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +36,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 
+import me.aerovulpe.crawler.ui.TouchImageView;
+
 /**
  * Created by Aaron on 13/06/2015.
  */
@@ -42,8 +46,9 @@ public final class Utils {
         // restrict instantiation.
     }
 
-    public static AdRequest.Builder addTestDevices(AdRequest.Builder builder){
+    public static AdRequest.Builder addTestDevices(AdRequest.Builder builder) {
         builder.addTestDevice("8BD5AC14FDADABDC5383371E6A88B1B7");
+        builder.addTestDevice("61105D9E9F07332601057B30599B0164");
         return builder;
     }
 
@@ -197,15 +202,14 @@ public final class Utils {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        InputStream inputStream = null;
                         FileOutputStream outputStream = null;
                         try {
-                            inputStream = new URL(url).openStream();
                             outputStream = new FileOutputStream(file);
-                            byte[] bytes = new byte[16384];
-                            int length;
-                            while ((length = inputStream.read(bytes)) != -1)
-                                outputStream.write(bytes, 0, length);
+                            if (!TouchImageView.getGifStream(context, url, outputStream)) {
+                                InputStream inputStream = new URL(url).openStream();
+                                IOUtils.copy(inputStream, outputStream);
+                                inputStream.close();
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                             try {
@@ -214,22 +218,11 @@ public final class Utils {
                                 outputStream = new FileOutputStream(file);
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
                                         outputStream);
-                            } catch (IOException innerE) {
-                                innerE.printStackTrace();
+                            } catch (IOException ignored) {
                             }
                         } finally {
-                            closeInputStream(inputStream);
                             closeOutputStream(outputStream);
                         }
-                    }
-
-                    private void closeInputStream(InputStream inputStream) {
-                        if (inputStream != null)
-                            try {
-                                inputStream.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                     }
 
                     private void closeOutputStream(FileOutputStream outputStream) {
