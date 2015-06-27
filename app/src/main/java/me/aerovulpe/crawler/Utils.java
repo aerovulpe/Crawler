@@ -220,7 +220,6 @@ public final class Utils {
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
                                         outputStream);
                             } catch (IOException ignored) {
-                                IOUtils.closeQuietly(outputStream);
                             }
                         } finally {
                             IOUtils.closeQuietly(outputStream);

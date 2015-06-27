@@ -1364,6 +1364,7 @@ public class TouchImageView extends ImageView {
                 return IOUtils.copy(inputStream, outputStream) > 0;
             } finally {
                 IOUtils.closeQuietly(inputStream);
+                IOUtils.closeQuietly(outputStream);
                 if (streamEntry != null)
                     streamEntry.close();
             }
