@@ -1363,8 +1363,6 @@ public class TouchImageView extends ImageView {
         public void run() {
             try {
                 GifDecoder gifDecoder = new GifDecoder();
-                SimpleDiskCache.InputStreamEntry streamEntry = null;
-                InputStream inputStream;
                 synchronized (GifThread.class) {
                     if (!sGifCache.contains(mUrl)) {
                         TouchImageView touchImageView;
@@ -1372,23 +1370,21 @@ public class TouchImageView extends ImageView {
                             return;
                         else {
                             Context context = touchImageView.getContext();
-                            boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(context);
-                            boolean isConnectedToWired = Utils.Android.isConnectedToWired(context);
-                            if (!isConnectedToWifi && !isConnectedToWired &&
+                            if (!Utils.Android.isConnectedToWifi(context) &&
+                                    !Utils.Android.isConnectedToWired(context) &&
                                     !SettingsFragment.downloadOffWifi(context))
                                 return;
                         }
-
-                        inputStream = new URL(mUrl).openStream();
+                        InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
                         sGifCache.put(mUrl, inputStream);
+                        inputStream.close();
                     } else {
-                        streamEntry = sGifCache.getInputStream(mUrl);
-                        inputStream = streamEntry.getInputStream();
+                        SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
+                                .getInputStream(mUrl);
+                        gifDecoder.read(streamEntry.getInputStream(), 0);
+                        streamEntry.close();
                     }
                 }
-                gifDecoder.read(inputStream, 0);
-                if (streamEntry != null)
-                    streamEntry.close();
                 final int frameCount = gifDecoder.getFrameCount();
                 while (!Thread.currentThread().isInterrupted()
                         && mTouchImageViewRef.get() != null) {

@@ -25,6 +25,7 @@ package me.aerovulpe.crawler.ui;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -277,6 +278,27 @@ public class GifDecoder {
         }
 
         return status;
+    }
+
+    public InputStream read(InputStream is) throws IOException {
+        ByteArrayOutputStream buffer = null;
+        if (is != null) {
+            try {
+                int capacity = 4096;
+                buffer = new ByteArrayOutputStream(capacity);
+                int nRead;
+                byte[] data = new byte[16384];
+                while ((nRead = is.read(data, 0, data.length)) != -1)
+                    buffer.write(data, 0, nRead);
+                buffer.flush();
+                read(buffer.toByteArray());
+            } finally {
+                is.close();
+            }
+        } else
+            status = STATUS_OPEN_ERROR;
+
+        return buffer != null ? new ByteArrayInputStream(buffer.toByteArray()) : null;
     }
 
     /**
