@@ -204,8 +204,8 @@ public final class Utils {
                     public void run() {
                         FileOutputStream outputStream = null;
                         try {
-                            outputStream = new FileOutputStream(file);
-                            if (!TouchImageView.getGifStream(context, url, outputStream)) {
+                            if (!TouchImageView.saveGif(context, url, file)) {
+                                outputStream = new FileOutputStream(file);
                                 InputStream inputStream = new URL(url).openStream();
                                 IOUtils.copy(inputStream, outputStream);
                                 inputStream.close();

@@ -43,6 +43,7 @@ import android.widget.Scroller;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
@@ -1349,7 +1350,7 @@ public class TouchImageView extends ImageView {
         GifThread.sGifCache.setMaxSize(maxSize);
     }
 
-    public static boolean getGifStream(Context context, String url, OutputStream outputStream)
+    public static boolean saveGif(Context context, String url, File file)
             throws IOException {
         initGifCache(context);
         if (!GifThread.sGifCache.contains(url)) {
@@ -1357,10 +1358,12 @@ public class TouchImageView extends ImageView {
         } else {
             SimpleDiskCache.InputStreamEntry streamEntry = null;
             InputStream inputStream = null;
+            OutputStream outputStream = null;
             try {
                 streamEntry = GifThread.sGifCache
                         .getInputStream(url);
                 inputStream = streamEntry.getInputStream();
+               outputStream  = new FileOutputStream(file);
                 return IOUtils.copy(inputStream, outputStream) > 0;
             } finally {
                 IOUtils.closeQuietly(inputStream);
