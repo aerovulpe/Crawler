@@ -1368,13 +1368,11 @@ public class TouchImageView extends ImageView {
                         TouchImageView touchImageView;
                         if ((touchImageView = mTouchImageViewRef.get()) == null)
                             return;
-                        else {
-                            Context context = touchImageView.getContext();
-                            if (!Utils.Android.isConnectedToWifi(context) &&
-                                    !Utils.Android.isConnectedToWired(context) &&
-                                    !SettingsFragment.downloadOffWifi(context))
-                                return;
-                        }
+                        else if (!Utils.Android.isConnectedToWifi(touchImageView.context) &&
+                                !Utils.Android.isConnectedToWired(touchImageView.context) &&
+                                !SettingsFragment.downloadOffWifi(touchImageView.context))
+                            return;
+
                         InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
                         sGifCache.put(mUrl, inputStream);
                         inputStream.close();
