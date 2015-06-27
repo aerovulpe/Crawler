@@ -1361,10 +1361,9 @@ public class TouchImageView extends ImageView {
                 streamEntry = GifThread.sGifCache
                         .getInputStream(url);
                 inputStream = streamEntry.getInputStream();
-              return IOUtils.copy(inputStream, outputStream) > 0;
+                return IOUtils.copy(inputStream, outputStream) > 0;
             } finally {
-                if (inputStream != null)
-                    inputStream.close();
+                IOUtils.closeQuietly(inputStream);
                 if (streamEntry != null)
                     streamEntry.close();
             }

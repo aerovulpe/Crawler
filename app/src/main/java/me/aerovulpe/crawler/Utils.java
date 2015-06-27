@@ -208,31 +208,22 @@ public final class Utils {
                             if (!TouchImageView.getGifStream(context, url, outputStream)) {
                                 InputStream inputStream = new URL(url).openStream();
                                 IOUtils.copy(inputStream, outputStream);
-                                inputStream.close();
+                                IOUtils.closeQuietly(inputStream);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
                             try {
-                                closeOutputStream(outputStream);
-                                deleteFile(context, strDirectory, file);
-                                outputStream = new FileOutputStream(file);
+                                if (outputStream != null)
+                                    outputStream.flush();
+                                else
+                                    outputStream = new FileOutputStream(file);
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
                                         outputStream);
                             } catch (IOException ignored) {
                             }
                         } finally {
-                            closeOutputStream(outputStream);
+                            IOUtils.closeQuietly(outputStream);
                         }
-                    }
-
-                    private void closeOutputStream(FileOutputStream outputStream) {
-                        if (outputStream != null)
-                            try {
-                                outputStream.flush();
-                                outputStream.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                     }
                 }).start();
             }
