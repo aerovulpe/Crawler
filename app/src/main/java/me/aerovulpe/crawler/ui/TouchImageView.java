@@ -1366,9 +1366,8 @@ public class TouchImageView extends ImageView {
                 synchronized (GifThread.class) {
                     if (!sGifCache.contains(mUrl)) {
                         TouchImageView touchImageView;
-                        if ((touchImageView = mTouchImageViewRef.get()) == null)
-                            return;
-                        else if (!Utils.Android.isConnectedToWifi(touchImageView.context) &&
+                        if ((touchImageView = mTouchImageViewRef.get()) == null ||
+                                !Utils.Android.isConnectedToWifi(touchImageView.context) &&
                                 !Utils.Android.isConnectedToWired(touchImageView.context) &&
                                 !SettingsFragment.downloadOffWifi(touchImageView.context))
                             return;
