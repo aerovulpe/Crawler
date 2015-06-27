@@ -1389,13 +1389,9 @@ public class TouchImageView extends ImageView {
                 while (!Thread.currentThread().isInterrupted()
                         && mTouchImageViewRef.get() != null) {
                     for (int i = 0; i < frameCount; i++) {
-                        if (Thread.currentThread().isInterrupted()
-                                || mTouchImageViewRef.get() == null)
-                            return;
-
                         final Bitmap nextBitmap = gifDecoder.getNextFrame();
                         int delay = gifDecoder.getDelay(i);
-                        if (delay == 0) delay = 100;
+                        if (delay == 0) delay = 95;
                         mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
