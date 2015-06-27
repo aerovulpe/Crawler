@@ -40,13 +40,16 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 
-import me.aerovulpe.crawler.fragments.SettingsFragment;
 import me.aerovulpe.crawler.Utils;
+import me.aerovulpe.crawler.data.SimpleDiskCache;
+import me.aerovulpe.crawler.fragments.SettingsFragment;
 
 public class TouchImageView extends ImageView {
 
@@ -1311,7 +1314,40 @@ public class TouchImageView extends ImageView {
         }
     }
 
+    private static void initGifCache(Context context) {
+        synchronized (GifThread.class) {
+            if (GifThread.sGifCache != null)
+                return;
+
+            try {
+                final int appVersion = 1;
+                final int maxSize = SettingsFragment
+                        .getCurrentCacheValueInBytes(context) / 4;
+                GifThread.sGifCache = SimpleDiskCache.open(new File(context
+                                .getCacheDir().getAbsolutePath() + "/gifCache"),
+                        appVersion, maxSize);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void clearGifCache(Context context) {
+        try {
+            initGifCache(context);
+            GifThread.sGifCache.clear();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setMaxGifCacheSize(Context context, long maxSize) {
+        initGifCache(context);
+        GifThread.sGifCache.setMaxSize(maxSize);
+    }
+
     private static class GifThread extends Thread {
+        private static volatile SimpleDiskCache sGifCache;
         private WeakReference<TouchImageView> mTouchImageViewRef;
         private Handler mHandler;
         private String mUrl;
@@ -1320,24 +1356,39 @@ public class TouchImageView extends ImageView {
             mTouchImageViewRef = new WeakReference<>(touchImageView);
             mHandler = new Handler();
             mUrl = url;
+            initGifCache(touchImageView.context);
         }
 
         @Override
         public void run() {
-            if (mTouchImageViewRef.get() == null)
-                return;
-            else {
-                Context context = mTouchImageViewRef.get().getContext();
-                boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(context);
-                boolean isConnectedToWired = Utils.Android.isConnectedToWired(context);
-                if (!isConnectedToWifi && !isConnectedToWired &&
-                        !SettingsFragment.downloadOffWifi(context))
-                    return;
-            }
-
             try {
                 GifDecoder gifDecoder = new GifDecoder();
-                gifDecoder.read(new URL(mUrl).openStream(), 0);
+                SimpleDiskCache.InputStreamEntry streamEntry = null;
+                InputStream inputStream;
+                synchronized (GifThread.class) {
+                    if (!sGifCache.contains(mUrl)) {
+                        TouchImageView touchImageView;
+                        if ((touchImageView = mTouchImageViewRef.get()) == null)
+                            return;
+                        else {
+                            Context context = touchImageView.getContext();
+                            boolean isConnectedToWifi = Utils.Android.isConnectedToWifi(context);
+                            boolean isConnectedToWired = Utils.Android.isConnectedToWired(context);
+                            if (!isConnectedToWifi && !isConnectedToWired &&
+                                    !SettingsFragment.downloadOffWifi(context))
+                                return;
+                        }
+
+                        inputStream = new URL(mUrl).openStream();
+                        sGifCache.put(mUrl, inputStream);
+                    } else {
+                        streamEntry = sGifCache.getInputStream(mUrl);
+                        inputStream = streamEntry.getInputStream();
+                    }
+                }
+                gifDecoder.read(inputStream, 0);
+                if (streamEntry != null)
+                    streamEntry.close();
                 final int frameCount = gifDecoder.getFrameCount();
                 while (!Thread.currentThread().isInterrupted()
                         && mTouchImageViewRef.get() != null) {

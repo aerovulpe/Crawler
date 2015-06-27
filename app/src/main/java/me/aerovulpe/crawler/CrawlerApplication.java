@@ -47,8 +47,9 @@ public class CrawlerApplication extends Application {
     public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
 
     public static void initImageLoader(Context context) {
-        ImageLoaderConfiguration.Builder config = getConfig(context, SettingsFragment
-                .getCurrentCacheValueInBytes(context));
+        int cacheSize = SettingsFragment
+                .getCurrentCacheValueInBytes(context);
+        ImageLoaderConfiguration.Builder config = getConfig(context, cacheSize - (cacheSize/4));
         // Initialize ImageLoader with configuration.
         ImageLoader.getInstance().init(config.build());
         if (Utils.Android.isConnectedRoaming(context)) {

@@ -16,6 +16,8 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.google.android.gms.ads.AdRequest;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,6 +40,11 @@ import java.net.UnknownHostException;
 public final class Utils {
     private Utils() {
         // restrict instantiation.
+    }
+
+    public static AdRequest.Builder addTestDevices(AdRequest.Builder builder){
+        builder.addTestDevice("8BD5AC14FDADABDC5383371E6A88B1B7");
+        return builder;
     }
 
     /**

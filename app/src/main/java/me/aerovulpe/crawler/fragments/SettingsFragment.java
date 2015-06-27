@@ -37,6 +37,8 @@ import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutTranformer;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.io.File;
+
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.Utils;
@@ -44,6 +46,7 @@ import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.ui.RandomTransformer;
+import me.aerovulpe.crawler.ui.TouchImageView;
 
 /**
  * Created by Aaron on 19/05/2015.
@@ -156,14 +159,19 @@ public class SettingsFragment extends PreferenceFragment {
                         Toast.makeText(activity, getString(R.string.cache_size_guide),
                                 Toast.LENGTH_SHORT).show();
                         return false;
-                    } else if (currentCacheValue < mOldCacheValue) {
-                        CrawlerApplication.clearImageCacheInit(activity,
-                                currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
-                        return true;
-                    } else if (currentCacheValue > mOldCacheValue) {
-                        CrawlerApplication.initImageLoader(activity,
-                                currentCacheValue * MEGABYTE_TO_BYTE_FACTOR);
-                        return true;
+                    } else {
+                        int cacheSize = currentCacheValue * MEGABYTE_TO_BYTE_FACTOR;
+                        int gifCacheSize = cacheSize / 4;
+                        TouchImageView.setMaxGifCacheSize(activity, gifCacheSize);
+                        if (currentCacheValue < mOldCacheValue) {
+                            CrawlerApplication.clearImageCacheInit(activity,
+                                    cacheSize - gifCacheSize);
+                            return true;
+                        } else if (currentCacheValue > mOldCacheValue) {
+                            CrawlerApplication.initImageLoader(activity,
+                                    cacheSize - gifCacheSize);
+                            return true;
+                        }
                     }
                     return false;
                 } catch (NumberFormatException e) {
@@ -186,6 +194,7 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 ImageLoader.getInstance().clearDiskCache();
+                TouchImageView.clearGifCache(activity);
                 return true;
             }
         });
@@ -206,6 +215,29 @@ public class SettingsFragment extends PreferenceFragment {
             otherCategory.removePreference(downloadOffWifiPref);
 
         return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    private static void deleteCache(Context context) {
+        try {
+            File dir = context.getCacheDir();
+            if (dir != null && dir.isDirectory()) {
+                deleteDir(dir);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (String aChildren : children) {
+                boolean success = deleteDir(new File(dir, aChildren));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        return dir != null && dir.delete();
     }
 
     public static int getSlideshowIntervalMS(Context context) {
