@@ -47,7 +47,7 @@ public final class Utils {
     }
 
     public static AdRequest.Builder addTestDevices(AdRequest.Builder builder) {
-        builder.addTestDevice("8BD5AC14FDADABDC5383371E6A88B1B7");
+        builder.addTestDevice("4B9997A60569F4A5865A1D40BE9B5B97");
         builder.addTestDevice("61105D9E9F07332601057B30599B0164");
         return builder;
     }
