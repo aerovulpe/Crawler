@@ -222,7 +222,11 @@ public final class Utils {
                             } catch (IOException ignored) {
                             }
                         } finally {
-                            IOUtils.closeQuietly(outputStream);
+                            if (outputStream != null)
+                                try {
+                                    outputStream.close();
+                                } catch (IOException ignored) {
+                                }
                         }
                     }
                 }).start();
