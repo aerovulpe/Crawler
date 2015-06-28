@@ -2,6 +2,7 @@ package me.aerovulpe.crawler.data;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.annotation.NonNull;
 
 import com.jakewharton.disklrucache.DiskLruCache;
 
@@ -34,9 +35,9 @@ public class SimpleDiskCache {
 
     private static final int VALUE_IDX = 0;
     private static final int METADATA_IDX = 1;
-    private static final List<File> usedDirs = new ArrayList<File>();
+    private static final List<File> usedDirs = new ArrayList<>();
 
-    private com.jakewharton.disklrucache.DiskLruCache diskLruCache;
+    private DiskLruCache diskLruCache;
     private int mAppVersion;
 
     private SimpleDiskCache(File dir, int appVersion, long maxSize) throws IOException {
@@ -49,9 +50,7 @@ public class SimpleDiskCache {
         if (usedDirs.contains(dir)) {
             throw new IllegalStateException("Cache dir " + dir.getAbsolutePath() + " was used before.");
         }
-
         usedDirs.add(dir);
-
         return new SimpleDiskCache(dir, appVersion, maxSize);
     }
 
@@ -96,7 +95,6 @@ public class SimpleDiskCache {
     public StringEntry getString(String key) throws IOException {
         DiskLruCache.Snapshot snapshot = diskLruCache.get(toInternalKey(key));
         if (snapshot == null) return null;
-
         try {
             return new StringEntry(snapshot.getString(VALUE_IDX), readMetadata(snapshot));
         } finally {
@@ -107,7 +105,6 @@ public class SimpleDiskCache {
     public boolean contains(String key) throws IOException {
         DiskLruCache.Snapshot snapshot = diskLruCache.get(toInternalKey(key));
         if (snapshot == null) return false;
-
         snapshot.close();
         return true;
     }
@@ -157,7 +154,6 @@ public class SimpleDiskCache {
         } finally {
             if (cos != null) cos.close();
         }
-
     }
 
     private void writeMetadata(Map<String, ? extends Serializable> metadata,
@@ -199,9 +195,7 @@ public class SimpleDiskCache {
             byte[] digest = m.digest();
             BigInteger bigInt = new BigInteger(1, digest);
             return bigInt.toString(16);
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError();
-        } catch (UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new AssertionError();
         }
     }
@@ -255,7 +249,7 @@ public class SimpleDiskCache {
         }
 
         @Override
-        public void write(byte[] buffer) throws IOException {
+        public void write(@NonNull byte[] buffer) throws IOException {
             try {
                 super.write(buffer);
             } catch (IOException e) {
@@ -265,7 +259,7 @@ public class SimpleDiskCache {
         }
 
         @Override
-        public void write(byte[] buffer, int offset, int length) throws IOException {
+        public void write(@NonNull byte[] buffer, int offset, int length) throws IOException {
             try {
                 super.write(buffer, offset, length);
             } catch (IOException e) {
@@ -296,7 +290,6 @@ public class SimpleDiskCache {
             snapshot.close();
 
         }
-
     }
 
     public static class BitmapEntry {
