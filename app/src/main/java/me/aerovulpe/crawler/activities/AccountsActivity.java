@@ -25,6 +25,8 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
+import java.lang.ref.WeakReference;
+
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.Utils;
@@ -32,6 +34,7 @@ import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.request.CategoriesRequest;
+import me.aerovulpe.crawler.request.RequestInfo;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -65,6 +68,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     };
     private AccountsAdapter adapter;
     private InterstitialAd mInterstitialAd;
+    private WeakReference<InfoDialogFragment> mInfoDialogRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,27 +183,33 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
                 .getMenuInfo();
         final Cursor cursor = adapter.getCursor();
 
+        int accountType = cursor.getInt(COL_ACCOUNT_TYPE);
+        String accountId = cursor.getString(COL_ACCOUNT_ID);
         switch (item.getItemId()) {
             case CONTEXT_MENU_INFO:
-                if (cursor != null && cursor.moveToPosition(info.position)) {
-                    InfoDialogFragment.newInstance(cursor.getInt(COL_ACCOUNT_TYPE),
-                            cursor.getString(COL_ACCOUNT_ID),
+                if (cursor.moveToPosition(info.position)) {
+                    new RequestInfo(this).execute(accountType, accountId);
+                    InfoDialogFragment infoDialogFragment = InfoDialogFragment.newInstance(accountType,
+                            accountId,
                             cursor.getString(COL_ACCOUNT_NAME),
                             cursor.getString(COL_ACCOUNT_DESCRIPTION),
                             cursor.getString(COL_ACCOUNT_PREVIEW_URL),
-                            cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS))
-                            .show(getFragmentManager(), "infoDialog");
+                            cursor.getInt(COL_ACCOUNT_NUM_OF_POSTS));
+                    infoDialogFragment.setPos(cursor.getPosition());
+                    mInfoDialogRef = new WeakReference<>(
+                            infoDialogFragment);
+                    infoDialogFragment.show(getFragmentManager(), "infoDialog");
                 }
                 return true;
             case CONTEXT_MENU_EDIT:
-                if (cursor != null && cursor.moveToPosition(info.position))
-                    showEditAccountDialog(cursor.getInt(COL_ACCOUNT_TYPE),
-                            cursor.getString(COL_ACCOUNT_ID),
+                if (cursor.moveToPosition(info.position))
+                    showEditAccountDialog(accountType,
+                            accountId,
                             cursor.getString(COL_ACCOUNT_NAME));
                 return true;
             case CONTEXT_MENU_DELETE:
-                if (cursor != null && cursor.moveToPosition(info.position))
-                    showRemoveAccountDialog(cursor.getString(COL_ACCOUNT_ID));
+                if (cursor.moveToPosition(info.position))
+                    showRemoveAccountDialog(accountId);
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -220,6 +230,15 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
+        InfoDialogFragment infoDialog = mInfoDialogRef != null ? mInfoDialogRef.get() : null;
+        if (infoDialog != null && data.moveToPosition(infoDialog.getPos()))
+            infoDialog.setComponents(infoDialog.getDialog(), InfoDialogFragment
+                    .makeInfoBundle(data.getInt(COL_ACCOUNT_TYPE),
+                            data.getString(COL_ACCOUNT_ID),
+                            data.getString(COL_ACCOUNT_NAME),
+                            data.getString(COL_ACCOUNT_DESCRIPTION),
+                            data.getString(COL_ACCOUNT_PREVIEW_URL),
+                            data.getInt(COL_ACCOUNT_NUM_OF_POSTS)));
     }
 
     @Override

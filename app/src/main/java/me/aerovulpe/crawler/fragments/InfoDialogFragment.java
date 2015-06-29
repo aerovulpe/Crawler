@@ -35,10 +35,21 @@ public class InfoDialogFragment extends DialogFragment {
     private String mAccountDesc;
     private String mAccountPreviewUrl;
     private int mAccountNumOfPosts;
+    private int mPos;
 
     public static InfoDialogFragment newInstance(int accountType, String accountId, String accountName,
                                                  String accountDesc, String accountPreviewUrl,
                                                  int accountNumOfPosts) {
+        Bundle args = makeInfoBundle(accountType, accountId, accountName, accountDesc,
+                accountPreviewUrl, accountNumOfPosts);
+        InfoDialogFragment fragment = new InfoDialogFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static Bundle makeInfoBundle(int accountType, String accountId, String accountName,
+                                        String accountDesc, String accountPreviewUrl,
+                                        int accountNumOfPosts) {
         Bundle args = new Bundle();
         args.putInt(ARG_ACCOUNT_TYPE, accountType);
         args.putString(ARG_ACCOUNT_ID, accountId);
@@ -46,9 +57,7 @@ public class InfoDialogFragment extends DialogFragment {
         args.putString(ARG_ACCOUNT_DESC, accountDesc);
         args.putString(ARG_ACCOUNT_PREVIEW_URL, accountPreviewUrl);
         args.putInt(ARG_ACCOUNT_NUM_OF_POSTS, accountNumOfPosts);
-        InfoDialogFragment fragment = new InfoDialogFragment();
-        fragment.setArguments(args);
-        return fragment;
+        return args;
     }
 
     @Override
@@ -75,6 +84,29 @@ public class InfoDialogFragment extends DialogFragment {
         dialog.getWindow().setLayout(dialogWidth, dialogHeight);
 
         // set the custom dialog components - description, image and button
+        setComponents(dialog, null);
+
+        Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
+        // if button is clicked, close the custom dialog
+        dialogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
+        return dialog;
+    }
+
+    public void setComponents(Dialog dialog, Bundle args) {
+        if (args != null){
+            mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
+            mAccountId = args.getString(ARG_ACCOUNT_ID);
+            mAccountName = args.getString(ARG_ACCOUNT_NAME);
+            mAccountDesc = args.getString(ARG_ACCOUNT_DESC);
+            mAccountPreviewUrl = args.getString(ARG_ACCOUNT_PREVIEW_URL);
+            mAccountNumOfPosts = args.getInt(ARG_ACCOUNT_NUM_OF_POSTS);
+        }
+
         TextView title = (TextView) dialog.findViewById(R.id.textview_title);
         title.setText(mAccountName);
         TextView id = (TextView) dialog.findViewById(R.id.textview_id);
@@ -118,15 +150,13 @@ public class InfoDialogFragment extends DialogFragment {
         } else {
             avatarImage.setImageResource(Utils.Accounts.getAccountLogoResource(mAccountType));
         }
+    }
 
-        Button dialogButton = (Button) dialog.findViewById(R.id.button_ok);
-        // if button is clicked, close the custom dialog
-        dialogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
-        return dialog;
+    public int getPos() {
+        return mPos;
+    }
+
+    public void setPos(int pos) {
+        mPos = pos;
     }
 }
