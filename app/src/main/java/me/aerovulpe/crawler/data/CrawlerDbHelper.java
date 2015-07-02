@@ -130,7 +130,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
                 ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
                 ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
-                " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000)); END";
+                " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 5000)); END";
 
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);
@@ -149,13 +149,13 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                     " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
                             ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
                             ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
-                            " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000));");
+                            " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 5000));");
             sqLiteDatabase.execSQL("CREATE TRIGGER explorer_trigger AFTER INSERT ON " +
                     ExplorerEntry.TABLE_NAME + " BEGIN DELETE FROM " + ExplorerEntry.TABLE_NAME +
                     " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
                     ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
                     ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
-                    " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000)); END");
+                    " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 5000)); END");
         } else {
             sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AccountEntry.TABLE_NAME);
             sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
