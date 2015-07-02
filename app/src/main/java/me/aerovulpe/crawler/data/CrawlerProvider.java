@@ -14,12 +14,12 @@ import android.support.annotation.NonNull;
  */
 public class CrawlerProvider extends ContentProvider {
 
-    private static final int PHOTOS = 100;
+    private static final int PHOTO = 100;
     private static final int PHOTOS_WITH_ALBUM = 101;
-    private static final int ALBUMS = 200;
+    private static final int ALBUM = 200;
     private static final int ALBUMS_WITH_ACCOUNT = 201;
     private static final int ACCOUNTS = 300;
-    private static final int EXPLORERS = 400;
+    private static final int EXPLORER = 400;
     private static final int EXPLORER_ACCOUNTS_WITH_CATEGORY = 401;
     private static final int CATEGORIES = 500;
     // The URI Matcher used by this content provider.
@@ -82,15 +82,15 @@ public class CrawlerProvider extends ContentProvider {
         final String authority = CrawlerContract.CONTENT_AUTHORITY;
 
         // For each type of URI you want to add, create a corresponding code.
-        matcher.addURI(authority, CrawlerContract.PATH_PHOTOS, PHOTOS);
+        matcher.addURI(authority, CrawlerContract.PATH_PHOTOS, PHOTO);
         matcher.addURI(authority, CrawlerContract.PATH_PHOTOS + "/*", PHOTOS_WITH_ALBUM);
 
-        matcher.addURI(authority, CrawlerContract.PATH_ALBUMS, ALBUMS);
+        matcher.addURI(authority, CrawlerContract.PATH_ALBUMS, ALBUM);
         matcher.addURI(authority, CrawlerContract.PATH_ALBUMS + "/*", ALBUMS_WITH_ACCOUNT);
 
         matcher.addURI(authority, CrawlerContract.PATH_ACCOUNTS, ACCOUNTS);
 
-        matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS, EXPLORERS);
+        matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS, EXPLORER);
         matcher.addURI(authority, CrawlerContract.PATH_EXPLORERS + "/*", EXPLORER_ACCOUNTS_WITH_CATEGORY);
 
         matcher.addURI(authority, CrawlerContract.PATH_CATEGORIES, CATEGORIES);
@@ -109,7 +109,7 @@ public class CrawlerProvider extends ContentProvider {
         // and query the database accordingly.
         Cursor retCursor;
         switch (sUriMatcher.match(uri)) {
-            case PHOTOS: {
+            case PHOTO: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         CrawlerContract.PhotoEntry.TABLE_NAME,
                         projection,
@@ -124,7 +124,7 @@ public class CrawlerProvider extends ContentProvider {
                 retCursor = getPhotosByAlbumID(uri, projection, sortOrder);
                 break;
             }
-            case ALBUMS: {
+            case ALBUM: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         CrawlerContract.AlbumEntry.TABLE_NAME,
                         projection,
@@ -150,7 +150,7 @@ public class CrawlerProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case EXPLORERS:
+            case EXPLORER:
                 retCursor = mOpenHelper.getReadableDatabase().query(
                         CrawlerContract.ExplorerEntry.TABLE_NAME,
                         projection,
@@ -234,17 +234,17 @@ public class CrawlerProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
 
         switch (match) {
-            case PHOTOS:
+            case PHOTO:
                 return CrawlerContract.PhotoEntry.CONTENT_ITEM_TYPE;
             case PHOTOS_WITH_ALBUM:
                 return CrawlerContract.PhotoEntry.CONTENT_TYPE;
-            case ALBUMS:
+            case ALBUM:
                 return CrawlerContract.AlbumEntry.CONTENT_ITEM_TYPE;
             case ALBUMS_WITH_ACCOUNT:
                 return CrawlerContract.AlbumEntry.CONTENT_TYPE;
             case ACCOUNTS:
                 return CrawlerContract.AccountEntry.CONTENT_TYPE;
-            case EXPLORERS:
+            case EXPLORER:
                 return CrawlerContract.ExplorerEntry.CONTENT_ITEM_TYPE;
             case EXPLORER_ACCOUNTS_WITH_CATEGORY:
                 return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
@@ -263,7 +263,7 @@ public class CrawlerProvider extends ContentProvider {
         Uri returnUri;
 
         switch (match) {
-            case PHOTOS: {
+            case PHOTO: {
                 long _id = db.insert(CrawlerContract.PhotoEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = CrawlerContract.PhotoEntry.buildPhotosUri(_id);
@@ -271,7 +271,7 @@ public class CrawlerProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case ALBUMS: {
+            case ALBUM: {
                 long _id = db.insert(CrawlerContract.AlbumEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = CrawlerContract.AlbumEntry.buildAlbumsUri(_id);
@@ -287,7 +287,7 @@ public class CrawlerProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case EXPLORERS: {
+            case EXPLORER: {
                 long _id = db.insert(CrawlerContract.ExplorerEntry.TABLE_NAME, null, values);
                 if (_id > 0)
                     returnUri = CrawlerContract.ExplorerEntry.buildExplorerUri(_id);
@@ -315,7 +315,7 @@ public class CrawlerProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         final int match = sUriMatcher.match(uri);
         switch (match) {
-            case PHOTOS:
+            case PHOTO:
             case PHOTOS_WITH_ALBUM: {
                 db.beginTransaction();
                 int returnCount = 0;
@@ -334,7 +334,7 @@ public class CrawlerProvider extends ContentProvider {
                     getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case ALBUMS:
+            case ALBUM:
             case ALBUMS_WITH_ACCOUNT: {
                 db.beginTransaction();
                 int returnCount = 0;
@@ -353,7 +353,7 @@ public class CrawlerProvider extends ContentProvider {
                     getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            case EXPLORERS:
+            case EXPLORER:
             case EXPLORER_ACCOUNTS_WITH_CATEGORY: {
                 db.beginTransaction();
                 int returnCount = 0;
@@ -401,11 +401,11 @@ public class CrawlerProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         int rowsDeleted;
         switch (match) {
-            case PHOTOS:
+            case PHOTO:
                 rowsDeleted = db.delete(
                         CrawlerContract.PhotoEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case ALBUMS:
+            case ALBUM:
                 rowsDeleted = db.delete(
                         CrawlerContract.AlbumEntry.TABLE_NAME, selection, selectionArgs);
                 break;
@@ -413,7 +413,7 @@ public class CrawlerProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         CrawlerContract.AccountEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case EXPLORERS:
+            case EXPLORER:
                 rowsDeleted = db.delete(
                         CrawlerContract.ExplorerEntry.TABLE_NAME, selection, selectionArgs);
                 break;
@@ -437,11 +437,11 @@ public class CrawlerProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         int rowsUpgraded;
         switch (match) {
-            case PHOTOS:
+            case PHOTO:
                 rowsUpgraded = db.update(
                         CrawlerContract.PhotoEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
-            case ALBUMS:
+            case ALBUM:
                 rowsUpgraded = db.update(
                         CrawlerContract.AlbumEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
@@ -449,7 +449,7 @@ public class CrawlerProvider extends ContentProvider {
                 rowsUpgraded = db.update(
                         CrawlerContract.AccountEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
-            case EXPLORERS:
+            case EXPLORER:
                 rowsUpgraded = db.update(
                         CrawlerContract.ExplorerEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
