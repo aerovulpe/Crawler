@@ -17,7 +17,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "photo_albums.db";
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public CrawlerDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -44,7 +44,7 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
 
                 // To assure the application has just one account entry per id
                 // per type, it's created a UNIQUE constraint with REPLACE strategy
-                "UNIQUE (" + AccountEntry.COLUMN_ACCOUNT_ID +") ON CONFLICT REPLACE);";
+                "UNIQUE (" + AccountEntry.COLUMN_ACCOUNT_ID + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_ALBUMS_TABLE = "CREATE TABLE " + AlbumEntry.TABLE_NAME + " (" +
                 AlbumEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -125,6 +125,13 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
                 // per type, it's created a UNIQUE constraint with IGNORE strategy
                 "UNIQUE (" + CategoryEntry.COLUMN_CATEGORY_ID + ") ON CONFLICT IGNORE);";
 
+        final String SQL_DELETE_EXPLORER_TRIGGER = "CREATE TRIGGER explorer_trigger AFTER INSERT ON " +
+                ExplorerEntry.TABLE_NAME + " BEGIN DELETE FROM " + ExplorerEntry.TABLE_NAME +
+                " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
+                ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
+                ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
+                " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000)); END";
+
         sqLiteDatabase.execSQL(SQL_CREATE_ACCOUNTS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUMS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_ALBUM_INDEX);
@@ -132,15 +139,30 @@ public class CrawlerDbHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(SQL_CREATE_PHOTOS_INDEX);
         sqLiteDatabase.execSQL(SQL_CREATE_EXPLORERS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_CATEGORY_TABLE);
+        sqLiteDatabase.execSQL(SQL_DELETE_EXPLORER_TRIGGER);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AccountEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PhotoEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ExplorerEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + CategoryEntry.TABLE_NAME);
-        onCreate(sqLiteDatabase);
+        if (oldVersion == 1 && newVersion == 2) {
+            sqLiteDatabase.execSQL("DELETE FROM " + ExplorerEntry.TABLE_NAME +
+                    " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
+                            ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
+                            ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
+                            " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000));");
+            sqLiteDatabase.execSQL("CREATE TRIGGER explorer_trigger AFTER INSERT ON " +
+                    ExplorerEntry.TABLE_NAME + " BEGIN DELETE FROM " + ExplorerEntry.TABLE_NAME +
+                    " WHERE " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " < (SELECT MIN(" +
+                    ExplorerEntry.COLUMN_ACCOUNT_TIME + ") FROM " + "( SELECT " +
+                    ExplorerEntry.COLUMN_ACCOUNT_TIME + " FROM " + ExplorerEntry.TABLE_NAME +
+                    " ORDER BY " + ExplorerEntry.COLUMN_ACCOUNT_TIME + " DESC LIMIT 3000)); END");
+        } else {
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AccountEntry.TABLE_NAME);
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + AlbumEntry.TABLE_NAME);
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PhotoEntry.TABLE_NAME);
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + ExplorerEntry.TABLE_NAME);
+            sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + CategoryEntry.TABLE_NAME);
+            onCreate(sqLiteDatabase);
+        }
     }
 }
