@@ -249,7 +249,7 @@ public class CrawlerProvider extends ContentProvider {
             case EXPLORER_ACCOUNTS_WITH_CATEGORY:
                 return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
             case CATEGORIES:
-                return CrawlerContract.CategoryEntry.CONTENT_ITEM_TYPE;
+                return CrawlerContract.CategoryEntry.CONTENT_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
