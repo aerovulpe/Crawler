@@ -235,21 +235,21 @@ public class CrawlerProvider extends ContentProvider {
 
         switch (match) {
             case PHOTOS:
-                return CrawlerContract.PhotoEntry.CONTENT_TYPE;
-            case PHOTOS_WITH_ALBUM:
                 return CrawlerContract.PhotoEntry.CONTENT_ITEM_TYPE;
+            case PHOTOS_WITH_ALBUM:
+                return CrawlerContract.PhotoEntry.CONTENT_TYPE;
             case ALBUMS:
-                return CrawlerContract.AlbumEntry.CONTENT_TYPE;
-            case ALBUMS_WITH_ACCOUNT:
                 return CrawlerContract.AlbumEntry.CONTENT_ITEM_TYPE;
+            case ALBUMS_WITH_ACCOUNT:
+                return CrawlerContract.AlbumEntry.CONTENT_TYPE;
             case ACCOUNTS:
                 return CrawlerContract.AccountEntry.CONTENT_TYPE;
             case EXPLORERS:
-                return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
-            case EXPLORER_ACCOUNTS_WITH_CATEGORY:
                 return CrawlerContract.ExplorerEntry.CONTENT_ITEM_TYPE;
+            case EXPLORER_ACCOUNTS_WITH_CATEGORY:
+                return CrawlerContract.ExplorerEntry.CONTENT_TYPE;
             case CATEGORIES:
-                return CrawlerContract.CategoryEntry.CONTENT_TYPE;
+                return CrawlerContract.CategoryEntry.CONTENT_ITEM_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

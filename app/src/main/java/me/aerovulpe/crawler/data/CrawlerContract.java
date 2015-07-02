@@ -24,7 +24,6 @@ public class CrawlerContract {
     // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
     // At least, let's hope not.  Don't be that dev, reader.  Don't be that dev.
     public static final String PATH_PHOTOS = "photos";
-    public static final String PATH_PHOTOS_INCREMENT_TIME = "photos_increment_time";
     public static final String PATH_ALBUMS = "albums";
     public static final String PATH_ACCOUNTS = "accounts";
     public static final String PATH_EXPLORERS = "explorers";
@@ -46,8 +45,6 @@ public class CrawlerContract {
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACCOUNTS).build();
         public static final String CONTENT_TYPE =
                 "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_ACCOUNTS;
-        public static final String CONTENT_ITEM_TYPE =
-                "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_ACCOUNTS;
 
         public static Uri buildAccountsUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
@@ -107,9 +104,6 @@ public class CrawlerContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS).build();
-
-        public static final Uri INCREMENT_URI =
-                BASE_CONTENT_URI.buildUpon().appendPath(PATH_PHOTOS_INCREMENT_TIME).build();
         public static final String CONTENT_TYPE =
                 "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_PHOTOS;
         public static final String CONTENT_ITEM_TYPE =
@@ -173,8 +167,6 @@ public class CrawlerContract {
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_CATEGORIES).build();
-        public static final String CONTENT_TYPE =
-                "vnd.android.cursor.dir/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
         public static final String CONTENT_ITEM_TYPE =
                 "vnd.android.cursor.item/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
 
