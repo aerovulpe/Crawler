@@ -7,6 +7,7 @@ import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
@@ -57,8 +58,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private ListView mDrawerList;
     private AccountsAdapter mAccountsAdapter;
     private ActionBarDrawerToggle mDrawerToggle;
-    private CharSequence mDrawerTitle;
-    private CharSequence mTitle;
     private boolean mIsFullScreen;
 
     @Override
@@ -105,8 +104,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             }
         });
         registerForContextMenu(mDrawerList);
-        mTitle = mDrawerTitle = getTitle();
+        final CharSequence openedTitle;
+        final CharSequence closedTitle;
+        closedTitle = openedTitle = getTitle();
         Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
+        final ActionBar actionBar = getSupportActionBar();
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 toolbar, R.string.drawer_open, R.string.drawer_close) {
 
@@ -115,7 +117,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
              */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mDrawerTitle);
+                if (actionBar != null) actionBar.setTitle(openedTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
@@ -124,22 +126,24 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
              */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                if (getSupportActionBar() != null) getSupportActionBar().setTitle(mTitle);
+                if (actionBar != null) actionBar.setTitle(closedTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
 
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        if (getSupportActionBar() != null) getSupportActionBar().setHomeButtonEnabled(true);
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        }
 
         if (savedInstanceState == null) {
-            if (getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
-                    .getBoolean(FIRST_TIME, true)) {
+            SharedPreferences sharedPref =
+                    getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE);
+            if (sharedPref.getBoolean(FIRST_TIME, true)) {
                 CrawlerSyncAdapter.initializeSyncAdapter(this);
-                getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE)
-                        .edit().putBoolean(FIRST_TIME, false).apply();
+                sharedPref.edit().putBoolean(FIRST_TIME, false).apply();
             }
 
             final Intent intent = getIntent();
@@ -243,11 +247,11 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     }
 
     @Override
-    public void createPhotoListInstance(int accountType, String albumTitle, String albumID, String photoDataUrl,
-                                        boolean addToBackStack) {
+    public void createPhotoListInstance(int accountType, String albumTitle, String albumID,
+                                        String photoDataUrl, boolean addToBackStack) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
-        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(accountType, albumTitle,
-                albumID, photoDataUrl), albumTitle);
+        fragmentTransaction.add(R.id.content_frame, PhotoListFragment.newInstance(accountType,
+                albumTitle, albumID, photoDataUrl), albumTitle);
         if (addToBackStack) fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
@@ -322,7 +326,8 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     @Override
     protected void onStart() {
         super.onStart();
-        if (getSupportActionBar() != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -341,7 +346,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     /* Called whenever we call invalidateOptionsMenu() */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+        //boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         return super.onPrepareOptionsMenu(menu);
     }
 
