@@ -12,13 +12,13 @@
               android:stateListAnimator="@anim/raise"
               android:weightSum="4">
 
-    <ImageView
+    <me.aerovulpe.crawler.ui.GifImageView
         android:id="@+id/image"
         android:layout_width="125dp"
         android:layout_height="0dp"
         android:layout_gravity="center"
         android:layout_weight="3">
-    </ImageView>
+    </me.aerovulpe.crawler.ui.GifImageView>
 
     <TextView
         android:id="@+id/text"

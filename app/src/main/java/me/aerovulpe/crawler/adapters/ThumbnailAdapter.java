@@ -20,6 +20,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -33,6 +34,7 @@ import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.fragments.AlbumListFragment;
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
+import me.aerovulpe.crawler.ui.GifImageView;
 
 public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter.ViewHolder> {
 
@@ -90,6 +92,7 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
 
                     }
                 });
+        viewHolder.imageView.setTag(thumbnailUrl);
         viewHolder.titleView.setText(thumbnailTitle);
     }
 
@@ -108,21 +111,38 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
         void onItemClick(View view, int position);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        public final ImageView imageView;
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+            View.OnTouchListener {
+        public final GifImageView imageView;
         public final TextView titleView;
 
         ViewHolder(View view) {
             super(view);
-            this.imageView = (ImageView) view.findViewById(R.id.image);
-            this.titleView = (TextView) view.findViewById(R.id.text);
+            imageView = (GifImageView) view.findViewById(R.id.image);
+            titleView = (TextView) view.findViewById(R.id.text);
             view.setOnClickListener(this);
+            view.setOnTouchListener(this);
         }
 
         @Override
         public void onClick(View v) {
             if (mItemClickListener != null)
                 mItemClickListener.onItemClick(v, getAdapterPosition());
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                    imageView.playGif((String) imageView.getTag());
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    imageView.stopGif();
+                    break;
+            }
+            return false;
         }
     }
 }

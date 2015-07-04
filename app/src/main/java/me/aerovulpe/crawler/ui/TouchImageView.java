@@ -26,7 +26,6 @@ import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
@@ -36,26 +35,10 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
-import java.lang.ref.WeakReference;
-import java.net.URL;
-
-import me.aerovulpe.crawler.Utils;
-import me.aerovulpe.crawler.data.SimpleDiskCache;
-import me.aerovulpe.crawler.fragments.SettingsFragment;
-
-public class TouchImageView extends ImageView {
+public class TouchImageView extends GifImageView {
 
     private static final String DEBUG = "TouchImageView";
 
@@ -85,7 +68,6 @@ public class TouchImageView extends ImageView {
     private float superMinScale;
     private float superMaxScale;
     private float[] m;
-    private Context context;
     private Fling fling;
     private ScaleType mScaleType;
     private boolean imageRenderedAtLeastOnce;
@@ -104,7 +86,6 @@ public class TouchImageView extends ImageView {
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;
     private OnTouchListener userTouchListener = null;
     private OnTouchImageViewListener touchImageViewListener = null;
-    private GifThread mGifThread;
 
     public TouchImageView(Context context) {
         super(context);
@@ -123,7 +104,6 @@ public class TouchImageView extends ImageView {
 
     private void sharedConstructing(Context context) {
         super.setClickable(true);
-        this.context = context;
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
         mGestureDetector = new GestureDetector(context, new GestureListener());
         matrix = new Matrix();
@@ -1297,147 +1277,6 @@ public class TouchImageView extends ImageView {
             this.focusX = focusX;
             this.focusY = focusY;
             this.scaleType = scaleType;
-        }
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        if (mGifThread != null) {
-            mGifThread.interrupt();
-        }
-    }
-
-    public void playGif(String url) {
-        try {
-            mGifThread = new GifThread(this, url);
-            mGifThread.start();
-        } catch (OutOfMemoryError e) {
-            e.printStackTrace();
-            System.gc();
-        }
-    }
-
-    private static void initGifCache(Context context) {
-        synchronized (GifThread.class) {
-            if (GifThread.sGifCache != null)
-                return;
-
-            try {
-                final int appVersion = 1;
-                final int maxSize = SettingsFragment
-                        .getCurrentCacheValueInBytes(context) / 4;
-                GifThread.sGifCache = SimpleDiskCache.open(new File(context
-                                .getCacheDir().getAbsolutePath() + "/gifCache"),
-                        appVersion, maxSize);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public static void clearGifCache(Context context) {
-        try {
-            initGifCache(context);
-            GifThread.sGifCache.clear();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void setMaxGifCacheSize(Context context, long maxSize) {
-        initGifCache(context);
-        GifThread.sGifCache.setMaxSize(maxSize);
-    }
-
-    public static boolean saveGif(Context context, String url, File file)
-            throws IOException {
-        initGifCache(context);
-        if (!GifThread.sGifCache.contains(url)) {
-            return false;
-        } else {
-            SimpleDiskCache.InputStreamEntry streamEntry = null;
-            InputStream inputStream = null;
-            OutputStream outputStream = null;
-            try {
-                streamEntry = GifThread.sGifCache
-                        .getInputStream(url);
-                inputStream = streamEntry.getInputStream();
-                outputStream = new FileOutputStream(file);
-                return IOUtils.copy(inputStream, outputStream) > 0;
-            } finally {
-                IOUtils.closeQuietly(inputStream);
-                if (outputStream != null)
-                    outputStream.close();
-                if (streamEntry != null)
-                    streamEntry.close();
-            }
-        }
-    }
-
-    private static class GifThread extends Thread {
-        private static volatile SimpleDiskCache sGifCache;
-        private WeakReference<TouchImageView> mTouchImageViewRef;
-        private Handler mHandler;
-        private String mUrl;
-
-        public GifThread(TouchImageView touchImageView, String url) {
-            mTouchImageViewRef = new WeakReference<>(touchImageView);
-            mHandler = new Handler();
-            mUrl = url;
-            initGifCache(touchImageView.context);
-        }
-
-        @Override
-        public void run() {
-            try {
-                GifDecoder gifDecoder = new GifDecoder();
-                if (!sGifCache.contains(mUrl)) {
-                    TouchImageView touchImageView;
-                    if ((touchImageView = mTouchImageViewRef.get()) != null &&
-                            !Utils.Android.isConnectedToWifi(touchImageView.context) &&
-                            !Utils.Android.isConnectedToWired(touchImageView.context) &&
-                            !SettingsFragment.downloadOffWifi(touchImageView.context))
-                        return;
-
-                    InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
-                    sGifCache.put(mUrl, inputStream);
-                    inputStream.close();
-                } else {
-                    SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
-                            .getInputStream(mUrl);
-                    gifDecoder.read(streamEntry.getInputStream(), 0);
-                    streamEntry.close();
-                }
-                final int frameCount = gifDecoder.getFrameCount();
-                while (!Thread.currentThread().isInterrupted()
-                        && mTouchImageViewRef.get() != null) {
-                    for (int i = 0; i < frameCount; i++) {
-                        final Bitmap nextBitmap = gifDecoder.getNextFrame();
-                        int delay = gifDecoder.getDelay(i);
-                        if (delay == 0) delay = 95;
-                        mHandler.post(new Runnable() {
-                            public void run() {
-                                if (nextBitmap != null && !nextBitmap.isRecycled()) {
-                                    TouchImageView touchImageView;
-                                    if ((touchImageView = mTouchImageViewRef.get()) != null)
-                                        touchImageView.setImageBitmap(nextBitmap);
-                                }
-                            }
-                        });
-                        try {
-                            Thread.sleep(delay);
-                        } catch (InterruptedException e) {
-                            return;
-                        }
-                    }
-                }
-            } catch (InterruptedIOException ignored) {
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                Log.w(DEBUG, "Bitmap was not ready.");
-            }
         }
     }
 }
