@@ -1392,24 +1392,22 @@ public class TouchImageView extends ImageView {
         public void run() {
             try {
                 GifDecoder gifDecoder = new GifDecoder();
-                synchronized (GifThread.class) {
-                    if (!sGifCache.contains(mUrl)) {
-                        TouchImageView touchImageView;
-                        if ((touchImageView = mTouchImageViewRef.get()) != null &&
-                                !Utils.Android.isConnectedToWifi(touchImageView.context) &&
-                                !Utils.Android.isConnectedToWired(touchImageView.context) &&
-                                !SettingsFragment.downloadOffWifi(touchImageView.context))
-                            return;
+                if (!sGifCache.contains(mUrl)) {
+                    TouchImageView touchImageView;
+                    if ((touchImageView = mTouchImageViewRef.get()) != null &&
+                            !Utils.Android.isConnectedToWifi(touchImageView.context) &&
+                            !Utils.Android.isConnectedToWired(touchImageView.context) &&
+                            !SettingsFragment.downloadOffWifi(touchImageView.context))
+                        return;
 
-                        InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
-                        sGifCache.put(mUrl, inputStream);
-                        inputStream.close();
-                    } else {
-                        SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
-                                .getInputStream(mUrl);
-                        gifDecoder.read(streamEntry.getInputStream(), 0);
-                        streamEntry.close();
-                    }
+                    InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
+                    sGifCache.put(mUrl, inputStream);
+                    inputStream.close();
+                } else {
+                    SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
+                            .getInputStream(mUrl);
+                    gifDecoder.read(streamEntry.getInputStream(), 0);
+                    streamEntry.close();
                 }
                 final int frameCount = gifDecoder.getFrameCount();
                 while (!Thread.currentThread().isInterrupted()

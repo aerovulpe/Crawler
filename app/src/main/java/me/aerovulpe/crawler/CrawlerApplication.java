@@ -20,6 +20,7 @@ import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
@@ -74,7 +75,7 @@ public class CrawlerApplication extends Application {
         //  ImageLoaderConfiguration.createDefault(this);
         // method.
         ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(context);
-        config.threadPoolSize(5);
+        config.threadPoolSize(Runtime.getRuntime().availableProcessors() + 2);
         config.denyCacheImageMultipleSizesInMemory();
         config.memoryCache(new WeakMemoryCache());
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
