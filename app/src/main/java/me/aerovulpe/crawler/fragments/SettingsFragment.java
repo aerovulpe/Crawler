@@ -45,8 +45,8 @@ import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.preferences.DeletablePreference;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestService;
+import me.aerovulpe.crawler.ui.GifImageView;
 import me.aerovulpe.crawler.ui.RandomTransformer;
-import me.aerovulpe.crawler.ui.TouchImageView;
 
 /**
  * Created by Aaron on 19/05/2015.
@@ -162,7 +162,7 @@ public class SettingsFragment extends PreferenceFragment {
                     } else {
                         int cacheSize = currentCacheValue * MEGABYTE_TO_BYTE_FACTOR;
                         int gifCacheSize = cacheSize / 4;
-                        TouchImageView.setMaxGifCacheSize(activity, gifCacheSize);
+                        GifImageView.setMaxGifCacheSize(activity, gifCacheSize);
                         if (currentCacheValue < mOldCacheValue) {
                             CrawlerApplication.clearImageCacheInit(activity,
                                     cacheSize - gifCacheSize);
@@ -194,7 +194,7 @@ public class SettingsFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 ImageLoader.getInstance().clearDiskCache();
-                TouchImageView.clearGifCache(activity);
+                GifImageView.clearGifCache(activity);
                 return true;
             }
         });

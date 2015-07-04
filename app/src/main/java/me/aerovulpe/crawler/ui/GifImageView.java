@@ -27,21 +27,17 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
  */
 public class GifImageView extends ImageView {
     private GifThread mGifThread;
-    protected Context context;
 
     public GifImageView(Context context) {
         super(context);
-        this.context = context;
     }
 
     public GifImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.context = context;
     }
 
     public GifImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        this.context = context;
     }
 
     @Override
@@ -135,7 +131,7 @@ public class GifImageView extends ImageView {
             mGifImageViewRef = new WeakReference<>(gifImageView);
             mHandler = new Handler();
             mUrl = url;
-            initGifCache(gifImageView.context);
+            initGifCache(gifImageView.getContext());
         }
 
         @Override
@@ -143,11 +139,12 @@ public class GifImageView extends ImageView {
             try {
                 GifDecoder gifDecoder = new GifDecoder();
                 if (!sGifCache.contains(mUrl)) {
-                    GifImageView gifImageView;
-                    if ((gifImageView = mGifImageViewRef.get()) != null &&
-                            !Utils.Android.isConnectedToWifi(gifImageView.context) &&
-                            !Utils.Android.isConnectedToWired(gifImageView.context) &&
-                            !SettingsFragment.downloadOffWifi(gifImageView.context))
+                    GifImageView gifImageView = mGifImageViewRef.get();
+                    Context context = gifImageView != null ? gifImageView.getContext() : null;
+                    if (context != null &&
+                            !Utils.Android.isConnectedToWifi(context) &&
+                            !Utils.Android.isConnectedToWired(context) &&
+                            !SettingsFragment.downloadOffWifi(context))
                         return;
 
                     InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());

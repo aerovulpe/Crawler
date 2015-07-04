@@ -1132,7 +1132,7 @@ public class TouchImageView extends GifImageView {
 
         Fling(int velocityX, int velocityY) {
             setState(State.FLING);
-            scroller = new CompatScroller(context);
+            scroller = new CompatScroller(getContext());
             matrix.getValues(m);
 
             int startX = (int) m[Matrix.MTRANS_X];

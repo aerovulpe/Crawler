@@ -36,7 +36,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 
-import me.aerovulpe.crawler.ui.TouchImageView;
+import me.aerovulpe.crawler.ui.GifImageView;
 
 /**
  * Created by Aaron on 13/06/2015.
@@ -204,7 +204,7 @@ public final class Utils {
                     public void run() {
                         FileOutputStream outputStream = null;
                         try {
-                            if (!TouchImageView.saveGif(context, url, file)) {
+                            if (!GifImageView.saveGif(context, url, file)) {
                                 outputStream = new FileOutputStream(file);
                                 InputStream inputStream = new URL(url).openStream();
                                 IOUtils.copy(inputStream, outputStream);
