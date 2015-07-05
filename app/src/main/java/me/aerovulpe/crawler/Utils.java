@@ -164,10 +164,9 @@ public final class Utils {
             return mobile != null && mobile.isConnected();
         }
 
-        public static Uri savePicture(final Context context, final Bitmap bitmap, final String url, String imgName,
-                                      String imgTitle, String description) {
-            final String strDirectory = Environment
-                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        public static Uri savePicture(final Context context, String strDirectory, final Bitmap bitmap,
+                                      final String url, String imgName, String imgTitle,
+                                      String description) {
 
             final File file = new File(strDirectory, imgName);
             deleteFile(context, strDirectory, file);
@@ -233,6 +232,13 @@ public final class Utils {
 
             context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             return Uri.parse("file://" + file.getAbsolutePath());
+        }
+
+        public static Uri savePicture(Context context, Bitmap bitmap, String url, String imgName,
+                                      String imgTitle, String description) {
+            final String strDirectory = Environment
+                    .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+            return savePicture(context, strDirectory, bitmap, url, imgName, imgTitle, description);
         }
 
         private static void deleteFile(Context context, String strDirectory, File file) {

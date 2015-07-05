@@ -20,6 +20,9 @@ import android.os.IBinder;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -36,6 +39,7 @@ import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
+import me.aerovulpe.crawler.request.DownloaderService;
 import me.aerovulpe.crawler.request.FlickrRequest;
 import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.Request;
@@ -55,6 +59,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_PHOTO_DESCRIPTION = 4;
     private static final int PHOTOS_LOADER = 4;
     private static final String TAG = PhotoListFragment.class.getSimpleName();
+    private static final int MENU_ITEM_SAVE = 0;
     private static String[] PHOTOS_COLUMNS = {
             CrawlerContract.PhotoEntry.TABLE_NAME + "." + CrawlerContract.PhotoEntry._ID,
             CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
@@ -135,6 +140,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mType = args.getInt(ARG_TYPE);
         }
         mRequestData = true;
+        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
@@ -211,6 +217,35 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                 mRecyclerView.getLayoutManager().scrollToPosition(mIndex);
             }
         });
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.add(0, MENU_ITEM_SAVE, 0, getString(R.string.save_photo))
+                .setIcon(android.R.drawable.ic_menu_save)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_ITEM_SAVE:
+                FileExplorerFragment explorerDialog = new FileExplorerFragment();
+                explorerDialog.setOnDirectorySelectedListener(new FileExplorerFragment.OnDirectorySelectedListener() {
+                    @Override
+                    public void onDirectorySelected(String chosenDirectory) {
+                        Intent intent = new Intent(getActivity(), DownloaderService.class);
+                        intent.putExtra(DownloaderService.ARG_ALBUM_KEY_STRING, mAlbumID);
+                        intent.putExtra(DownloaderService.ARG_DESTINATION_STRING, chosenDirectory);
+                        getActivity().startService(intent);
+                    }
+                });
+                explorerDialog.show(getActivity().getFragmentManager(), "fileExplorer");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

@@ -104,6 +104,8 @@
                 </action>
             </intent-filter>
         </receiver>
+
+        <service android:name=".request.DownloaderService"/>
     </application>
 
 </manifest>
