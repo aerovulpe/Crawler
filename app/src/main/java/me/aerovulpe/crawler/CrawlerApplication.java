@@ -48,6 +48,7 @@ public class CrawlerApplication extends Application {
     public static final int ALBUM_THUMBNAIL_SIZE = 125;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
     public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
+    public static boolean DEBUG_MODE = false;
 
     public static void initImageLoader(Context context) {
         int cacheSize = SettingsFragment
@@ -117,12 +118,14 @@ public class CrawlerApplication extends Application {
 
     public static void loadAd(AdView adView) {
         AdRequest.Builder builder = getBuilder();
+        if (!DEBUG_MODE)
         adView.loadAd(builder.build());
     }
 
     public static void loadAd(InterstitialAd adView) {
         AdRequest.Builder builder = getBuilder();
-        adView.loadAd(builder.build());
+        if (!DEBUG_MODE)
+            adView.loadAd(builder.build());
     }
 
     private static AdRequest.Builder getBuilder() {
