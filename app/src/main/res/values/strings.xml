@@ -188,4 +188,5 @@
     <string name="shared_with_crawler">Shared with Crawler.</string>
     <string name="saving_picture">"Saving picture: "</string>
     <string name="choose_a_directory">Choose a directory</string>
+    <string name="enter_new_folder_name">Enter the name of the folder</string>
 </resources>

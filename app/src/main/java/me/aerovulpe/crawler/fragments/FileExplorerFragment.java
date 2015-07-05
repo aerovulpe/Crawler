@@ -8,9 +8,11 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +28,7 @@ import me.aerovulpe.crawler.R;
  */
 public class FileExplorerFragment extends DialogFragment {
     private static final String TAG = "FileExplorerFragment";
+    private static final String ARG_PATH = "me.aerovulpe.crawler.FileExplorerFragment";
     // Stores names of traversed directories
     ArrayList<String> mTraversedDirs = new ArrayList<>();
     // Check if the first level of the directory structure is the one showing
@@ -37,9 +40,20 @@ public class FileExplorerFragment extends DialogFragment {
     private ListAdapter mAdapter;
     private OnDirectorySelectedListener mOnDirectorySelectedListener;
 
+    public static FileExplorerFragment newInstance(String path) {
+        Bundle args = new Bundle();
+        args.putString(ARG_PATH, path);
+        FileExplorerFragment fileExplorerFragment = new FileExplorerFragment();
+        fileExplorerFragment.setArguments(args);
+        return fileExplorerFragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle args = getArguments();
+        if (args != null && args.containsKey(ARG_PATH))
+            mPath = new File(args.getString(ARG_PATH));
         loadFileList();
     }
 
@@ -53,50 +67,75 @@ public class FileExplorerFragment extends DialogFragment {
             return builder.create();
         }
 
-        builder.setTitle(R.string.choose_a_directory);
-        builder.setAdapter(mAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mChosenDir = mDirItems[which].mFile;
-                File selectedDir = new File(mPath + "/" + mChosenDir);
-                if (selectedDir.isDirectory()) {
-                    mIsFirstLvl = false;
+        builder.setTitle(R.string.choose_a_directory)
+                .setAdapter(mAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mChosenDir = mDirItems[which].mFile;
+                        File selectedDir = new File(mPath + "/" + mChosenDir);
+                        if (selectedDir.isDirectory()) {
+                            mIsFirstLvl = false;
 
-                    // Add choosen directory to list of traversed directories
-                    mTraversedDirs.add(mChosenDir);
-                    mPath = selectedDir;
-                    loadFileList();
-                    reloadDialog();
-                } else {
-                    // We can safely assume the up item was clicked
-                    // Present directory removed from list
-                    String dirStr = mTraversedDirs.remove(mTraversedDirs.size() - 1);
-                    // Modify the path to exclude present directory
-                    String pathStr = mPath.toString();
-                    mPath = new File(pathStr.substring(0,
-                            pathStr.lastIndexOf(dirStr)));
+                            // Add choosen directory to list of traversed directories
+                            mTraversedDirs.add(mChosenDir);
+                            mPath = selectedDir;
+                            reloadDialog();
+                        } else if (mChosenDir.equalsIgnoreCase("up") && !selectedDir.exists()) {
+                            // We can safely assume the up item was clicked
+                            // Present directory removed from list
+                            String dirStr = mTraversedDirs.remove(mTraversedDirs.size() - 1);
+                            // Modify the path to exclude present directory
+                            String pathStr = mPath.toString();
+                            mPath = new File(pathStr.substring(0,
+                                    pathStr.lastIndexOf(dirStr)));
 
-                    // If there are no more directories in the list,
-                    // it's the first level
-                    if (mTraversedDirs.isEmpty())
-                        mIsFirstLvl = true;
-                    loadFileList();
-                    reloadDialog();
-                }
-            }
+                            // If there are no more directories in the list,
+                            // it's the first level
+                            if (mTraversedDirs.isEmpty())
+                                mIsFirstLvl = true;
+                            reloadDialog();
+                        } else {
+                            View promptView = LayoutInflater.from(activity).inflate(R.layout.new_folder_prompt,
+                                    (ViewGroup) getView(), false);
+                            AlertDialog.Builder promptBuilder = new AlertDialog.Builder(activity);
+                            promptBuilder.setView(promptView);
+                            final EditText userInput = (EditText) promptView.findViewById(R.id.userInput);
+                            promptBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mChosenDir = userInput.getText().toString();
+                                    String path = mPath + "/" + mChosenDir;
+                                    File newDir = new File(path);
+                                    if (newDir.mkdir()) {
+                                        mIsFirstLvl = false;
+                                        mTraversedDirs.add(mChosenDir);
+                                        mPath = newDir;
+                                        show(activity.getFragmentManager(), getTag());
+                                    }
 
-            private void reloadDialog() {
-                dismiss();
-                show(getFragmentManager(), getTag());
-            }
-        });
+                                }
+                            })
+                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.cancel();
+                                        }
+                                    }).show();
+                        }
+                    }
+
+                    private void reloadDialog() {
+                        loadFileList();
+                        dismiss();
+                        show(getFragmentManager(), getTag());
+                    }
+                });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dismiss();
             }
-        });
-        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+        }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (mOnDirectorySelectedListener != null)
@@ -139,12 +178,18 @@ public class FileExplorerFragment extends DialogFragment {
         for (int i = 0; i < dirsLength; i++) {
             mDirItems[i] = new Item(dirList[i], R.drawable.ic_folder_black_24dp);
         }
-        if (!mIsFirstLvl) {
-            Item[] temp = new Item[dirsLength + 1];
+        Item[] temp;
+        if (mIsFirstLvl) {
+            temp = new Item[dirsLength + 1];
             System.arraycopy(mDirItems, 0, temp, 1, dirsLength);
+            temp[0] = new Item("Add New Folder", R.drawable.ic_add_black_24dp);
+        } else {
+            temp = new Item[dirsLength + 2];
+            System.arraycopy(mDirItems, 0, temp, 2, dirsLength);
             temp[0] = new Item("Up", R.drawable.ic_keyboard_arrow_up_black_24dp);
-            mDirItems = temp;
+            temp[1] = new Item("Add New Folder", R.drawable.ic_add_black_24dp);
         }
+        mDirItems = temp;
 
         mAdapter = new ArrayAdapter<Item>(getActivity(), android.R.layout.select_dialog_item,
                 android.R.id.text1, mDirItems) {
