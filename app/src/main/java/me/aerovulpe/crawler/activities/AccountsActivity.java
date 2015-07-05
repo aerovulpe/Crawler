@@ -21,7 +21,6 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 
 import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 
@@ -29,7 +28,6 @@ import java.lang.ref.WeakReference;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
-import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.adapters.AccountsAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.InfoDialogFragment;
@@ -101,8 +99,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
         getLoaderManager().initLoader(ACCOUNTS_LOADER, null, this);
         if (CrawlerApplication.randomDraw(1 / 10.0)) {
             AdView adView = (AdView) findViewById(R.id.adView);
-            AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
-            adView.loadAd(adRequest);
+            CrawlerApplication.loadAd(adView);
         }
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId(getString(R.string.explorer_interstitial_ad_unit_id));
@@ -216,8 +213,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
     }
 
     private void requestNewInterstitial() {
-        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
-        mInterstitialAd.loadAd(adRequest);
+        CrawlerApplication.loadAd(mInterstitialAd);
     }
 
     @Override

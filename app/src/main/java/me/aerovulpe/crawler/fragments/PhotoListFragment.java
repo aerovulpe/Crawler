@@ -23,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.melnykov.fab.FloatingActionButton;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -33,6 +32,7 @@ import java.lang.ref.WeakReference;
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -41,7 +41,6 @@ import me.aerovulpe.crawler.request.PicasaPhotosRequest;
 import me.aerovulpe.crawler.request.Request;
 import me.aerovulpe.crawler.request.RequestService;
 import me.aerovulpe.crawler.request.TumblrRequest;
-import me.aerovulpe.crawler.Utils;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -183,8 +182,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             }
         });
         AdView adView = (AdView) rootView.findViewById(R.id.adView);
-        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
-        adView.loadAd(adRequest);
+        CrawlerApplication.loadAd(adView);
         return rootView;
     }
 

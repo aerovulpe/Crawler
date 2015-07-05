@@ -16,14 +16,14 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import com.astuetz.PagerSlidingTabStrip;
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.adapters.ExplorerTabAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.ExplorerFragment;
-import me.aerovulpe.crawler.Utils;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int COL_CATEGORY_NAME = 1;
@@ -80,8 +80,7 @@ public class ExplorerActivity extends BaseActivity implements LoaderManager.Load
         getLoaderManager().initLoader(CATEGORIES_LOADER, null, this);
 
         AdView adView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
-        adView.loadAd(adRequest);
+        CrawlerApplication.loadAd(adView);
     }
 
     @Override

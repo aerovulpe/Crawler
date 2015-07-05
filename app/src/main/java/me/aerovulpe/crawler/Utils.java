@@ -16,8 +16,6 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.google.android.gms.ads.AdRequest;
-
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
@@ -44,12 +42,6 @@ import me.aerovulpe.crawler.ui.GifImageView;
 public final class Utils {
     private Utils() {
         // restrict instantiation.
-    }
-
-    public static AdRequest.Builder addTestDevices(AdRequest.Builder builder) {
-        builder.addTestDevice("4B9997A60569F4A5865A1D40BE9B5B97");
-        builder.addTestDevice("61105D9E9F07332601057B30599B0164");
-        return builder;
     }
 
     /**

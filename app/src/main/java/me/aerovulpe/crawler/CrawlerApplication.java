@@ -21,6 +21,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -110,6 +113,23 @@ public class CrawlerApplication extends Application {
 
     public static boolean randomDraw(double odds) {
         return (odds > 0) && new Random().nextDouble() <= odds;
+    }
+
+    public static void loadAd(AdView adView) {
+        AdRequest.Builder builder = getBuilder();
+        adView.loadAd(builder.build());
+    }
+
+    public static void loadAd(InterstitialAd adView) {
+        AdRequest.Builder builder = getBuilder();
+        adView.loadAd(builder.build());
+    }
+
+    private static AdRequest.Builder getBuilder() {
+        AdRequest.Builder builder = new AdRequest.Builder();
+        builder.addTestDevice("4B9997A60569F4A5865A1D40BE9B5B97");
+        builder.addTestDevice("61105D9E9F07332601057B30599B0164");
+        return builder;
     }
 
     @Override

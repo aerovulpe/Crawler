@@ -14,19 +14,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.activities.BaseActivity;
 import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.PicasaAlbumsRequest;
-import me.aerovulpe.crawler.Utils;
 
 public class AlbumListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -105,8 +104,7 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
                     }
                 });
         AdView adView = (AdView) rootView.findViewById(R.id.adView);
-        AdRequest adRequest = Utils.addTestDevices(new AdRequest.Builder()).build();
-        adView.loadAd(adRequest);
+        CrawlerApplication.loadAd(adView);
         return rootView;
     }
 
