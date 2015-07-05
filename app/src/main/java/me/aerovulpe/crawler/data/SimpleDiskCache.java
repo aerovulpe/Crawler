@@ -113,7 +113,7 @@ public class SimpleDiskCache {
         return openStream(key, new HashMap<String, Serializable>());
     }
 
-    public OutputStream openStream(String key, Map<String, ? extends Serializable> metadata)
+    public synchronized OutputStream openStream(String key, Map<String, ? extends Serializable> metadata)
             throws IOException {
         DiskLruCache.Editor editor = diskLruCache.edit(toInternalKey(key));
         try {

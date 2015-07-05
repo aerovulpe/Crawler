@@ -47,7 +47,7 @@ public class CrawlerApplication extends Application {
     public static final int ALBUM_THUMBNAIL_SIZE = 125;
     public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
     public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
-    public static boolean DEBUG_MODE = false;
+    public static boolean DEBUG_MODE = true;
 
     public static void initImageLoader(Context context) {
         int cacheSize = SettingsFragment

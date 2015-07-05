@@ -54,7 +54,6 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private static final int CONTEXT_MENU_DELETE = 2;
     private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
     private FragmentManager mManager;
-    private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private AccountsAdapter mAccountsAdapter;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -64,7 +63,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         View header = View.inflate(this, R.layout.account_entry, null);
         ((ImageView) header.findViewById(R.id.service_logo))
@@ -109,7 +108,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         closedTitle = openedTitle = getTitle();
         Toolbar toolbar = (Toolbar) findViewById(R.id.app_bar);
         final ActionBar actionBar = getSupportActionBar();
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+        mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,
                 toolbar, R.string.drawer_open, R.string.drawer_close) {
 
             /**
@@ -132,7 +131,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
         };
 
         // Set the drawer toggle as the DrawerListener
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        drawerLayout.setDrawerListener(mDrawerToggle);
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);
