@@ -40,20 +40,9 @@ public class FileExplorerFragment extends DialogFragment {
     private ListAdapter mAdapter;
     private OnDirectorySelectedListener mOnDirectorySelectedListener;
 
-    public static FileExplorerFragment newInstance(String path) {
-        Bundle args = new Bundle();
-        args.putString(ARG_PATH, path);
-        FileExplorerFragment fileExplorerFragment = new FileExplorerFragment();
-        fileExplorerFragment.setArguments(args);
-        return fileExplorerFragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
-        if (args != null && args.containsKey(ARG_PATH))
-            mPath = new File(args.getString(ARG_PATH));
         loadFileList();
     }
 
@@ -114,13 +103,12 @@ public class FileExplorerFragment extends DialogFragment {
                                     }
 
                                 }
-                            })
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.cancel();
-                                        }
-                                    }).show();
+                            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            }).show();
                         }
                     }
 
