@@ -135,7 +135,9 @@ public class ThumbnailAdapter extends CursorRecyclerViewAdapter<ThumbnailAdapter
             int action = event.getAction();
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
-                    imageView.playGif((String) imageView.getTag());
+                    String url = (String) imageView.getTag();
+                    if (url.endsWith(".gif"))
+                        imageView.playGif(url);
                     break;
                 case MotionEvent.ACTION_CANCEL:
                 case MotionEvent.ACTION_UP:

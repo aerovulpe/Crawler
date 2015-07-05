@@ -148,8 +148,10 @@ public class GifImageView extends ImageView {
                         return;
 
                     InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
-                    sGifCache.put(mUrl, inputStream);
-                    inputStream.close();
+                    if (inputStream != null) {
+                        sGifCache.put(mUrl, inputStream);
+                        inputStream.close();
+                    } else return;
                 } else {
                     SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
                             .getInputStream(mUrl);

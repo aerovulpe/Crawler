@@ -298,7 +298,9 @@ public class GifDecoder {
         } else
             status = STATUS_OPEN_ERROR;
 
-        return buffer != null ? new ByteArrayInputStream(buffer.toByteArray()) : null;
+        byte[] bytes = buffer != null ? buffer.toByteArray() : null;
+        return bytes != null && isGif(bytes) ?
+                new ByteArrayInputStream(bytes) : null;
     }
 
     /**
@@ -813,5 +815,22 @@ public class GifDecoder {
         do {
             readBlock();
         } while ((blockSize > 0) && !err());
+    }
+
+    private static boolean isGif(byte[] bytes) {
+        final char[] hexArray = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                'A', 'B', 'C', 'D', 'E', 'F'};
+        final int headerSize = 6;
+        char[] hexChars = new char[6 * 2];
+        int i;
+        for (int j = 0; j < headerSize; j++) {
+            i = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[i >>> 4];
+            hexChars[j * 2 + 1] = hexArray[i & 0x0F];
+        }
+        String hex = new String(hexChars);
+        return hex.startsWith("47494638") ||
+                hex.startsWith("474946383761") ||
+                hex.startsWith("474946383961");
     }
 }
