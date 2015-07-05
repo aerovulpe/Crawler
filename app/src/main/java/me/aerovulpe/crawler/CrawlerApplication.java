@@ -18,7 +18,6 @@ package me.aerovulpe.crawler;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 
 import com.google.android.gms.ads.AdRequest;
@@ -91,7 +90,6 @@ public class CrawlerApplication extends Application {
                 .showImageForEmptyUri(R.drawable.ic_empty)
                 .showImageOnFail(R.drawable.load_failed)
                 .cacheOnDisk(true)
-                .bitmapConfig(Bitmap.Config.RGB_565)
                 .imageScaleType(ImageScaleType.EXACTLY)
                 .considerExifParams(true)
                 .build();
