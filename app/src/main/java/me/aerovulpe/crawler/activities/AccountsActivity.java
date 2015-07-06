@@ -75,6 +75,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
 
         if (savedInstanceState == null) {
             new CategoriesRequest(this).execute();
+            CrawlerApplication.checkIfTestDevice(this);
         }
 
         ListView mainList = (ListView) findViewById(R.id.accounts_list);
