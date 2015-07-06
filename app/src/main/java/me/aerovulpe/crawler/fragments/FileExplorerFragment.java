@@ -65,7 +65,7 @@ public class FileExplorerFragment extends DialogFragment {
                         if (selectedDir.isDirectory()) {
                             mIsFirstLvl = false;
 
-                            // Add choosen directory to list of traversed directories
+                            // Add chosen directory to list of traversed directories
                             mTraversedDirs.add(mChosenDir);
                             mPath = selectedDir;
                             reloadDialog();
@@ -107,6 +107,7 @@ public class FileExplorerFragment extends DialogFragment {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.cancel();
+                                    show(activity.getFragmentManager(), getTag());
                                 }
                             }).show();
                         }

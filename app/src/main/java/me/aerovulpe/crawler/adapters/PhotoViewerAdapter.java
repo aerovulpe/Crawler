@@ -24,6 +24,7 @@ import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.Photo;
 import me.aerovulpe.crawler.fragments.PhotoListFragment;
+import me.aerovulpe.crawler.fragments.PhotoViewerFragment;
 import me.aerovulpe.crawler.ui.TouchImageView;
 
 
@@ -76,7 +77,7 @@ public class PhotoViewerAdapter extends CursorPagerAdapter {
         if (position % LOAD_BUFFER_SIZE == 0)
             bufferLoad(position);
 
-        final Photo currentPhoto = Photo.fromCursor(cursor);
+        final Photo currentPhoto = PhotoViewerFragment.photoFromCursor(cursor);
         if (currentPhoto != null) {
             mImageLoader.displayImage(currentPhoto.getImageUrl(), photoView, mOptions,
                     new ImageLoadingListener() {

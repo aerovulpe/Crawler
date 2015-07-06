@@ -74,6 +74,20 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         return fragment;
     }
 
+    public static Photo photoFromCursor(Cursor cursor) {
+        try {
+            Photo photo = new Photo();
+            photo.setName(cursor.getString(PhotoListFragment.COL_PHOTO_NAME));
+            photo.setTitle(cursor.getString(PhotoListFragment.COL_PHOTO_TITLE));
+            photo.setImageUrl(cursor.getString(PhotoListFragment.COL_PHOTO_URL));
+            photo.setDescription(cursor.getString(PhotoListFragment.COL_PHOTO_DESCRIPTION));
+            photo.setTime(cursor.getLong(PhotoListFragment.COL_PHOTO_TIME));
+            return photo;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -387,7 +401,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     private Photo getCurrentPhoto() {
         mCurrentPhotoIndex = mViewPager.getCurrentItem();
         Cursor cursor = ((PhotoViewerAdapter) mViewPager.getAdapter()).getCursor();
-        return cursor.moveToPosition(mCurrentPhotoIndex) ? Photo.fromCursor(cursor) : null;
+        return cursor.moveToPosition(mCurrentPhotoIndex) ? PhotoViewerFragment.photoFromCursor(cursor) : null;
     }
 
     public void sharePhoto(Photo photo) {
@@ -429,7 +443,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photo.getImageUrl());
         return bitmap != null ? Utils.Android.savePicture(getActivity(),
                 bitmap, photo.getImageUrl(), photo.getName(),
-                photo.getTitle(), photo.getDescription()) : null;
+                photo.getTitle(), photo.getDescription(), photo.getTime()) : null;
     }
 
     public void setAsWallpaper(Photo photo) {

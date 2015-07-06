@@ -105,7 +105,7 @@ public class TumblrRequest extends Request {
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME, filename);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE, title);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION, description);
-                    values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, time);
+                    values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME, time * 1000);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL, url);
                     values.put(CrawlerContract.PhotoEntry.COLUMN_PHOTO_ID, url);
                     addValues(values);

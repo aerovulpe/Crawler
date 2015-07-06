@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import org.apache.commons.io.IOUtils;
 
@@ -120,6 +119,13 @@ public final class Utils {
     }
 
     public static final class Android {
+
+        private static MediaScannerConnection.OnScanCompletedListener sOnScanCompleteCallback =
+                new MediaScannerConnection.OnScanCompletedListener() {
+                    public void onScanCompleted(String path, Uri uri) {
+                    }
+                };
+
         private Android() {
             // Restrict instantiation.
         }
@@ -166,8 +172,9 @@ public final class Utils {
 
         public static Uri savePicture(final Context context, String strDirectory, final Bitmap bitmap,
                                       final String url, String imgName, String imgTitle,
-                                      String description) {
+                                      String description, long time) {
 
+            if (bitmap == null) return null;
             final File file = new File(strDirectory, imgName);
             deleteFile(context, strDirectory, file);
 
@@ -224,7 +231,10 @@ public final class Utils {
             }
 
             ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+            long currentTimeMillis = System.currentTimeMillis();
+            long years30 = 946707779241L;
+            values.put(MediaStore.Images.Media.DATE_TAKEN, time > currentTimeMillis - years30 ?
+                    time : currentTimeMillis);
             values.put(MediaStore.Images.Media.TITLE, imgTitle);
             values.put(MediaStore.Images.Media.DESCRIPTION, description);
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
@@ -235,10 +245,10 @@ public final class Utils {
         }
 
         public static Uri savePicture(Context context, Bitmap bitmap, String url, String imgName,
-                                      String imgTitle, String description) {
+                                      String imgTitle, String description, long time) {
             final String strDirectory = Environment
                     .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-            return savePicture(context, strDirectory, bitmap, url, imgName, imgTitle, description);
+            return savePicture(context, strDirectory, bitmap, url, imgName, imgTitle, description, time);
         }
 
         private static void deleteFile(Context context, String strDirectory, File file) {
@@ -249,12 +259,7 @@ public final class Utils {
                                 Uri.parse("file://" + strDirectory)));
                     else
                         MediaScannerConnection.scanFile(context, new String[]{strDirectory},
-                                null, new MediaScannerConnection.OnScanCompletedListener() {
-                                    public void onScanCompleted(String path, Uri uri) {
-                                        Log.i("ExternalStorage", "Scanned " + path + ":");
-                                        Log.i("ExternalStorage", "-> uri=" + uri);
-                                    }
-                                });
+                                null, sOnScanCompleteCallback);
         }
     }
 

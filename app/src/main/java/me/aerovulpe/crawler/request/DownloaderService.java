@@ -11,7 +11,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -49,7 +52,7 @@ public class DownloaderService extends IntentService {
 
     private void savePictures(String albumKey, String destination) {
         mIsRunning = true;
-        Context context = getBaseContext();
+        final Context context = getBaseContext();
         NotificationManager notificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         Notification.Builder builder = new Notification.Builder(context);
@@ -77,8 +80,9 @@ public class DownloaderService extends IntentService {
                 new String[]{CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
                         CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE,
                         CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL,
-                        CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION
-                }, null, null, null);
+                        CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION,
+                        CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME
+                }, null, null, CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " DESC");
         int cnt = picturesCursor.getCount();
         int idx = 0;
         picturesCursor.moveToPosition(-1);
@@ -88,13 +92,24 @@ public class DownloaderService extends IntentService {
             String photoTitle = picturesCursor.getString(1);
             String photoUrl = picturesCursor.getString(2);
             String photoDescription = picturesCursor.getString(3);
-            views.setTextViewText(R.id.detail, getString(R.string.saving_picture) +
-                    (!photoTitle.equals("null") ? photoTitle : photoName));
+            long photoTime = picturesCursor.getLong(4);
+            if (photoTitle == null || photoTitle.equals("null")) photoTitle = photoName;
+            views.setTextViewText(R.id.detail, getString(R.string.saving_picture) + photoTitle);
             views.setProgressBar(R.id.status_progress, cnt, idx++, false);
             notificationManager.notify(42, builder.build());
             Bitmap bitmap = ImageLoader.getInstance().loadImageSync(photoUrl);
-            Utils.Android.savePicture(context, destination, bitmap, photoUrl, photoName, photoTitle,
-                    photoDescription);
+            if (bitmap == null ||
+                    Utils.Android.savePicture(context, destination, bitmap, photoUrl, photoName, photoTitle,
+                            photoDescription, photoTime) == null) {
+                final String finalPhotoTitle = photoTitle;
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "Couldn't save " + finalPhotoTitle,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         }
         picturesCursor.close();
         stopForeground(true);

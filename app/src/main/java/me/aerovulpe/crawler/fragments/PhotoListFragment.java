@@ -17,6 +17,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -57,6 +58,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public static final int COL_PHOTO_TITLE = 2;
     public static final int COL_PHOTO_URL = 3;
     public static final int COL_PHOTO_DESCRIPTION = 4;
+    public static final int COL_PHOTO_TIME = 5;
+
     private static final int PHOTOS_LOADER = 4;
     private static final String TAG = PhotoListFragment.class.getSimpleName();
     private static final int MENU_ITEM_SAVE = 0;
@@ -65,7 +68,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             CrawlerContract.PhotoEntry.COLUMN_PHOTO_NAME,
             CrawlerContract.PhotoEntry.COLUMN_PHOTO_TITLE,
             CrawlerContract.PhotoEntry.COLUMN_PHOTO_URL,
-            CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION,
+            CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME
     };
     private String mAlbumTitle;
     private String mAlbumID;
@@ -222,9 +226,11 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        menu.add(0, MENU_ITEM_SAVE, 0, getString(R.string.save_photo))
-                .setIcon(android.R.drawable.ic_menu_save)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        PhotoViewerFragment photoViewerFragment = mPhotoViewerInstance != null ?
+                mPhotoViewerInstance.get() : null;
+        if (photoViewerFragment == null || !photoViewerFragment.isResumed())
+            menu.add(0, MENU_ITEM_SAVE, 0, getString(R.string.save_photo)).setIcon(android.R.drawable.ic_menu_save)
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     }
 
     @Override
@@ -365,6 +371,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
         if (getActivity() != null) {
+            ActivityCompat.invalidateOptionsMenu(getActivity());
             PhotoViewerFragment photoViewerInstance = ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, isSlideShow);
             photoViewerInstance.setCursor(cursor, initPos);
