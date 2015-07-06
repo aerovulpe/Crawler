@@ -57,7 +57,7 @@ public class FileExplorerFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             mPath = new File(savedInstanceState.getString(ARG_PATH));
             mChosenDir = savedInstanceState.getString(ARG_CHOSEN_DIR);
             mTraversedDirs = savedInstanceState.getStringArrayList(ARG_TRAVERSED_DIRS);
@@ -150,7 +150,7 @@ public class FileExplorerFragment extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (mOnDirectorySelectedListener != null)
-                    mOnDirectorySelectedListener.onDirectorySelected(mPath.toString());
+                    mOnDirectorySelectedListener.onDirectorySelected(mPath.getAbsolutePath());
             }
         });
 
