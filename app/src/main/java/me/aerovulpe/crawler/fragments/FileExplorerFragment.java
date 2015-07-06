@@ -28,6 +28,7 @@ import me.aerovulpe.crawler.R;
  */
 public class FileExplorerFragment extends DialogFragment {
     private static final String TAG = "FileExplorerFragment";
+    private static final String ARG_TITLE = "me.aerovulpe.crawler.FileExplorerFragment.title";
     // Stores names of traversed directories
     ArrayList<String> mTraversedDirs = new ArrayList<>();
     // Check if the first level of the directory structure is the one showing
@@ -38,10 +39,20 @@ public class FileExplorerFragment extends DialogFragment {
     private String mChosenDir;
     private ListAdapter mAdapter;
     private OnDirectorySelectedListener mOnDirectorySelectedListener;
+    private String mTitle;
+
+    public static FileExplorerFragment newInstance(String title) {
+        Bundle args = new Bundle();
+        args.putString(ARG_TITLE, title);
+        FileExplorerFragment fragment = new FileExplorerFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mTitle = getArguments().getString(ARG_TITLE);
         loadFileList();
     }
 
@@ -88,6 +99,7 @@ public class FileExplorerFragment extends DialogFragment {
                             AlertDialog.Builder promptBuilder = new AlertDialog.Builder(activity);
                             promptBuilder.setView(promptView);
                             final EditText userInput = (EditText) promptView.findViewById(R.id.userInput);
+                            userInput.setText(mTitle);
                             promptBuilder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

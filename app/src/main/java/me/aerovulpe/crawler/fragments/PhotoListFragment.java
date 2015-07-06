@@ -236,13 +236,14 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case MENU_ITEM_SAVE:
-                FileExplorerFragment explorerDialog = new FileExplorerFragment();
+                FileExplorerFragment explorerDialog = FileExplorerFragment.newInstance(mAlbumTitle);
                 explorerDialog.setOnDirectorySelectedListener(new FileExplorerFragment.OnDirectorySelectedListener() {
                     @Override
                     public void onDirectorySelected(String chosenDirectory) {
                         Intent intent = new Intent(getActivity(), DownloaderService.class);
-                        intent.putExtra(DownloaderService.ARG_ALBUM_KEY_STRING, mAlbumID);
-                        intent.putExtra(DownloaderService.ARG_DESTINATION_STRING, chosenDirectory);
+                        intent.putExtra(DownloaderService.ARG_ALBUM_KEY, mAlbumID);
+                        intent.putExtra(DownloaderService.ARG_ALBUM_NAME, mAlbumTitle);
+                        intent.putExtra(DownloaderService.ARG_DESTINATION, chosenDirectory);
                         getActivity().startService(intent);
                     }
                 });

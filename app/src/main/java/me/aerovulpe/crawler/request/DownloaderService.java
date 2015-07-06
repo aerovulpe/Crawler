@@ -26,8 +26,9 @@ import me.aerovulpe.crawler.data.CrawlerContract;
  * Created by Aaron on 05/07/2015.
  */
 public class DownloaderService extends IntentService {
-    public static final String ARG_ALBUM_KEY_STRING = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.SELECTION_ARG";
-    public static final String ARG_DESTINATION_STRING = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.DESTINATION";
+    public static final String ARG_ALBUM_KEY = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.SELECTION_ARG";
+    public static final String ARG_ALBUM_NAME = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.ALBUM_NAME";
+    public static final String ARG_DESTINATION = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.DESTINATION";
     public static final String ACTION_CANCEL = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.ACTION_CANCEL";
     private boolean mIsRunning;
     private BroadcastReceiver mReceiver;
@@ -46,25 +47,17 @@ public class DownloaderService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        savePictures(intent.getStringExtra(ARG_ALBUM_KEY_STRING),
-                intent.getStringExtra(ARG_DESTINATION_STRING));
+        savePictures(intent.getStringExtra(ARG_ALBUM_KEY), intent.getStringExtra(ARG_ALBUM_NAME),
+                intent.getStringExtra(ARG_DESTINATION));
     }
 
-    private void savePictures(String albumKey, String destination) {
+    private void savePictures(String albumKey, String albumName, String destination) {
         mIsRunning = true;
         final Context context = getBaseContext();
         NotificationManager notificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         Notification.Builder builder = new Notification.Builder(context);
         ContentResolver contentResolver = getContentResolver();
-        String albumName = albumKey;
-        Cursor nameCursor = contentResolver.query(CrawlerContract.AccountEntry.CONTENT_URI,
-                new String[]{CrawlerContract.AccountEntry.COLUMN_ACCOUNT_NAME},
-                CrawlerContract.AccountEntry.COLUMN_ACCOUNT_ID + " == ?",
-                new String[]{albumKey}, null, null);
-        if (nameCursor.moveToFirst())
-            albumName = nameCursor.getString(0);
-        nameCursor.close();
         builder.setSmallIcon(R.drawable.ic_download);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.notification);
         views.setTextViewText(R.id.title, String.format(context
