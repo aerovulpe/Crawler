@@ -7,6 +7,7 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,11 +30,15 @@ import me.aerovulpe.crawler.R;
 public class FileExplorerFragment extends DialogFragment {
     private static final String TAG = "FileExplorerFragment";
     private static final String ARG_TITLE = "me.aerovulpe.crawler.FileExplorerFragment.title";
+    private static final String ARG_TRAVERSED_DIRS = "me.aerovulpe.crawler.FileExplorerFragment.traversed";
+    private static final String ARG_IS_FIRST_LVL = "me.aerovulpe.crawler.FileExplorerFragment.first_lvl";
+    private static final String ARG_PATH = "me.aerovulpe.crawler.FileExplorerFragment.path";
+    private static final String ARG_CHOSEN_DIR = "me.aerovulpe.crawler.FileExplorerFragment.chosen";
+
     // Stores names of traversed directories
     ArrayList<String> mTraversedDirs = new ArrayList<>();
     // Check if the first level of the directory structure is the one showing
     private boolean mIsFirstLvl = true;
-
     private Item[] mDirItems;
     private File mPath = Environment.getExternalStorageDirectory();
     private String mChosenDir;
@@ -52,6 +57,12 @@ public class FileExplorerFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            mPath = new File(savedInstanceState.getString(ARG_PATH));
+            mChosenDir = savedInstanceState.getString(ARG_CHOSEN_DIR);
+            mTraversedDirs = savedInstanceState.getStringArrayList(ARG_TRAVERSED_DIRS);
+            mIsFirstLvl = savedInstanceState.getBoolean(ARG_IS_FIRST_LVL);
+        }
         mTitle = getArguments().getString(ARG_TITLE);
         loadFileList();
     }
@@ -139,11 +150,20 @@ public class FileExplorerFragment extends DialogFragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (mOnDirectorySelectedListener != null)
-                    mOnDirectorySelectedListener.onDirectorySelected(mPath.getAbsolutePath());
+                    mOnDirectorySelectedListener.onDirectorySelected(mPath.toString());
             }
         });
 
         return builder.create();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ARG_PATH, mPath.getAbsolutePath());
+        outState.putString(ARG_CHOSEN_DIR, mChosenDir);
+        outState.putStringArrayList(ARG_TRAVERSED_DIRS, mTraversedDirs);
+        outState.putBoolean(ARG_IS_FIRST_LVL, mIsFirstLvl);
     }
 
     public void setOnDirectorySelectedListener(OnDirectorySelectedListener
