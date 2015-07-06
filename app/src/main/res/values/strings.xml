@@ -189,4 +189,8 @@
     <string name="saving_picture">"Saving picture: "</string>
     <string name="choose_a_directory">Choose a directory</string>
     <string name="enter_new_folder_name">Enter the name of the folder</string>
+    <string name="up">Up</string>
+    <string name="save">Save</string>
+    <string name="unable_to_write_to_sd_card">Unable to write to the SD Card.</string>
+    <string name="add_new_folder">Add New Folder</string>
 </resources>

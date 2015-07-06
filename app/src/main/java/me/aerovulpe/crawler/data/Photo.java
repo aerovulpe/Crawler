@@ -37,16 +37,10 @@ public final class Photo implements Serializable, Parcelable {
     private String mDescription;
     private long mTime;
 
-    /**
-     * Returns the photo mName.
-     */
     public String getName() {
         return mName;
     }
 
-    /**
-     * Sets the mName of the photo.
-     */
     public void setName(String name) {
         mName = name;
     }
@@ -76,16 +70,10 @@ public final class Photo implements Serializable, Parcelable {
         mTime = time;
     }
 
-    /**
-     * Returns the URL to the highest resolution version of the photo.
-     */
     public String getImageUrl() {
         return mImageUrl;
     }
 
-    /**
-     * Sets the URL to the highest resolution version of the photo.
-     */
     public void setImageUrl(String imageUrl) {
         mImageUrl = imageUrl;
     }
@@ -123,9 +111,6 @@ public final class Photo implements Serializable, Parcelable {
         dest.writeByteArray(convertToBytes());
     }
 
-    /**
-     * Returns the serialized Photo object.
-     */
     public byte[] convertToBytes() {
         try {
             ByteArrayOutputStream result = new ByteArrayOutputStream();

@@ -28,7 +28,6 @@ import me.aerovulpe.crawler.R;
  */
 public class FileExplorerFragment extends DialogFragment {
     private static final String TAG = "FileExplorerFragment";
-    private static final String ARG_PATH = "me.aerovulpe.crawler.FileExplorerFragment";
     // Stores names of traversed directories
     ArrayList<String> mTraversedDirs = new ArrayList<>();
     // Check if the first level of the directory structure is the one showing
@@ -69,7 +68,7 @@ public class FileExplorerFragment extends DialogFragment {
                             mTraversedDirs.add(mChosenDir);
                             mPath = selectedDir;
                             reloadDialog();
-                        } else if (mChosenDir.equalsIgnoreCase("up") && !selectedDir.exists()) {
+                        } else if (mChosenDir.equals(getString(R.string.up)) && !selectedDir.exists()) {
                             // We can safely assume the up item was clicked
                             // Present directory removed from list
                             String dirStr = mTraversedDirs.remove(mTraversedDirs.size() - 1);
@@ -89,7 +88,7 @@ public class FileExplorerFragment extends DialogFragment {
                             AlertDialog.Builder promptBuilder = new AlertDialog.Builder(activity);
                             promptBuilder.setView(promptView);
                             final EditText userInput = (EditText) promptView.findViewById(R.id.userInput);
-                            promptBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            promptBuilder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     mChosenDir = userInput.getText().toString();
@@ -103,7 +102,7 @@ public class FileExplorerFragment extends DialogFragment {
                                     }
 
                                 }
-                            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.cancel();
@@ -119,12 +118,12 @@ public class FileExplorerFragment extends DialogFragment {
                         show(getFragmentManager(), getTag());
                     }
                 });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dismiss();
             }
-        }).setPositiveButton("Save", new DialogInterface.OnClickListener() {
+        }).setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (mOnDirectorySelectedListener != null)
@@ -142,7 +141,7 @@ public class FileExplorerFragment extends DialogFragment {
 
     private void loadFileList() {
         // Checks whether the path exists
-        String failedMsg = "Unable to write to the SD Card.";
+        String failedMsg = getString(R.string.unable_to_write_to_sd_card);
         try {
             if (!(mPath.mkdir() || mPath.isDirectory()))
                 throw new Exception(failedMsg);
@@ -171,12 +170,12 @@ public class FileExplorerFragment extends DialogFragment {
         if (mIsFirstLvl) {
             temp = new Item[dirsLength + 1];
             System.arraycopy(mDirItems, 0, temp, 1, dirsLength);
-            temp[0] = new Item("Add New Folder", R.drawable.ic_add_black_24dp);
+            temp[0] = new Item(getString(R.string.add_new_folder), R.drawable.ic_add_black_24dp);
         } else {
             temp = new Item[dirsLength + 2];
             System.arraycopy(mDirItems, 0, temp, 2, dirsLength);
-            temp[0] = new Item("Up", R.drawable.ic_keyboard_arrow_up_black_24dp);
-            temp[1] = new Item("Add New Folder", R.drawable.ic_add_black_24dp);
+            temp[0] = new Item(getString(R.string.up), R.drawable.ic_keyboard_arrow_up_black_24dp);
+            temp[1] = new Item(getString(R.string.add_new_folder), R.drawable.ic_add_black_24dp);
         }
         mDirItems = temp;
 

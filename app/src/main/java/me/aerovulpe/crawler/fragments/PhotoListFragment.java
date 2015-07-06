@@ -17,7 +17,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -371,7 +370,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
 
     private void displayPhoto(final Cursor cursor, final int initPos, final boolean isSlideShow) {
         if (getActivity() != null) {
-            ActivityCompat.invalidateOptionsMenu(getActivity());
             PhotoViewerFragment photoViewerInstance = ((PhotoManager) getActivity())
                     .createPhotoViewerInstance(mAlbumTitle, isSlideShow);
             photoViewerInstance.setCursor(cursor, initPos);
