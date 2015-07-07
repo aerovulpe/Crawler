@@ -98,7 +98,9 @@ public class InfoDialogFragment extends DialogFragment {
     }
 
     public void setComponents(Dialog dialog, Bundle args) {
-        if (args != null){
+        if (dialog == null) return;
+
+        if (args != null) {
             mAccountType = args.getInt(ARG_ACCOUNT_TYPE);
             mAccountId = args.getString(ARG_ACCOUNT_ID);
             mAccountName = args.getString(ARG_ACCOUNT_NAME);

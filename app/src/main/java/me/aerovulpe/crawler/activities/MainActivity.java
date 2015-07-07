@@ -143,7 +143,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
             if (sharedPref.getBoolean(FIRST_TIME, true)) {
                 CrawlerSyncAdapter.initializeSyncAdapter(this);
                 sharedPref.edit().putBoolean(FIRST_TIME, false).apply();
-            }
+            } else CrawlerSyncAdapter.syncImmediately(this, null);
 
             final Intent intent = getIntent();
             if (intent.hasExtra(AccountsActivity.ARG_ACCOUNT_ID) &&

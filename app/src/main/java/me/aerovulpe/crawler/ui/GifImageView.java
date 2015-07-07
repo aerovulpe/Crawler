@@ -32,6 +32,7 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
  * Created by Aaron on 04/07/2015.
  */
 public class GifImageView extends ImageView {
+    private static volatile SimpleDiskCache sGifCache;
     private GifThread mGifThread;
 
     public GifImageView(Context context) {
@@ -64,21 +65,22 @@ public class GifImageView extends ImageView {
     }
 
     public void stopGif() {
-        if (mGifThread != null) {
-            mGifThread.interrupt();
-        }
+        if (mGifThread == null)
+            return;
+        mGifThread.interrupt();
+        mGifThread.forgetGifImageView();
     }
 
     private static void initGifCache(Context context) {
         synchronized (GifThread.class) {
-            if (GifThread.sGifCache != null)
+            if (sGifCache != null)
                 return;
 
             try {
                 final int appVersion = 1;
                 final int maxSize = SettingsFragment
                         .getCurrentCacheValueInBytes(context) / 4;
-                GifThread.sGifCache = SimpleDiskCache.open(new File(context
+                sGifCache = SimpleDiskCache.open(new File(context
                                 .getCacheDir().getAbsolutePath() + "/gifCache"),
                         appVersion, maxSize);
             } catch (IOException e) {
@@ -90,7 +92,7 @@ public class GifImageView extends ImageView {
     public static void clearGifCache(Context context) {
         try {
             initGifCache(context);
-            GifThread.sGifCache.clear();
+            sGifCache.clear();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -98,20 +100,20 @@ public class GifImageView extends ImageView {
 
     public static void setMaxGifCacheSize(Context context, long maxSize) {
         initGifCache(context);
-        GifThread.sGifCache.setMaxSize(maxSize);
+        sGifCache.setMaxSize(maxSize);
     }
 
     public static boolean saveGif(Context context, String url, File file)
             throws IOException {
         initGifCache(context);
-        if (!GifThread.sGifCache.contains(url)) {
+        if (!sGifCache.contains(url)) {
             return false;
         } else {
             SimpleDiskCache.InputStreamEntry streamEntry = null;
             InputStream inputStream = null;
             OutputStream outputStream = null;
             try {
-                streamEntry = GifThread.sGifCache
+                streamEntry = sGifCache
                         .getInputStream(url);
                 inputStream = streamEntry.getInputStream();
                 outputStream = new FileOutputStream(file);
@@ -128,12 +130,11 @@ public class GifImageView extends ImageView {
 
     private static class GifThread extends Thread {
         private static final String TAG = "GifThread";
-        private static volatile SimpleDiskCache sGifCache;
         private WeakReference<GifImageView> mGifImageViewRef;
         private Handler mHandler;
         private String mUrl;
 
-        public GifThread(GifImageView gifImageView, String url) {
+        private GifThread(GifImageView gifImageView, String url) {
             mGifImageViewRef = new WeakReference<>(gifImageView);
             mHandler = new Handler();
             mUrl = url;
@@ -170,7 +171,7 @@ public class GifImageView extends ImageView {
                     for (int i = 0; i < frameCount; i++) {
                         final Bitmap nextBitmap = gifDecoder.getNextFrame();
                         int delay = gifDecoder.getDelay(i);
-                        if (delay == 0) delay = 95;
+                        if (delay <= 0) delay = 95;
                         mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
@@ -193,6 +194,10 @@ public class GifImageView extends ImageView {
             } catch (IllegalStateException e) {
                 Log.w(TAG, "Bitmap was not ready.");
             }
+        }
+
+        private void forgetGifImageView() {
+            mGifImageViewRef.clear();
         }
     }
 
