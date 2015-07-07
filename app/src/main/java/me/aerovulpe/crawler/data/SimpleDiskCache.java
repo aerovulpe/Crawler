@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.data;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.jakewharton.disklrucache.DiskLruCache;
 
@@ -36,6 +37,7 @@ public class SimpleDiskCache {
     private static final int VALUE_IDX = 0;
     private static final int METADATA_IDX = 1;
     private static final List<File> usedDirs = new ArrayList<>();
+    private static final String TAG = "SimpleDiskCache";
 
     private DiskLruCache diskLruCache;
     private int mAppVersion;
@@ -116,12 +118,15 @@ public class SimpleDiskCache {
     public synchronized OutputStream openStream(String key, Map<String, ? extends Serializable> metadata)
             throws IOException {
         DiskLruCache.Editor editor = diskLruCache.edit(toInternalKey(key));
-        if (editor == null) return new OutputStream() {
-            @Override
-            public void write(int oneByte) throws IOException {
-                // DO NOTHING
-            }
-        };
+        if (editor == null) {
+            Log.e(TAG, "Unable to open stream.");
+            return new OutputStream() {
+                @Override
+                public void write(int oneByte) throws IOException {
+                    // DO NOTHING
+                }
+            };
+        }
         try {
             writeMetadata(metadata, editor);
             BufferedOutputStream bos = new BufferedOutputStream(editor.newOutputStream(VALUE_IDX));
