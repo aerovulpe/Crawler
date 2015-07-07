@@ -122,15 +122,17 @@ public class CrawlerApplication extends Application {
     }
 
     public static void loadAd(AdView adView) {
+        if (DEBUG_MODE)
+            return;
         AdRequest.Builder builder = getBuilder();
-        if (!DEBUG_MODE)
-            adView.loadAd(builder.build());
+        adView.loadAd(builder.build());
     }
 
     public static void loadAd(InterstitialAd adView) {
+        if (DEBUG_MODE)
+            return;
         AdRequest.Builder builder = getBuilder();
-        if (!DEBUG_MODE)
-            adView.loadAd(builder.build());
+        adView.loadAd(builder.build());
     }
 
     private static AdRequest.Builder getBuilder() {
