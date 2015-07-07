@@ -33,6 +33,7 @@ import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.InfoDialogFragment;
 import me.aerovulpe.crawler.request.CategoriesRequest;
 import me.aerovulpe.crawler.request.RequestInfo;
+import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -75,6 +76,7 @@ public class AccountsActivity extends BaseActivity implements LoaderManager.Load
 
         if (savedInstanceState == null) {
             new CategoriesRequest(this).execute();
+            CrawlerSyncAdapter.syncImmediately(this, null);
             CrawlerApplication.checkIfTestDevice(this);
         }
 
