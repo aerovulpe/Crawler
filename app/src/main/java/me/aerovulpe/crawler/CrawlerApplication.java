@@ -43,7 +43,7 @@ public class CrawlerApplication extends Application {
     /**
      * Used for storing files on the file system as a directory.
      */
-    public static final String APP_NAME_PATH = "me.aerovulpe.crawler";
+    public static final String PACKAGE_NAME = "me.aerovulpe.crawler";
     /**
      * The size of the album thumbnails (in dp).
      */

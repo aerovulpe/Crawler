@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.fragments.SettingsFragment;
@@ -33,8 +34,8 @@ public class CrawlerSyncAdapter extends AbstractThreadedSyncAdapter {
     // 60 seconds (1 minute) * 180 = 3 hours
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
-    public static final String SYNC_URL = "me.aerovulpe.crawler.SYNC_URL";
-    private static final String LOG_TAG = CrawlerSyncAdapter.class.getSimpleName();
+    public static final String SYNC_URL = CrawlerApplication.PACKAGE_NAME +
+            ".SYNC_URL";
 
 
     /**

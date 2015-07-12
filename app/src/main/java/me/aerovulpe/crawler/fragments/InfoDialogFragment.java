@@ -15,6 +15,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.Utils;
 
@@ -22,12 +23,18 @@ import me.aerovulpe.crawler.Utils;
  * Created by Aaron on 08/06/2015.
  */
 public class InfoDialogFragment extends DialogFragment {
-    private static final String ARG_ACCOUNT_TYPE = InfoDialogFragment.class.getName() + "account_type";
-    private static final String ARG_ACCOUNT_ID = InfoDialogFragment.class.getName() + "account_id";
-    private static final String ARG_ACCOUNT_NAME = InfoDialogFragment.class.getName() + "account_name";
-    private static final String ARG_ACCOUNT_DESC = InfoDialogFragment.class.getName() + "account_desc";
-    private static final String ARG_ACCOUNT_PREVIEW_URL = InfoDialogFragment.class.getName() + "account_preview_url";
-    private static final String ARG_ACCOUNT_NUM_OF_POSTS = InfoDialogFragment.class.getName() + "account_num_of_posts";
+    private static final String ARG_ACCOUNT_TYPE = CrawlerApplication.PACKAGE_NAME +
+            "account_type";
+    private static final String ARG_ACCOUNT_ID = CrawlerApplication.PACKAGE_NAME +
+            "account_id";
+    private static final String ARG_ACCOUNT_NAME = CrawlerApplication.PACKAGE_NAME +
+            "account_name";
+    private static final String ARG_ACCOUNT_DESC = CrawlerApplication.PACKAGE_NAME +
+            "account_desc";
+    private static final String ARG_ACCOUNT_PREVIEW_URL = CrawlerApplication.PACKAGE_NAME +
+            "account_preview_url";
+    private static final String ARG_ACCOUNT_NUM_OF_POSTS = CrawlerApplication.PACKAGE_NAME +
+            "account_num_of_posts";
 
     private int mAccountType;
     private String mAccountId;

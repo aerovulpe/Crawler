@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 
 /**
@@ -29,11 +30,16 @@ import me.aerovulpe.crawler.R;
  */
 public class FileExplorerFragment extends DialogFragment {
     private static final String TAG = "FileExplorerFragment";
-    private static final String ARG_TITLE = "me.aerovulpe.crawler.FileExplorerFragment.title";
-    private static final String ARG_TRAVERSED_DIRS = "me.aerovulpe.crawler.FileExplorerFragment.traversed";
-    private static final String ARG_IS_FIRST_LVL = "me.aerovulpe.crawler.FileExplorerFragment.first_lvl";
-    private static final String ARG_PATH = "me.aerovulpe.crawler.FileExplorerFragment.path";
-    private static final String ARG_CHOSEN_DIR = "me.aerovulpe.crawler.FileExplorerFragment.chosen";
+    private static final String ARG_TITLE = CrawlerApplication.PACKAGE_NAME +
+            ".FileExplorerFragment.title";
+    private static final String ARG_TRAVERSED_DIRS = CrawlerApplication.PACKAGE_NAME +
+            ".FileExplorerFragment.traversed";
+    private static final String ARG_IS_FIRST_LVL = CrawlerApplication.PACKAGE_NAME +
+            ".FileExplorerFragment.first_lvl";
+    private static final String ARG_PATH = CrawlerApplication.PACKAGE_NAME +
+            ".FileExplorerFragment.path";
+    private static final String ARG_CHOSEN_DIR = CrawlerApplication.PACKAGE_NAME +
+            ".FileExplorerFragment.chosen";
 
     // Stores names of traversed directories
     ArrayList<String> mTraversedDirs = new ArrayList<>();

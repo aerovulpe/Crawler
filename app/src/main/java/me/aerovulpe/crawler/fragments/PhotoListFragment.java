@@ -48,10 +48,14 @@ import me.aerovulpe.crawler.request.TumblrRequest;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_LIST.album_title";
-    public static final String ARG_ALBUM_ID = "me.aerovulpe.crawler.PHOTO_LIST.album_id";
-    public static final String ARG_PHOTO_DATA_URL = "me.aerovulpe.crawler.PHOTO_LIST.photo_data_url";
-    public static final String ARG_TYPE = "me.aerovulpe.crawler.PHOTO_LIST.type";
+    public static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.album_title";
+    public static final String ARG_ALBUM_ID = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.album_id";
+    public static final String ARG_PHOTO_DATA_URL = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.photo_data_url";
+    public static final String ARG_TYPE = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.type";
 
     public static final int COL_PHOTO_NAME = 1;
     public static final int COL_PHOTO_TITLE = 2;

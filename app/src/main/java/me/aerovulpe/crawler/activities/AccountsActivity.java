@@ -37,10 +37,14 @@ import me.aerovulpe.crawler.sync.CrawlerSyncAdapter;
 
 
 public class AccountsActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final String ARG_ACCOUNT_ID = "me.aerovulpe.crawler.ACCOUNTS.account_id";
-    public static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.ACCOUNTS.account_type";
-    public static final String ARG_ACCOUNT_NAME = "me.aerovulpe.crawler.ACCOUNTS.account_name";
-    public static final String ARG_DRAWER_POS = "me.aerovulpe.crawler.DRAWER.drawer_pos";
+    public static final String ARG_ACCOUNT_ID = CrawlerApplication.PACKAGE_NAME +
+            ".ACCOUNTS.account_id";
+    public static final String ARG_ACCOUNT_TYPE = CrawlerApplication.PACKAGE_NAME +
+            ".ACCOUNTS.account_type";
+    public static final String ARG_ACCOUNT_NAME = CrawlerApplication.PACKAGE_NAME +
+            ".ACCOUNTS.account_name";
+    public static final String ARG_DRAWER_POS = CrawlerApplication.PACKAGE_NAME +
+            ".DRAWER.drawer_pos";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_NAME = 2;
     public static final int COL_ACCOUNT_TYPE = 3;

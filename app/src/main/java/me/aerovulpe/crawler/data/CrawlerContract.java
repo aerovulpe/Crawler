@@ -4,6 +4,8 @@ import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import me.aerovulpe.crawler.CrawlerApplication;
+
 /**
  * Created by Aaron on 24/03/2015.
  */
@@ -12,7 +14,7 @@ public class CrawlerContract {
     // relationship between a domain name and its website.  A convenient string to use for the
     // content authority is the package name for the app, which is guaranteed to be unique on the
     // device.
-    public static final String CONTENT_AUTHORITY = "me.aerovulpe.crawler";
+    public static final String CONTENT_AUTHORITY = CrawlerApplication.PACKAGE_NAME;
 
     // Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact
     // the content provider.

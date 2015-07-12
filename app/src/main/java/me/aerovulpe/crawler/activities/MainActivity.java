@@ -52,7 +52,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private static final int CONTEXT_MENU_INFO = 0;
     private static final int CONTEXT_MENU_EDIT = 1;
     private static final int CONTEXT_MENU_DELETE = 2;
-    private static final String FIRST_TIME = "me.aerovulpe.crawler.FIRST_TIME";
+    private static final String FIRST_TIME = CrawlerApplication.PACKAGE_NAME + ".FIRST_TIME";
     private FragmentManager mManager;
     private ListView mDrawerList;
     private AccountsAdapter mAccountsAdapter;
@@ -139,7 +139,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
 
         if (savedInstanceState == null) {
             SharedPreferences sharedPref =
-                    getSharedPreferences(CrawlerApplication.APP_NAME_PATH, MODE_PRIVATE);
+                    getSharedPreferences(CrawlerApplication.PACKAGE_NAME, MODE_PRIVATE);
             if (sharedPref.getBoolean(FIRST_TIME, true)) {
                 CrawlerSyncAdapter.initializeSyncAdapter(this);
                 sharedPref.edit().putBoolean(FIRST_TIME, false).apply();

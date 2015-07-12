@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.RequestInfo;
@@ -24,13 +25,20 @@ import me.aerovulpe.crawler.Utils;
  * Created by Aaron on 14/05/2015.
  */
 public class ExplorerDetailFragment extends DialogFragment {
-    private static final String ARG_ID = "me.aerovulpe.crawler.ExplorerDetailFragment.id";
-    private static final String ARG_TITLE = "me.aerovulpe.crawler.ExplorerDetailFragment.title";
-    private static final String ARG_NAME = "me.aerovulpe.crawler.ExplorerDetailFragment.name";
-    private static final String ARG_THUMBNAIL_URL = "me.aerovulpe.crawler.ExplorerDetailFragment.thumbnail_url";
-    private static final String ARG_DESCRIPTION = "me.aerovulpe.crawler.ExplorerDetailFragment.description";
-    private static final String ARG_NUM_OF_POSTS = "me.aerovulpe.crawler.ExplorerDetailFragment.num_of_posts";
-    private static final String ARG_TYPE = "me.aerovulpe.crawler.ExplorerDetailFragment.type";
+    private static final String ARG_ID = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.id";
+    private static final String ARG_TITLE = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.title";
+    private static final String ARG_NAME = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.name";
+    private static final String ARG_THUMBNAIL_URL = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.thumbnail_url";
+    private static final String ARG_DESCRIPTION = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.description";
+    private static final String ARG_NUM_OF_POSTS = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.num_of_posts";
+    private static final String ARG_TYPE = CrawlerApplication.PACKAGE_NAME +
+            ".ExplorerDetailFragment.type";
 
     private String mTitle;
     private String mName;

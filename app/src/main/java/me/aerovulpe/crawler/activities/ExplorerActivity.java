@@ -27,8 +27,10 @@ import me.aerovulpe.crawler.fragments.ExplorerFragment;
 
 public class ExplorerActivity extends BaseActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final int COL_CATEGORY_NAME = 1;
-    public static final String ARG_SPINNER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.spinner_selection";
-    public static final String ARG_VIEWPAGER_SELECTION = "me.aerovulpe.crawler.activities.ExplorerActivity.viewpager_selection";
+    public static final String ARG_SPINNER_SELECTION = CrawlerApplication.PACKAGE_NAME +
+            ".activities.ExplorerActivity.spinner_selection";
+    public static final String ARG_VIEWPAGER_SELECTION = CrawlerApplication.PACKAGE_NAME +
+            ".activities.ExplorerActivity.viewpager_selection";
     public int mSpinnerPos;
     public int mViewPagerPos;
 

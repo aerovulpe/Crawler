@@ -29,6 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.activities.AccountsActivity;
 import me.aerovulpe.crawler.activities.MainActivity;
@@ -39,7 +40,8 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
  * Created by Aaron on 07/04/2015.
  */
 public abstract class Request implements Runnable {
-    protected static final String REQUEST_PREF = "me.aerovulpe.crawler.REQUEST_PREF";
+    protected static final String REQUEST_PREF = CrawlerApplication.PACKAGE_NAME +
+            ".REQUEST_PREF";
     private static final String LAST_PHOTO_ID_SUFFIX = ".LAST_PHOTO_ID";
     private static final String NUM_OF_PHOTOS_SUFFIX = ".NUM_OF_PHOTOS";
     private static final String INITIAL_PAGE_SUFFIX = ".INITIAL_PAGE";

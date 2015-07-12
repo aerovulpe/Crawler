@@ -11,17 +11,20 @@ import java.util.HashSet;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import me.aerovulpe.crawler.CrawlerApplication;
+
 /**
  * Created by Aaron on 14/04/2015.
  */
 public class RequestService extends Service {
-    public static final String ARG_RAW_URL = "me.aerovulpe.crawler.REQUEST_SERVICE.RAW_URL";
-    public static final String ARG_REQUEST_TYPE = "me.aerovulpe.crawler.REQUEST_SERVICE.REQUEST_TYPE";
-    public static final String ACTION_NOTIFY_PROGRESS =
-            "me.aerovulpe.crawler.REQUEST_SERVICE.NOTIFY_PROGRESS";
-    public static final String ACTION_CLEAR_ALL_NOTIFICATIONS =
-            "me.aerovulpe.crawler.REQUEST_SERVICE.CLEAR_ALL_NOTIFICATIONS";
-    private static final String LOG_TAG = RequestService.class.getSimpleName();
+    public static final String ARG_RAW_URL = CrawlerApplication.PACKAGE_NAME +
+            ".REQUEST_SERVICE.RAW_URL";
+    public static final String ARG_REQUEST_TYPE = CrawlerApplication.PACKAGE_NAME +
+            ".REQUEST_SERVICE.REQUEST_TYPE";
+    public static final String ACTION_NOTIFY_PROGRESS = CrawlerApplication.PACKAGE_NAME +
+            "REQUEST_SERVICE.NOTIFY_PROGRESS";
+    public static final String ACTION_CLEAR_ALL_NOTIFICATIONS = CrawlerApplication.PACKAGE_NAME +
+            ".REQUEST_SERVICE.CLEAR_ALL_NOTIFICATIONS";
     private static final int KEEP_ALIVE_TIME = 5;
     private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
     private static int NUMBER_OF_CORES =

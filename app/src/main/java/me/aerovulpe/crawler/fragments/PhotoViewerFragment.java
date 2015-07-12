@@ -44,12 +44,11 @@ import me.aerovulpe.crawler.Utils;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 
-    public static final String LOG_PREFIX = PhotoViewerFragment.class.getSimpleName();
-
     public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1, MENU_ITEM_SHOW_DETAILS = 2,
             MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5;
 
-    public static final String ARG_ALBUM_TITLE = "me.aerovulpe.crawler.PHOTO_VIEW.album_title";
+    public static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_VIEW.album_title";
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private int mCurrentPhotoIndex;
@@ -95,7 +94,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         if (args != null) {
             mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
         }
-        mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
+        mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.PACKAGE_NAME,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
         setHasOptionsMenu(true);
         setRetainInstance(true);
@@ -117,7 +116,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
         mViewPager.setAdapter(new PhotoViewerAdapter(getActivity(), null, mAlbumTitle, this));
         mViewPager.setBackgroundResource(R.drawable.photo_viewer_background);
         changePagerScroller();
-        setShowText(getActivity().getSharedPreferences(CrawlerApplication.APP_NAME_PATH,
+        setShowText(getActivity().getSharedPreferences(CrawlerApplication.PACKAGE_NAME,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, true));
         return rootView;
     }
@@ -181,7 +180,7 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                     }
                 });
         }
-        activity.getSharedPreferences(CrawlerApplication.APP_NAME_PATH, Context.MODE_PRIVATE).edit()
+        activity.getSharedPreferences(CrawlerApplication.PACKAGE_NAME, Context.MODE_PRIVATE).edit()
                 .putBoolean(CrawlerApplication.PHOTO_DETAIL_KEY, mShowText)
                 .putBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, mIsFullscreen).apply();
     }

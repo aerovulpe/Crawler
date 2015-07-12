@@ -24,7 +24,6 @@ public class TumblrRequest extends Request {
     public static final String API_KEY_PARAM = "api_key";
     private static final String LIMIT_PARAM = "limit";
     private static final String OFFSET_PARAM = "offset";
-    private static final String LOG_TAG = TumblrRequest.class.getSimpleName();
 
     public TumblrRequest(RequestService requestService, String albumId) {
         super(requestService, albumId);

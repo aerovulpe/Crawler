@@ -34,11 +34,16 @@ import me.aerovulpe.crawler.Utils;
  * Created by Aaron on 07/05/2015.
  */
 public class ExplorerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, ExplorerRequestObserver {
-    private static final String ARG_ACCOUNT_TYPE = "me.aerovulpe.crawler.EXPLORER.account_type";
-    private static final String ARG_CATEGORY_NAME = "me.aerovulpe.crawler.EXPLORER.category_name";
-    private static final String ARG_CURRENT_INDEX = "me.aerovulpe.crawler.EXPLORER.current_index";
-    private static final String ARG_DETAIL_FRAGMENT = "me.aerovulpe.crawler.EXPLORER.detail_fragment";
-    private static final String ARG_IS_LOADING = "me.aerovulpe.crawler.EXPLORER.is_loading";
+    private static final String ARG_ACCOUNT_TYPE = CrawlerApplication.PACKAGE_NAME +
+            ".EXPLORER.account_type";
+    private static final String ARG_CATEGORY_NAME = CrawlerApplication.PACKAGE_NAME +
+            ".EXPLORER.category_name";
+    private static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
+            ".EXPLORER.current_index";
+    private static final String ARG_DETAIL_FRAGMENT = CrawlerApplication.PACKAGE_NAME +
+            ".EXPLORER.detail_fragment";
+    private static final String ARG_IS_LOADING = CrawlerApplication.PACKAGE_NAME +
+            ".EXPLORER.is_loading";
     public static final int COL_ACCOUNT_ID = 1;
     public static final int COL_ACCOUNT_TITLE = 2;
     public static final int COL_ACCOUNT_NAME = 3;

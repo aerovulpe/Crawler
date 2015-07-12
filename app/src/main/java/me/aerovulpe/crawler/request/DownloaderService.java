@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.data.CrawlerContract;
@@ -26,10 +27,14 @@ import me.aerovulpe.crawler.data.CrawlerContract;
  * Created by Aaron on 05/07/2015.
  */
 public class DownloaderService extends IntentService {
-    public static final String ARG_ALBUM_KEY = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.SELECTION_ARG";
-    public static final String ARG_ALBUM_NAME = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.ALBUM_NAME";
-    public static final String ARG_DESTINATION = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.DESTINATION";
-    public static final String ACTION_CANCEL = "me.aerovulpe.crawler.DOWNLOAD_SERVICE.ACTION_CANCEL";
+    public static final String ARG_ALBUM_KEY = CrawlerApplication.PACKAGE_NAME +
+            ".DOWNLOAD_SERVICE.SELECTION_ARG";
+    public static final String ARG_ALBUM_NAME = CrawlerApplication.PACKAGE_NAME +
+            ".DOWNLOAD_SERVICE.ALBUM_NAME";
+    public static final String ARG_DESTINATION = CrawlerApplication.PACKAGE_NAME +
+            ".DOWNLOAD_SERVICE.DESTINATION";
+    public static final String ACTION_CANCEL = CrawlerApplication.PACKAGE_NAME +
+            ".DOWNLOAD_SERVICE.ACTION_CANCEL";
     private boolean mIsRunning;
     private BroadcastReceiver mReceiver;
 
