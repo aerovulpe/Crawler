@@ -22,7 +22,7 @@ public class RequestService extends Service {
     public static final String ARG_REQUEST_TYPE = CrawlerApplication.PACKAGE_NAME +
             ".REQUEST_SERVICE.REQUEST_TYPE";
     public static final String ACTION_NOTIFY_PROGRESS = CrawlerApplication.PACKAGE_NAME +
-            "REQUEST_SERVICE.NOTIFY_PROGRESS";
+            ".REQUEST_SERVICE.NOTIFY_PROGRESS";
     public static final String ACTION_CLEAR_ALL_NOTIFICATIONS = CrawlerApplication.PACKAGE_NAME +
             ".REQUEST_SERVICE.CLEAR_ALL_NOTIFICATIONS";
     private static final int KEEP_ALIVE_TIME = 5;

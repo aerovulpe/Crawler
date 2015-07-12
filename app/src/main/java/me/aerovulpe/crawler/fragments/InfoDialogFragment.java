@@ -24,17 +24,17 @@ import me.aerovulpe.crawler.Utils;
  */
 public class InfoDialogFragment extends DialogFragment {
     private static final String ARG_ACCOUNT_TYPE = CrawlerApplication.PACKAGE_NAME +
-            "account_type";
+            ".account_type";
     private static final String ARG_ACCOUNT_ID = CrawlerApplication.PACKAGE_NAME +
-            "account_id";
+            ".account_id";
     private static final String ARG_ACCOUNT_NAME = CrawlerApplication.PACKAGE_NAME +
-            "account_name";
+            ".account_name";
     private static final String ARG_ACCOUNT_DESC = CrawlerApplication.PACKAGE_NAME +
-            "account_desc";
+            ".account_desc";
     private static final String ARG_ACCOUNT_PREVIEW_URL = CrawlerApplication.PACKAGE_NAME +
-            "account_preview_url";
+            ".account_preview_url";
     private static final String ARG_ACCOUNT_NUM_OF_POSTS = CrawlerApplication.PACKAGE_NAME +
-            "account_num_of_posts";
+            ".account_num_of_posts";
 
     private int mAccountType;
     private String mAccountId;
