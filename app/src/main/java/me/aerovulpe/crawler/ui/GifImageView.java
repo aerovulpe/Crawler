@@ -171,7 +171,7 @@ public class GifImageView extends ImageView {
                     for (int i = 0; i < frameCount; i++) {
                         final Bitmap nextBitmap = gifDecoder.getNextFrame();
                         int delay = gifDecoder.getDelay(i);
-                        if (delay <= 0) delay = 95;
+                        if (delay <= 0) delay = 50;
                         mHandler.post(new Runnable() {
                             public void run() {
                                 if (nextBitmap != null && !nextBitmap.isRecycled()) {
