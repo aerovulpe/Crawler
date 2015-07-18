@@ -193,4 +193,6 @@
     <string name="save">Save</string>
     <string name="unable_to_write_to_sd_card">Unable to write to the SD Card.</string>
     <string name="add_new_folder">Add New Folder</string>
+    <string name="could_not_save">Couldn\'t save %s</string>
+    <string name="pictures">pictures</string>
 </resources>

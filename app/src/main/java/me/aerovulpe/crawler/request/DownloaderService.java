@@ -81,6 +81,18 @@ public class DownloaderService extends IntentService {
                         CrawlerContract.PhotoEntry.COLUMN_PHOTO_DESCRIPTION,
                         CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME
                 }, null, null, CrawlerContract.PhotoEntry.COLUMN_PHOTO_TIME + " DESC");
+
+        if (picturesCursor == null) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, String.format(getString(R.string.could_not_save),
+                            getString(R.string.pictures)), Toast.LENGTH_SHORT).show();
+                }
+            });
+            return;
+        }
+
         int cnt = picturesCursor.getCount();
         int idx = 0;
         picturesCursor.moveToPosition(-1);
@@ -103,8 +115,8 @@ public class DownloaderService extends IntentService {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(context, "Couldn't save " + finalPhotoTitle,
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, String.format(getString(R.string.could_not_save),
+                                finalPhotoTitle), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
