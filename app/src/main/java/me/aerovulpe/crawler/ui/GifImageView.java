@@ -3,6 +3,7 @@ package me.aerovulpe.crawler.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
@@ -54,9 +55,18 @@ public class GifImageView extends ImageView {
     }
 
     public void playGif(String url) {
+        mGifThread = new GifThread(this, url);
+        playGif();
+    }
+
+    public void playGif(InputStream inputStream) {
+        mGifThread = new GifThread(this, inputStream);
+        playGif();
+    }
+
+    private void playGif() {
         try {
             stopGif();
-            mGifThread = new GifThread(this, url);
             mGifThread.start();
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
@@ -133,38 +143,53 @@ public class GifImageView extends ImageView {
         private WeakReference<GifImageView> mGifImageViewRef;
         private Handler mHandler;
         private String mUrl;
+        private InputStream mInputStream;
 
-        private GifThread(GifImageView gifImageView, String url) {
+        private GifThread(GifImageView gifImageView) {
             mGifImageViewRef = new WeakReference<>(gifImageView);
             mHandler = new Handler();
-            mUrl = url;
             initGifCache(gifImageView.getContext());
+        }
+
+        private GifThread(GifImageView gifImageView, @NonNull String url) {
+            this(gifImageView);
+            mUrl = url;
+        }
+
+        private GifThread(GifImageView gifImageView, @NonNull InputStream inputStream) {
+            this(gifImageView);
+            mInputStream = inputStream;
         }
 
         @Override
         public void run() {
             try {
                 GifDecoder gifDecoder = new GifDecoder();
-                if (!sGifCache.contains(mUrl)) {
-                    GifImageView gifImageView = mGifImageViewRef.get();
-                    Context context = gifImageView != null ? gifImageView.getContext() : null;
-                    if (context != null &&
-                            !Utils.Android.isConnectedToWifi(context) &&
-                            !Utils.Android.isConnectedToWired(context) &&
-                            !SettingsFragment.downloadOffWifi(context))
-                        return;
+                if (mUrl != null) {
+                    if (!sGifCache.contains(mUrl)) {
+                        GifImageView gifImageView = mGifImageViewRef.get();
+                        Context context = gifImageView != null ? gifImageView.getContext() : null;
+                        if (context != null &&
+                                !Utils.Android.isConnectedToWifi(context) &&
+                                !Utils.Android.isConnectedToWired(context) &&
+                                !SettingsFragment.downloadOffWifi(context))
+                            return;
 
-                    InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
-                    if (inputStream != null) {
-                        sGifCache.put(mUrl, inputStream);
-                        inputStream.close();
-                    } else return;
+                        InputStream inputStream = gifDecoder.read(new URL(mUrl).openStream());
+                        if (inputStream != null) {
+                            sGifCache.put(mUrl, inputStream);
+                            inputStream.close();
+                        } else return;
+                    } else {
+                        SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
+                                .getInputStream(mUrl);
+                        gifDecoder.read(streamEntry.getInputStream(), 0);
+                        streamEntry.close();
+                    }
                 } else {
-                    SimpleDiskCache.InputStreamEntry streamEntry = sGifCache
-                            .getInputStream(mUrl);
-                    gifDecoder.read(streamEntry.getInputStream(), 0);
-                    streamEntry.close();
+                    gifDecoder.read(mInputStream, 0);
                 }
+
                 final int frameCount = gifDecoder.getFrameCount();
                 while (!Thread.currentThread().isInterrupted()
                         && mGifImageViewRef.get() != null) {
