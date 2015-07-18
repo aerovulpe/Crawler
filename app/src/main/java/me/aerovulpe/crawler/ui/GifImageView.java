@@ -55,18 +55,19 @@ public class GifImageView extends ImageView {
     }
 
     public void playGif(String url) {
+        stopGif();
         mGifThread = new GifThread(this, url);
         playGif();
     }
 
     public void playGif(InputStream inputStream) {
+        stopGif();
         mGifThread = new GifThread(this, inputStream);
         playGif();
     }
 
     private void playGif() {
         try {
-            stopGif();
             mGifThread.start();
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
