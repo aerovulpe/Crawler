@@ -53,6 +53,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     private static final int CONTEXT_MENU_EDIT = 1;
     private static final int CONTEXT_MENU_DELETE = 2;
     private static final String FIRST_TIME = CrawlerApplication.PACKAGE_NAME + ".FIRST_TIME";
+    public static final String PHOTO_VIEWER_TAG = "photoViewer";
     private FragmentManager mManager;
     private ListView mDrawerList;
     private AccountsAdapter mAccountsAdapter;
@@ -259,7 +260,7 @@ public class MainActivity extends BaseActivity implements PhotoManager, LoaderMa
     public PhotoViewerFragment createPhotoViewerInstance(String albumTitle, boolean isSlideShow) {
         FragmentTransaction fragmentTransaction = mManager.beginTransaction();
         PhotoViewerFragment fragment = PhotoViewerFragment.newInstance(albumTitle);
-        fragmentTransaction.add(R.id.content_frame, fragment, null);
+        fragmentTransaction.add(R.id.content_frame, fragment, PHOTO_VIEWER_TAG);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         mManager.executePendingTransactions();

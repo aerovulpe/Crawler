@@ -38,9 +38,9 @@ import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.OnPhotoClickListener;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
+import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.adapters.PhotoViewerAdapter;
 import me.aerovulpe.crawler.data.Photo;
-import me.aerovulpe.crawler.Utils;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 
@@ -49,6 +49,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
 
     public static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_VIEW.album_title";
+    public static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_VIEW.current_index";
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;
     private int mCurrentPhotoIndex;
@@ -91,9 +93,11 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        if (args != null) {
+        if (args != null)
             mAlbumTitle = args.getString(ARG_ALBUM_TITLE);
-        }
+        if (savedInstanceState != null)
+            mCurrentPhotoIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
+
         mIsFullscreen = getActivity().getSharedPreferences(CrawlerApplication.PACKAGE_NAME,
                 Context.MODE_PRIVATE).getBoolean(CrawlerApplication.PHOTO_FULLSCREEN_KEY, false);
         setHasOptionsMenu(true);
@@ -192,6 +196,12 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_CURRENT_INDEX, mCurrentPhotoIndex);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         ((PhotoManager) getActivity()).setFullScreen(false);
@@ -224,6 +234,8 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Photo currentPhoto = getCurrentPhoto();
+        if (currentPhoto == null) return false;
         switch (item.getItemId()) {
             case PhotoViewerFragment.MENU_ITEM_TOGGLE_SLIDESHOW:
                 toggleSlideShow();
@@ -232,16 +244,16 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
                 toggleDetailViews();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SAVE:
-                if (savePhoto(getCurrentPhoto()) != null)
+                if (savePhoto(currentPhoto) != null)
                     Toast.makeText(getActivity(), getString(R.string.photo_saved), Toast.LENGTH_LONG).show();
                 else
                     Toast.makeText(getActivity(), getString(R.string.photo_save_failed), Toast.LENGTH_LONG).show();
                 return true;
             case PhotoViewerFragment.MENU_ITEM_SHARE:
-                sharePhoto(getCurrentPhoto());
+                sharePhoto(currentPhoto);
                 return true;
             case PhotoViewerFragment.MENU_ITEM_MAKE_WALLPAPER:
-                setAsWallpaper(getCurrentPhoto());
+                setAsWallpaper(currentPhoto);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -398,9 +410,13 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     private Photo getCurrentPhoto() {
-        mCurrentPhotoIndex = mViewPager.getCurrentItem();
         Cursor cursor = ((PhotoViewerAdapter) mViewPager.getAdapter()).getCursor();
-        return cursor.moveToPosition(mCurrentPhotoIndex) ? PhotoViewerFragment.photoFromCursor(cursor) : null;
+        if (cursor == null)
+            return null;
+
+        mCurrentPhotoIndex = mViewPager.getCurrentItem();
+        return cursor.moveToPosition(mCurrentPhotoIndex) ?
+                PhotoViewerFragment.photoFromCursor(cursor) : null;
     }
 
     public void sharePhoto(Photo photo) {
@@ -489,15 +505,16 @@ public class PhotoViewerFragment extends Fragment implements OnPhotoClickListene
     }
 
     public void setCursor(Cursor data) {
-        int currentItem = mViewPager.getCurrentItem();
         ((PhotoViewerAdapter) mViewPager.getAdapter()).swapCursor(data);
-        mViewPager.setCurrentItem(currentItem);
+        if (data != null)
+            mViewPager.setCurrentItem(mCurrentPhotoIndex);
     }
 
     public void setCursor(Cursor data, int pos) {
         PhotoViewerAdapter adapter = (PhotoViewerAdapter) mViewPager.getAdapter();
         adapter.swapCursor(data);
-        mViewPager.setCurrentItem(pos);
+        mCurrentPhotoIndex = pos;
+        mViewPager.setCurrentItem(mCurrentPhotoIndex);
         int loadBufferSize = PhotoViewerAdapter.LOAD_BUFFER_SIZE;
         int posModBufferSize = pos % loadBufferSize;
         if (posModBufferSize != 0 && Math.abs(posModBufferSize - loadBufferSize) > 2)

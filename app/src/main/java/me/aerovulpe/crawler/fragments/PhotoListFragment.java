@@ -30,13 +30,12 @@ import com.google.android.gms.ads.AdView;
 import com.melnykov.fab.FloatingActionButton;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.lang.ref.WeakReference;
-
 import me.aerovulpe.crawler.CrawlerApplication;
 import me.aerovulpe.crawler.PhotoManager;
 import me.aerovulpe.crawler.R;
 import me.aerovulpe.crawler.Utils;
 import me.aerovulpe.crawler.activities.BaseActivity;
+import me.aerovulpe.crawler.activities.MainActivity;
 import me.aerovulpe.crawler.adapters.ThumbnailAdapter;
 import me.aerovulpe.crawler.data.CrawlerContract;
 import me.aerovulpe.crawler.request.DownloaderService;
@@ -118,7 +117,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     };
     private boolean mIsBound;
     private int mIndex;
-    private WeakReference<PhotoViewerFragment> mPhotoViewerInstance;
 
     public PhotoListFragment() {
         // Required empty public constructor
@@ -171,11 +169,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(),
                 CrawlerApplication.getColumnsPerRow(getActivity())));
         mRecyclerView.setAdapter(new ThumbnailAdapter(null, ThumbnailAdapter.TYPE_PHOTOS));
-        if (mPhotoViewerInstance != null) {
-            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
-            if (photoViewerInstance != null)
-                photoViewerInstance.setPhotoListRef(mRecyclerView);
-        }
+        PhotoViewerFragment photoViewerInstance = (PhotoViewerFragment) getFragmentManager()
+                .findFragmentByTag(MainActivity.PHOTO_VIEWER_TAG);
+        if (photoViewerInstance != null)
+            photoViewerInstance.setPhotoListRef(mRecyclerView);
         FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
         fab.attachToRecyclerView(mRecyclerView);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -229,8 +226,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        PhotoViewerFragment photoViewerFragment = mPhotoViewerInstance != null ?
-                mPhotoViewerInstance.get() : null;
+        PhotoViewerFragment photoViewerFragment = (PhotoViewerFragment) getFragmentManager()
+                .findFragmentByTag(MainActivity.PHOTO_VIEWER_TAG);
         if (photoViewerFragment == null || !photoViewerFragment.isResumed())
             menu.add(0, MENU_ITEM_SAVE, 0, getString(R.string.save_photo)).setIcon(android.R.drawable.ic_menu_save)
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -379,7 +376,6 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
                     .createPhotoViewerInstance(mAlbumTitle, isSlideShow);
             photoViewerInstance.setCursor(cursor, initPos);
             photoViewerInstance.setPhotoListRef(mRecyclerView);
-            mPhotoViewerInstance = new WeakReference<>(photoViewerInstance);
             mHasDisplayedPhotos = true;
         }
     }
@@ -395,11 +391,10 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(data);
-        if (mPhotoViewerInstance != null) {
-            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
-            if (photoViewerInstance != null)
-                photoViewerInstance.setCursor(data);
-        }
+        PhotoViewerFragment photoViewerInstance = (PhotoViewerFragment) getFragmentManager()
+                .findFragmentByTag(MainActivity.PHOTO_VIEWER_TAG);
+        if (photoViewerInstance != null)
+            photoViewerInstance.setCursor(data);
         mIsLoading = false;
         if (!mIsRequesting)
             dismissDialog();
@@ -408,10 +403,9 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         ((ThumbnailAdapter) mRecyclerView.getAdapter()).swapCursor(null);
-        if (mPhotoViewerInstance != null) {
-            PhotoViewerFragment photoViewerInstance = mPhotoViewerInstance.get();
-            if (photoViewerInstance != null)
-                photoViewerInstance.setCursor(null);
-        }
+        PhotoViewerFragment photoViewerInstance = (PhotoViewerFragment) getFragmentManager()
+                .findFragmentByTag(MainActivity.PHOTO_VIEWER_TAG);
+        if (photoViewerInstance != null)
+            photoViewerInstance.setCursor(null);
     }
 }
