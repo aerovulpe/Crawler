@@ -53,7 +53,8 @@ public class CrawlerApplication extends Application {
     public static boolean DEBUG_MODE = false;
     private static final String[] sTestDeviceIds = {
             "4B9997A60569F4A5865A1D40BE9B5B97",
-            "61105D9E9F07332601057B30599B0164"
+            "61105D9E9F07332601057B30599B0164",
+            "DF8E85D6D8B2C839B232220A468A8979"
     };
 
     public static void initImageLoader(Context context) {

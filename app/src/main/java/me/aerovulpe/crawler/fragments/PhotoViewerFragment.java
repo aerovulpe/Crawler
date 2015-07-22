@@ -44,12 +44,12 @@ import me.aerovulpe.crawler.data.Photo;
 
 public class PhotoViewerFragment extends Fragment implements OnPhotoClickListener {
 
-    public static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1, MENU_ITEM_SHOW_DETAILS = 2,
+    private static final int MENU_ITEM_TOGGLE_SLIDESHOW = 1, MENU_ITEM_SHOW_DETAILS = 2,
             MENU_ITEM_SAVE = 3, MENU_ITEM_SHARE = 4, MENU_ITEM_MAKE_WALLPAPER = 5;
 
-    public static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_VIEW.album_title";
-    public static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_VIEW.current_index";
     private Timer timerDescriptionScrolling;
     private String mAlbumTitle;

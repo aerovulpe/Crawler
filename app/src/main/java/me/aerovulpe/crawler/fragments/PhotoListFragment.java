@@ -47,14 +47,16 @@ import me.aerovulpe.crawler.request.TumblrRequest;
 
 public class PhotoListFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_ALBUM_TITLE = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_LIST.album_title";
-    public static final String ARG_ALBUM_ID = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_ALBUM_ID = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_LIST.album_id";
-    public static final String ARG_PHOTO_DATA_URL = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_PHOTO_DATA_URL = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_LIST.photo_data_url";
-    public static final String ARG_TYPE = CrawlerApplication.PACKAGE_NAME +
+    private static final String ARG_TYPE = CrawlerApplication.PACKAGE_NAME +
             ".PHOTO_LIST.type";
+    private static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.current_index";
 
     public static final int COL_PHOTO_NAME = 1;
     public static final int COL_PHOTO_TITLE = 2;
@@ -144,6 +146,8 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
             mPhotoDataUrl = args.getString(ARG_PHOTO_DATA_URL);
             mType = args.getInt(ARG_TYPE);
         }
+        if (savedInstanceState != null)
+            mIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
         mRequestData = true;
         setHasOptionsMenu(true);
         setRetainInstance(true);
@@ -263,6 +267,12 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
                 .findFirstCompletelyVisibleItemPosition();
         dismissDialog();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_CURRENT_INDEX, mIndex);
     }
 
     @Override

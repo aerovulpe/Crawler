@@ -36,6 +36,9 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
     private static final String TAG = AlbumListFragment.class.getSimpleName();
     private static final int ALBUMS_LOADER = 3;
 
+    private static final String ARG_CURRENT_INDEX = CrawlerApplication.PACKAGE_NAME +
+            ".PHOTO_LIST.current_index";
+
     private static String[] ALBUMS_COLUMNS = {
             CrawlerContract.AlbumEntry.TABLE_NAME + "." + CrawlerContract.AlbumEntry._ID,
             CrawlerContract.AlbumEntry.COLUMN_ALBUM_NAME,
@@ -71,6 +74,8 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
             mAccountType = args.getInt(AccountsActivity.ARG_ACCOUNT_TYPE);
             mAccountID = args.getString(AccountsActivity.ARG_ACCOUNT_ID);
         }
+        if (savedInstanceState != null)
+            mIndex = savedInstanceState.getInt(ARG_CURRENT_INDEX);
         mRequestData = true;
         setRetainInstance(true);
     }
@@ -136,6 +141,12 @@ public class AlbumListFragment extends Fragment implements LoaderManager.LoaderC
         if (mRecyclerView.getAdapter() == null) return;
         mIndex = ((GridLayoutManager) mRecyclerView.getLayoutManager())
                 .findFirstCompletelyVisibleItemPosition();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_CURRENT_INDEX, mIndex);
     }
 
     /**
