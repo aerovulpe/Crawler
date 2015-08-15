@@ -1,19 +1,3 @@
-/*
- * Copyright 2011 Google Inc.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package me.aerovulpe.crawler;
 
 import android.app.Application;
@@ -40,16 +24,13 @@ import me.aerovulpe.crawler.fragments.SettingsFragment;
 
 public class CrawlerApplication extends Application {
 
-    /**
-     * Used for storing files on the file system as a directory.
-     */
     public static final String PACKAGE_NAME = "me.aerovulpe.crawler";
     /**
      * The size of the album thumbnails (in dp).
      */
     public static final int ALBUM_THUMBNAIL_SIZE = 125;
-    public static final String PHOTO_DETAIL_KEY = "me.aerovulpe.crawler.photo_detail";
-    public static final String PHOTO_FULLSCREEN_KEY = "me.aerovulpe.crawler.photo_fullscreen";
+    public static final String PHOTO_DETAIL_KEY = PACKAGE_NAME + ".photo_detail";
+    public static final String PHOTO_FULLSCREEN_KEY = PACKAGE_NAME + ".photo_fullscreen";
     public static boolean DEBUG_MODE = false;
     private static final String[] sTestDeviceIds = {
             "4B9997A60569F4A5865A1D40BE9B5B97",

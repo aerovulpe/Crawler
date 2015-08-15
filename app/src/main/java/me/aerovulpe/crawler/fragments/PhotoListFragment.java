@@ -370,7 +370,7 @@ public class PhotoListFragment extends Fragment implements LoaderManager.LoaderC
         }
     }
 
-    void doBindService() {
+    private void doBindService() {
         // Establish a connection with the service.  We use an explicit
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
